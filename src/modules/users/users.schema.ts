@@ -6,13 +6,17 @@ export class User extends Document {
   @Prop()
   name: string;
 
-  @Prop({require: true, unique: true,  match: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,})
+  @Prop({
+    require: true,
+    unique: true,
+    match: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,
+  })
   email: string;
 
-  @Prop({require: true, unique: true, minlength: 3})
+  @Prop({ require: true, unique: true, minlength: 3 })
   username: string;
 
-  @Prop({require: true, minlength: 8})
+  @Prop({ require: true, minlength: 8 })
   password: string;
 
   @Prop({ default: 0 })
@@ -23,7 +27,6 @@ export class User extends Document {
 
   @Prop({ type: Object, default: {} })
   profile: Record<string, any>;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
