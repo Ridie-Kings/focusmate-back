@@ -2,10 +2,11 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { Model } from "mongoose";
+import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 
@@ -15,7 +16,6 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
   ) {}
-  tr;
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const user = await this.userModel.create(createUserDto);
@@ -38,8 +38,20 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(term: string) {
+    let user: User;
+
+    if (!user && isValidObjectId(term)) {
+      user = await this.userModel.findById(term);
+    }
+
+    if (!user) {
+      user = await this.userModel.findOne({ username: term.trim() });
+    }
+
+    if (!user)
+      throw new NotFoundException(`User with id or username not found`);
+    return user;
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
