@@ -6,7 +6,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGODB_DATABASE: sherpapp
+      MONGO_INITDB_ROOT_USERNAME: sherpMatt
+      MONGO_INITDB_ROOT_PASSWORD: Mys3cretJuanan
     volumes:
       - ./mongo:/data/db
 
