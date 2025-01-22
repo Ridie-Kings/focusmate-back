@@ -3,7 +3,7 @@ import { Document } from "mongoose";
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop()
+  @Prop({})
   name: string;
 
   @Prop({
@@ -13,10 +13,21 @@ export class User extends Document {
   })
   email: string;
 
-  @Prop({ require: true, unique: true, minlength: 3 })
+  @Prop({
+    required: true,
+    unique: true,
+    minlength: 3,
+    maxlength: 20,
+    match: /^[a-zA-Z0-9_]+$/,
+  })
   username: string;
 
-  @Prop({ require: true, minlength: 8 })
+  @Prop({
+    require: true,
+    minlength: 8,
+    maxlength: 20,
+    match: /^[a-zA-Z0-9_]+$/,
+  })
   password: string;
 
   @Prop({ default: 0 })

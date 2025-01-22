@@ -1,25 +1,25 @@
+import { join } from "path";
 import { Module } from "@nestjs/common";
-import { AppController } from "./app.controller";
-import { AppService } from "./app.service";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ServeStaticModule } from "@nestjs/serve-static";
+import { UsersModule } from "./users/users.module";
 import { MongooseModule } from "@nestjs/mongoose";
-import { UsersModule } from "./modules/users/users.module";
+import { CommonModule } from './common/common.module';
+import { SeedModule } from './seed/seed.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "..", "public"),
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (configService) => ({
-        uri: `mongodb://${configService.get("DB_HOST")}:${configService.get("DB_PORT")}/${configService.get("DB_NAME")}`,
-      }),
-      inject: [ConfigService],
-    }),
+    MongooseModule.forRoot("mongodb://localhost:27017/sherpapp-mongodb"),
+
     UsersModule,
+
+    CommonModule,
+
+    SeedModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

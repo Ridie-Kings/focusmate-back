@@ -43,6 +43,9 @@ $ pnpm run start:dev
 
 # production mode
 $ pnpm run start:prod
+
+# MongoDB image
+$ docker-compose up -d
 ```
 
 ## Test
