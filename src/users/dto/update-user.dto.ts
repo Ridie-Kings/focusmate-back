@@ -11,7 +11,7 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsString()
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   @IsOptional()
-  readonly password?: string;
+  password?: string;
 
   @IsNumber()
   @IsPositive()
@@ -26,5 +26,10 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsNotEmpty()
   @IsOptional()
   readonly profile?: Record<string, any>;
+
+  @IsString()
+  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @IsOptional()
+  readonly new_password?: string;
 
 }

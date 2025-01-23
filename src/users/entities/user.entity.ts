@@ -10,7 +10,7 @@ export class User extends Document {
   name: string;
 
   @Prop({
-    require: true,
+    required: true,
     unique: true,
   })
   email: string;
@@ -24,7 +24,7 @@ export class User extends Document {
   username: string;
 
   @Prop({
-    require: true,
+    required: true,
     minlength: 8,
   })
   password: string;

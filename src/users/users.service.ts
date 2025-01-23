@@ -59,27 +59,39 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
-    
-    this.userModel.findByIdAndUpdate(id, updateUserDto);
-    const user_new = await this.userModel.findById(id);
+    if (updateUserDto.new_password) {
+      if (!updateUserDto.password) {
+        throw new BadRequestException('Password is required');
+      }
+      const user = await this.userModel.findById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      const isValid = await argon2.verify(user.password, updateUserDto.password);
+      if (!isValid) {
+        throw new BadRequestException('Invalid password');
+      }
+      updateUserDto.password = await argon2.hash(updateUserDto.new_password);
+    }
+    const user_new = await this.userModel.findByIdAndUpdate(id, updateUserDto, {new: true});
     return user_new;
   }
 
-  async updateWithPassword(id: string, updateUserDto: UpdateUserDto, password: string): Promise<User>{
-    if (!password) {
-      throw new BadRequestException('Password is required');
-    }
-    const user = await this.userModel.findById(id);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    const isValid = await argon2.verify(user.password, password);
-    if (!isValid) {
-      throw new BadRequestException('Invalid password');
-    }
-    const user_update = await this.userModel.findByIdAndUpdate(id, updateUserDto);
-    return user_update;
-  }
+  // async updateWithPassword(id: string, updateUserDto: UpdateUserDto, password: string): Promise<User>{
+  //   if (!password) {
+  //     throw new BadRequestException('Password is required');
+  //   }
+  //   const user = await this.userModel.findById(id);
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
+  //   const isValid = await argon2.verify(user.password, password);
+  //   if (!isValid) {
+  //     throw new BadRequestException('Invalid password');
+  //   }
+  //   const user_update = await this.userModel.findByIdAndUpdate(id, updateUserDto);
+  //   return user_update;
+  // }
 
   remove(id: string) {
     return `This action removes a #${id} user`;

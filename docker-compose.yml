@@ -4,11 +4,9 @@ services:
     restart: always
     container_name: sherpapp-mongodb
     ports:
-      - "27017:27017"
+      - 27017:27017
     environment:
       MONGODB_DATABASE: sherpapp
     volumes:
       - ./mongo:/data/db
 
-volumes:
-  mongo-data:

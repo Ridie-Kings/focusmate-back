@@ -28,11 +28,6 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Patch(':id')
-  updateWithPassword(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Body('password') password: string) {
-    return this.usersService.updateWithPassword(id, updateUserDto, password);
-  }
-
   @Delete(':id') // PREGUNTAR AL CAPI - 
   remove(@Param('id', ParseMongoIdPipe) id: string) {
     return this.usersService.remove(id);
