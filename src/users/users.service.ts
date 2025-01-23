@@ -9,6 +9,7 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
+import * as argon2 from "argon2";
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,8 @@ export class UsersService {
   ) {}
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
+      const password = await argon2.hash(createUserDto.password); //argon2.verify(storedPass, candidatePass)
+      createUserDto.password = password;
       const user = await this.userModel.create(createUserDto);
 
       return user;

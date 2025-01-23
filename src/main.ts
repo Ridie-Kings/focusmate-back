@@ -7,7 +7,7 @@ console.log(NestFactory);
 async function sherpmain() {
   console.log("Starting the application");
   const app = await NestFactory.create(AppModule);
-  //   app.setGlobalPrefix("api/v2");
+  //app.setGlobalPrefix('api/v2');
   app.useGlobalPipes(new ValidationPipe());
   new ValidationPipe({
     whitelist: true,
