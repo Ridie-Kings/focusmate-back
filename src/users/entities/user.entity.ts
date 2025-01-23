@@ -24,7 +24,7 @@ export class User extends Document {
   username: string;
 
   @Prop({
-    require: true,
+    required: true,
     minlength: 8,
   })
   password: string;
