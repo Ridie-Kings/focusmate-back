@@ -3,7 +3,10 @@ import { Document } from "mongoose";
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({})
+  @Prop({
+    required: true,
+    minlength: 3,
+  })
   name: string;
 
   @Prop({

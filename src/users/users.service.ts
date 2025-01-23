@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -57,11 +58,36 @@ export class UsersService {
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    
+    this.userModel.findByIdAndUpdate(id, updateUserDto);
+    const user_new = await this.userModel.findById(id);
+    return user_new;
+  }
+
+  async updateWithPassword(id: string, updateUserDto: UpdateUserDto, password: string): Promise<User>{
+    if (!password) {
+      throw new BadRequestException('Password is required');
+    }
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const isValid = await argon2.verify(user.password, password);
+    if (!isValid) {
+      throw new BadRequestException('Invalid password');
+    }
+    const user_update = await this.userModel.findByIdAndUpdate(id, updateUserDto);
+    return user_update;
   }
 
   remove(id: string) {
     return `This action removes a #${id} user`;
   }
+
+  /*TODO
+   - login
+  
+   
+  */
 }
