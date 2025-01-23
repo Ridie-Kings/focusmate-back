@@ -19,4 +19,8 @@ export class CreateUserDto {
   @IsNotEmpty({ message: "Password is required" })
   @MinLength(8, { message: 'Password must be at least 8 characters long' })
   password: string;
+
+  @IsString()
+  @IsNotEmpty({ message: "Name is required" })
+  readonly name: string;
 }
