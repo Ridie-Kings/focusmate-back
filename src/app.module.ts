@@ -4,6 +4,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { UsersModule } from "./users/users.module";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CommonModule } from './common/common.module';
+import { AuthModule } from './auth/auth.module';
 
 
 @Module({
@@ -17,6 +18,8 @@ import { CommonModule } from './common/common.module';
     UsersModule,
 
     CommonModule,
+
+    AuthModule,
 
   ],
   controllers: [],
