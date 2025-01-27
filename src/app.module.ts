@@ -3,7 +3,13 @@ import { Module } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { UsersModule } from "./users/users.module";
 import { MongooseModule } from "@nestjs/mongoose";
+<<<<<<< HEAD
 import { CommonModule } from "./common/common.module";
+=======
+import { CommonModule } from './common/common.module';
+import { AuthModule } from './auth/auth.module';
+
+>>>>>>> origin/juanan_branch
 
 @Module({
   imports: [
@@ -18,6 +24,12 @@ import { CommonModule } from "./common/common.module";
     UsersModule,
 
     CommonModule,
+<<<<<<< HEAD
+=======
+
+    AuthModule,
+
+>>>>>>> origin/juanan_branch
   ],
   controllers: [],
   providers: [],

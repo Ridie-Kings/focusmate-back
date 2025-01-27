@@ -77,29 +77,12 @@ export class UsersService {
     return user_new;
   }
 
-  // async updateWithPassword(id: string, updateUserDto: UpdateUserDto, password: string): Promise<User>{
-  //   if (!password) {
-  //     throw new BadRequestException('Password is required');
-  //   }
-  //   const user = await this.userModel.findById(id);
-  //   if (!user) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  //   const isValid = await argon2.verify(user.password, password);
-  //   if (!isValid) {
-  //     throw new BadRequestException('Invalid password');
-  //   }
-  //   const user_update = await this.userModel.findByIdAndUpdate(id, updateUserDto);
-  //   return user_update;
-  // }
-
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async remove(id: string){
+    const user = await this.userModel.findById(id);
+    if (!isValidObjectId(id) || !user) {
+      throw new BadRequestException('Invalid id or user not found');
+    }
+    await this.userModel.findByIdAndDelete(id);
+    return user;
   }
-
-  /*TODO
-   - login
-  
-   
-  */
 }

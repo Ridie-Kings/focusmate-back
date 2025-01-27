@@ -24,11 +24,11 @@ export class UsersController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+  update(@Param('id', ParseMongoIdPipe) id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(':id') // PREGUNTAR AL CAPI - 
+  @Delete(':id')
   remove(@Param('id', ParseMongoIdPipe) id: string) {
     return this.usersService.remove(id);
   }
