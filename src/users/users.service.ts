@@ -31,7 +31,6 @@ export class UsersService {
           `User already exists ${JSON.stringify(error.keyValue)}`,
         );
       }
-      console.log(error);
       throw new InternalServerErrorException(
         `Error creating user - Check server logs`,
       );
@@ -72,6 +71,7 @@ export class UsersService {
         throw new BadRequestException('Invalid password');
       }
       updateUserDto.password = await argon2.hash(updateUserDto.new_password);
+      // delete updateUserDto.new_password;
     }
     const user_new = await this.userModel.findByIdAndUpdate(id, updateUserDto, {new: true});
     return user_new;
