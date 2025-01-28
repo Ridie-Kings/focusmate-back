@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -30,7 +31,6 @@ export class UsersService {
           `User already exists ${JSON.stringify(error.keyValue)}`,
         );
       }
-      console.log(error);
       throw new InternalServerErrorException(
         `Error creating user - Check server logs`,
       );
@@ -47,21 +47,50 @@ export class UsersService {
     if (!user && isValidObjectId(term)) {
       user = await this.userModel.findById(term);
     }
+    if (!user) {
+      user = await this.userModel.findOne({ email: term.trim() });
+    }
 
     if (!user) {
       user = await this.userModel.findOne({ username: term.trim() });
     }
 
     if (!user)
-      throw new NotFoundException(`User with id or username not found`);
+      throw new NotFoundException(`User with id, email, or username not found`);
     return user;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    if (updateUserDto.updatedPassword) {
+      if (!updateUserDto.password) {
+        throw new BadRequestException("Password is required");
+      }
+      const user = await this.userModel.findById(id);
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+      const isValid = await argon2.verify(
+        user.password,
+        updateUserDto.password,
+      );
+      if (!isValid) {
+        throw new BadRequestException("Invalid password");
+      }
+      updateUserDto.password = await argon2.hash(updateUserDto.updatedPassword);
+      // delete updateUserDto.updatedPassword;
+    }
+    const user_new = await this.userModel.findByIdAndUpdate(id, updateUserDto, {
+      new: true,
+    });
+    return user_new;
   }
 
-  remove(id: string) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    const user = await this.userModel.findById(id);
+    if (!isValidObjectId(id) || !user) {
+      throw new BadRequestException("Invalid id or user not found");
+    }
+    await this.userModel.findByIdAndDelete(id);
+    return user;
   }
 }

@@ -3,11 +3,14 @@ import { Document } from "mongoose";
 
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({})
+  @Prop({
+    required: true,
+    minlength: 3,
+  })
   name: string;
 
   @Prop({
-    require: true,
+    required: true,
     unique: true,
   })
   email: string;
@@ -16,12 +19,12 @@ export class User extends Document {
     required: true,
     unique: true,
     minlength: 3,
-    maxlength: 20, //revisar
+    maxlength: 128, //revisar
   })
   username: string;
 
   @Prop({
-    require: true,
+    required: true,
     minlength: 8,
   })
   password: string;
@@ -34,6 +37,9 @@ export class User extends Document {
 
   @Prop({ type: Object, default: {} }) //USAR INTERFAZ??
   profile: Record<string, any>; //imagen, descripcion, etc
+
+  @Prop({ default: null })
+  refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -1,17 +1,24 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateUserDto } from './create-user.dto';
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString, MinLength } from 'class-validator';
+import { PartialType } from "@nestjs/mapped-types";
+import { CreateUserDto } from "./create-user.dto";
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+  MinLength,
+} from "class-validator";
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
-
   @IsEmail()
   @IsOptional()
   readonly email?: string;
 
   @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
+  @MinLength(8, { message: "Password must be at least 8 characters long" })
   @IsOptional()
-  readonly password?: string;
+  password?: string;
 
   @IsNumber()
   @IsPositive()
@@ -27,4 +34,12 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @IsOptional()
   readonly profile?: Record<string, any>;
 
+  @IsString()
+  @MinLength(8, { message: "Password must be at least 8 characters long" })
+  @IsOptional()
+  readonly updatedPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  refreshToken?: string;
 }
