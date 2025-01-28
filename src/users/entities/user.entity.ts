@@ -37,6 +37,9 @@ export class User extends Document {
 
   @Prop({ type: Object, default: {} }) //USAR INTERFAZ??
   profile: Record<string, any>; //imagen, descripcion, etc
+
+  @Prop({ default: null })
+  refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -38,4 +38,8 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @IsOptional()
   readonly updatedPassword?: string;
+
+  @IsOptional()
+  @IsString()
+  refreshToken?: string;
 }

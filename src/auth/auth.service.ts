@@ -36,8 +36,16 @@ export class AuthService {
     console.log("JWT_SECRET before signing token:", process.env.JWT_SECRET);
 
     const payload = { sub: user._id, email: user.email };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+
+    // 🔹 Generar Access Token (expira en 12h)
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+
+    // 🔹 Generar Refresh Token (expira en 7 días)
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+
+    // 🔹 Guardar Refresh Token en la base de datos
+    await this.usersService.update(user._id.toString(), { refreshToken });
+
+    return { access_token: accessToken, refresh_token: refreshToken };
   }
 }
