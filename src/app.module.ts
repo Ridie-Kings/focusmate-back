@@ -12,7 +12,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     ThrottlerModule.forRoot({
       throttlers: [
         {
-          ttl: 60, // 1 minute
+          ttl: 60000, // 1 minute
           limit: 20, // limit each IP to 100 requests per minute
         },
       ],

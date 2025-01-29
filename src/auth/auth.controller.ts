@@ -13,7 +13,7 @@ export class AuthController {
     return this.authService.register(createUserDto);
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60 } }) // 1 request per minute
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 1 request per minute
   @Post("login")
   async login(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
