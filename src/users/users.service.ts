@@ -11,6 +11,7 @@ import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
+import {sanitizeHtml} from "sanitize-html";
 
 @Injectable()
 export class UsersService {
@@ -20,10 +21,15 @@ export class UsersService {
   ) {}
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
-      const password = await argon2.hash(createUserDto.password); //argon2.verify(storedPass, candidatePass)
-      createUserDto.password = password;
-      const user = await this.userModel.create(createUserDto);
+      // 🔹 Sanitizar los inputs antes de guardarlos
+      createUserDto.username = sanitizeHtml(createUserDto.username);
+      createUserDto.name = sanitizeHtml(createUserDto.name);
+      createUserDto.email = sanitizeHtml(createUserDto.email);
 
+      // 🔹 Hashear la contraseña antes de guardarla
+      createUserDto.password = await argon2.hash(createUserDto.password);
+
+      const user = await this.userModel.create(createUserDto);
       return user;
     } catch (error) {
       if (error.code === 11000) {

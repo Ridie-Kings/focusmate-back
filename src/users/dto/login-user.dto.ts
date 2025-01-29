@@ -7,7 +7,7 @@ import {
 
 export class LoginUserDto {
   @IsEmail({}, { message: "invalid email format" })
-  readonly email: string;
+  email: string;
 
   @IsString()
   @IsNotEmpty({ message: "Password is required" })

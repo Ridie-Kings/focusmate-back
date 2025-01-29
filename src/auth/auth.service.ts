@@ -4,6 +4,7 @@ import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { LoginUserDto } from "src/users/dto/login-user.dto";
 import * as argon2 from "argon2";
+import {sanitizeHtml} from "sanitize-html"
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,8 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto) {
     console.log("Login request received:", loginUserDto);
+
+    loginUserDto.email = sanitizeHtml(loginUserDto.email);
 
     const { email, password } = loginUserDto;
     const user = await this.usersService.findOne(email);

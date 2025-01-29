@@ -9,11 +9,11 @@ import {
 
 export class CreateUserDto {
   @IsEmail({}, { message: "invalid email format" })
-  readonly email: string;
+   email: string;
 
   @IsString()
   @IsNotEmpty({ message: "Username is required" })
-  readonly username: string;
+   username: string;
 
   @IsString()
   @IsNotEmpty({ message: "Password is required" })
@@ -22,5 +22,5 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty({ message: "Name is required" })
-  readonly name: string;
+   name: string;
 }
