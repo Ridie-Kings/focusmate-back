@@ -16,11 +16,11 @@ export class DictsService {
     return `This action returns a #${term} dict`;
   }
 
-  update(id: number, updateDictDto: UpdateDictDto) {
+  update(id: string, updateDictDto: UpdateDictDto) {
     return `This action updates a #${id} dict`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} dict`;
   }
 }

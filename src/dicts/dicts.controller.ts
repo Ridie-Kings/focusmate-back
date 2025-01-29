@@ -26,11 +26,11 @@ export class DictsController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateDictDto: UpdateDictDto) {
-    return this.dictsService.update(+id, updateDictDto);
+    return this.dictsService.update(id, updateDictDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.dictsService.remove(+id);
+    return this.dictsService.remove(id);
   }
 }
