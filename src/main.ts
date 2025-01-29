@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
+import  helmet from "helmet";
 
 // Carga las variables de entorno
 config();
@@ -10,6 +11,7 @@ async function sherpmain() {
   console.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
+  app.use(helmet()); // Seguridad HTTP
 
   // Configuración global de validaciones
   app.useGlobalPipes(
