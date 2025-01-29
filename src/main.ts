@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import helmet from "helmet";
 import * as cookieParser from "cookie-parser"; // Necesario para CSRF
 import { doubleCsrf } from "csrf-csrf";
+import { ThrottlerGuard } from "@nestjs/throttler";
 
 // Carga las variables de entorno
 config();
@@ -26,16 +27,17 @@ async function sherpmain() {
     credentials: true, // Permitir enviar cookies
   });
 
+
   // Configuración de CSRF
-  const { doubleCsrfProtection, generateToken, validateRequest } = doubleCsrf({
-    getSecret: () => process.env.CSRF_SECRET || "default_secret", // Usa una variable de entorno segura
-    cookieName: "XSRF-TOKEN", // Nombre de la cookie con el token CSRF
-    size: 64, // Tamaño del token
-    ignoredMethods: ["GET", "HEAD", "OPTIONS"], // No proteger estos métodos
-  });
+  // const { doubleCsrfProtection, generateToken, validateRequest } = doubleCsrf({
+  //   getSecret: () => process.env.CSRF_SECRET || "default_secret", // Usa una variable de entorno segura
+  //   cookieName: "XSRF-TOKEN", // Nombre de la cookie con el token CSRF
+  //   size: 64, // Tamaño del token
+  //   ignoredMethods: ["GET", "HEAD", "OPTIONS"], // No proteger estos métodos
+  // });
 
   // Aplicar protección CSRF
-  app.use(doubleCsrfProtection);
+  // app.use(doubleCsrfProtection);
 
   // Configuración global de validaciones
   app.useGlobalPipes(
