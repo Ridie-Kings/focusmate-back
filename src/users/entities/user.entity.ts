@@ -18,8 +18,6 @@ export class User extends Document {
   @Prop({
     required: true,
     unique: true,
-    minlength: 3,
-    maxlength: 128, //revisar
   })
   username: string;
 
