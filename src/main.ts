@@ -20,6 +20,12 @@ async function sherpmain() {
   // Middleware para leer cookies (NECESARIO para CSRF)
   app.use(cookieParser());
 
+  app.enableCors({
+    origin: ["http://localhost:3000"], // Dominio o lista de dominios permitidos
+    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
+    credentials: true, // Permitir enviar cookies
+  });
+
   // Configuración de CSRF
   const { doubleCsrfProtection, generateToken, validateRequest } = doubleCsrf({
     getSecret: () => process.env.CSRF_SECRET || "default_secret", // Usa una variable de entorno segura
