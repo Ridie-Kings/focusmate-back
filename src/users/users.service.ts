@@ -18,6 +18,7 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
   ) {}
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       const password = await argon2.hash(createUserDto.password); //argon2.verify(storedPass, candidatePass)
@@ -37,11 +38,11 @@ export class UsersService {
     }
   }
 
-  findAll() {
+  async findAll(): Promise<User[]> {
     return this.userModel.find();
   }
 
-  async findOne(term: string) {
+  async findOne(term: string): Promise<User> {
     let user: User;
 
     if (!user && isValidObjectId(term)) {
@@ -85,7 +86,7 @@ export class UsersService {
     return user_new;
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<User> {
     const user = await this.userModel.findById(id);
     if (!isValidObjectId(id) || !user) {
       throw new BadRequestException("Invalid id or user not found");

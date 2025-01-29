@@ -3,6 +3,8 @@ import { DictsService } from './dicts.service';
 import { CreateDictDto } from './dto/create-dict.dto';
 import { UpdateDictDto } from './dto/update-dict.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import { Dict } from './entities/dict.entity';
 
 @Controller('dicts')
 @UseGuards(JwtAuthGuard)
@@ -10,27 +12,32 @@ export class DictsController {
   constructor(private readonly dictsService: DictsService) {}
 
   @Post()
-  async create(@Req() req, @Body() createDictDto: CreateDictDto) {
+  async create(@Req() req, @Body() createDictDto: CreateDictDto): Promise<Dict>{
     return this.dictsService.create(req.user.userId, createDictDto);
   }
 
   @Get()
-  async findAll(@Req() req) {
-    return this.dictsService.findAll(req.user.userId);
+  async findAll(@Req() req): Promise<Dict[]> {
+    return this.dictsService.findMine(req.user.userId);
+  }
+
+  @Get('all')
+  async findAllPublic(): Promise<Dict[]> {
+    return this.dictsService.findAll();
   }
 
   @Get(':term')
-  findOne(@Param('term') term: string) {
+  async findOne(@Param('term') term: string): Promise<Dict> {
     return this.dictsService.findOne(term);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDictDto: UpdateDictDto) {
+  async update(@Param('id', ParseMongoIdPipe) id: string, @Body() updateDictDto: UpdateDictDto): Promise<Dict>{
     return this.dictsService.update(id, updateDictDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseMongoIdPipe) id: string): Promise<Dict>{
     return this.dictsService.remove(id);
   }
 }

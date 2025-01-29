@@ -1,6 +1,17 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
+class Profile{
+  @Prop()
+  image: string;
+
+  @Prop()
+  description: string;
+
+  @Prop()
+  banner: string;
+}
+
 @Schema({ timestamps: true })
 export class User extends Document {
   @Prop({
@@ -31,8 +42,8 @@ export class User extends Document {
   @Prop({ default: 1 })
   level: number;
 
-  @Prop({ type: Object, default: {} }) //USAR INTERFAZ??
-  profile: Record<string, any>; //imagen, descripcion, etc
+  @Prop({ type: Profile, default: {} }) //USAR INTERFAZ??
+  profile: Profile[]; //imagen, descripcion, etc
 
   @Prop({ default: null })
   refreshToken: string;
