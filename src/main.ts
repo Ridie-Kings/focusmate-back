@@ -2,7 +2,9 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
-import  helmet from "helmet";
+import helmet from "helmet";
+import * as cookieParser from "cookie-parser"; // Necesario para CSRF
+import { doubleCsrf } from "csrf-csrf";
 
 // Carga las variables de entorno
 config();
@@ -11,7 +13,23 @@ async function sherpmain() {
   console.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
-  app.use(helmet()); // Seguridad HTTP
+
+  // Middleware de seguridad HTTP
+  app.use(helmet());
+
+  // Middleware para leer cookies (NECESARIO para CSRF)
+  app.use(cookieParser());
+
+  // Configuración de CSRF
+  const { doubleCsrfProtection, generateToken, validateRequest } = doubleCsrf({
+    getSecret: () => process.env.CSRF_SECRET || "default_secret", // Usa una variable de entorno segura
+    cookieName: "XSRF-TOKEN", // Nombre de la cookie con el token CSRF
+    size: 64, // Tamaño del token
+    ignoredMethods: ["GET", "HEAD", "OPTIONS"], // No proteger estos métodos
+  });
+
+  // Aplicar protección CSRF
+  app.use(doubleCsrfProtection);
 
   // Configuración global de validaciones
   app.useGlobalPipes(
