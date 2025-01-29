@@ -19,9 +19,9 @@ export class DictsController {
     return this.dictsService.findAll(req.user.userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.dictsService.findOne(id);
+  @Get(':term')
+  findOne(@Param('term') term: string) {
+    return this.dictsService.findOne(term);
   }
 
   @Patch(':id')

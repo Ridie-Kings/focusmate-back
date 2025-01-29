@@ -5,7 +5,6 @@ import { Document } from "mongoose";
 export class User extends Document {
   @Prop({
     required: true,
-    minlength: 3,
   })
   name: string;
 
@@ -23,7 +22,6 @@ export class User extends Document {
 
   @Prop({
     required: true,
-    minlength: 8,
   })
   password: string;
 
