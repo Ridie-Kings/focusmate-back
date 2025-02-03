@@ -3,9 +3,7 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
 import helmet from "helmet";
-import * as cookieParser from "cookie-parser"; // Necesario para CSRF
-import { doubleCsrf } from "csrf-csrf";
-import { ThrottlerGuard } from "@nestjs/throttler";
+import { rateLimit } from "express-rate-limit";
 
 // Carga las variables de entorno
 config();
@@ -18,26 +16,21 @@ async function sherpmain() {
   // Middleware de seguridad HTTP
   app.use(helmet());
 
-  // Middleware para leer cookies (NECESARIO para CSRF)
-  app.use(cookieParser());
-
+  // Middleware de seguridad CORS
   app.enableCors({
     origin: ["http://localhost:3000"], // Dominio o lista de dominios permitidos
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
 
-
-  // Configuración de CSRF
-  // const { doubleCsrfProtection, generateToken, validateRequest } = doubleCsrf({
-  //   getSecret: () => process.env.CSRF_SECRET || "default_secret", // Usa una variable de entorno segura
-  //   cookieName: "XSRF-TOKEN", // Nombre de la cookie con el token CSRF
-  //   size: 64, // Tamaño del token
-  //   ignoredMethods: ["GET", "HEAD", "OPTIONS"], // No proteger estos métodos
-  // });
-
-  // Aplicar protección CSRF
-  // app.use(doubleCsrfProtection);
+  // configuracón de Rate Limiting ()
+  app.use(
+    rateLimit({
+      windowMs: 60 * 1000, // 1 minuto
+      max: 10000, // Máximo 10,000 solicitudes en total por minuto
+      message: "Global API limit reached. Please try again later.",
+    }),
+  );
 
   // Configuración global de validaciones
   app.useGlobalPipes(
