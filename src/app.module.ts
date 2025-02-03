@@ -5,18 +5,19 @@ import { UsersModule } from "./users/users.module";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CommonModule } from "./common/common.module";
 import { AuthModule } from "./auth/auth.module";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { APP_GUARD } from "@nestjs/core";
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot({
-      throttlers: [
-        {
-          ttl: 60000, // 1 minute
-          limit: 20, // limit each IP to 100 requests per minute
-        },
-      ],
-    }),
+    ThrottlerModule.forRoot([
+      {
+        name: "default",
+        ttl: 60000, // 1 minute
+        limit: 10,
+      },
+    ]),
+
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "..", "public"),
     }),
@@ -31,6 +32,11 @@ import { ThrottlerModule } from "@nestjs/throttler";
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
