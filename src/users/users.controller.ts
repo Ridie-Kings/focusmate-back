@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, Validation
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import { SkipThrottle } from '@nestjs/throttler';
 import { User } from './entities/user.entity';
 
 @Controller('users')
@@ -12,7 +13,7 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserDto): Promise<User>{
     return this.usersService.create(createUserDto);
   }
-
+  
   @Get()
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();

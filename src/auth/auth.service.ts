@@ -4,13 +4,13 @@ import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { LoginUserDto } from "src/users/dto/login-user.dto";
 import * as argon2 from "argon2";
-
+import {sanitizeHtml} from "sanitize-html"
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtService: JwtService, // Importamos JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -19,6 +19,8 @@ export class AuthService {
 
   async login(loginUserDto: LoginUserDto) {
     console.log("Login request received:", loginUserDto);
+
+    loginUserDto.email = sanitizeHtml(loginUserDto.email);
 
     const { email, password } = loginUserDto;
     const user = await this.usersService.findOne(email);
@@ -47,6 +49,9 @@ export class AuthService {
     // 🔹 Guardar Refresh Token en la base de datos
     await this.usersService.update(user._id.toString(), { refreshToken });
 
-    return { access_token: accessToken, refresh_token: refreshToken };
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 }
