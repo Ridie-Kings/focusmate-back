@@ -11,7 +11,9 @@ import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
-import {sanitizeHtml} from "sanitize-html";
+import * as sanitizeHtml from "sanitize-html";
+import { Types } from "mongoose";
+
 
 @Injectable()
 export class UsersService {
@@ -32,6 +34,7 @@ export class UsersService {
       const user = await this.userModel.create(createUserDto);
       return user;
     } catch (error) {
+      console.error("❌ ERROR en create():", error);
       if (error.code === 11000) {
         throw new BadRequestException(
           `User already exists ${JSON.stringify(error.keyValue)}`,
@@ -48,11 +51,15 @@ export class UsersService {
   }
 
   async findOne(term: string) {
-    let user: User;
+    console.log("📌 findOne() buscando con:", term);
 
-    if (!user && isValidObjectId(term)) {
+    let user: User | null = null;
+
+    // 🔥 Convertir `_id` a ObjectId si es necesario
+    if (isValidObjectId(term)) {
       user = await this.userModel.findById(term);
     }
+
     if (!user) {
       user = await this.userModel.findOne({ email: term.trim() });
     }
@@ -61,8 +68,7 @@ export class UsersService {
       user = await this.userModel.findOne({ username: term.trim() });
     }
 
-    if (!user)
-      throw new NotFoundException(`User with id, email, or username not found`);
+    console.log("📌 Resultado de findOne():", user);
     return user;
   }
 
@@ -89,6 +95,30 @@ export class UsersService {
       new: true,
     });
     return user_new;
+  }
+
+  async getProfile(id: string) {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    console.log("get profile");
+    return user.profile;
+  }
+
+  async updateProfile(userId: string, updateData: any) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    // 🔹 Actualizar solo los campos de `profile`
+    if (updateData.bio) user.profile.bio = updateData.bio;
+    if (updateData.avatar) user.profile.avatar = updateData.avatar;
+    if (updateData.settings) user.profile.settings = updateData.settings;
+
+    await user.save();
+    return { message: "Profile updated successfully", profile: user.profile };
   }
 
   async remove(id: string) {

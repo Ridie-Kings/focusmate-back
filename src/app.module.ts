@@ -7,6 +7,7 @@ import { CommonModule } from "./common/common.module";
 import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 
 @Module({
   imports: [
@@ -36,6 +37,10 @@ import { APP_GUARD } from "@nestjs/core";
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
     },
   ],
 })

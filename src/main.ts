@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 // Carga las variables de entorno
 config();
@@ -41,6 +42,14 @@ async function sherpmain() {
     }),
   );
 
+  const config = new DocumentBuilder()
+    .setTitle("SherpApp API")
+    .setDescription("API documentation for SherpApp")
+    .setVersion("1.0")
+    .addBearerAuth() // Para que se pueda autenticar con JWT
+    .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup("api/docs", app, document);
   const PORT = process.env.PORT ?? 3000;
   await app.listen(PORT);
 
