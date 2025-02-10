@@ -8,10 +8,10 @@ import { JwtModule } from "@nestjs/jwt";
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    JwtModule.register({}), // ✅ Asegurar que JwtModule esté disponible
+    JwtModule.register({}),
   ],
   controllers: [UsersController],
   providers: [UsersService],
-  exports: [UsersService], // ✅ Asegurar que se pueda usar en otros módulos
+  exports: [UsersService],
 })
 export class UsersModule {}

@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateReminderDto } from "./dto/create-reminder.dto";
 import { UpdateReminderDto } from "./dto/update-reminder.dto";
 import { Reminder, ReminderDocument } from "./entities/reminder.entity";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, isValidObjectId } from "mongoose";
 
 @Injectable()
 export class ReminderService {
@@ -15,12 +21,16 @@ export class ReminderService {
     createReminderDto: CreateReminderDto,
     userId: string,
   ): Promise<Reminder> {
-    const reminder = new this.reminderModel({
-      ...createReminderDto,
-      user: userId,
-    });
+    try {
+      const reminder = new this.reminderModel({
+        ...createReminderDto,
+        user: userId,
+      });
 
-    return reminder.save();
+      return await reminder.save();
+    } catch (error) {
+      throw new InternalServerErrorException("Error creating reminder");
+    }
   }
 
   async findAll(userId: string): Promise<Reminder[]> {
@@ -28,12 +38,22 @@ export class ReminderService {
   }
 
   async findOne(id: string, userId: string): Promise<Reminder> {
-    const reminder = await this.reminderModel
-      .findOne({ _id: id, user: userId })
-      .exec();
-    if (!reminder) {
-      throw new Error("Reminder not found");
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException("Invalid reminder ID");
     }
+
+    const reminder = await this.reminderModel.findById(id).exec();
+
+    if (!reminder) {
+      throw new NotFoundException("Reminder not found");
+    }
+
+    if (reminder.user.toString() !== userId) {
+      throw new ForbiddenException(
+        "You do not have permission to access this reminder",
+      );
+    }
+
     return reminder;
   }
 
@@ -42,25 +62,52 @@ export class ReminderService {
     userId: string,
     updateReminderDto: UpdateReminderDto,
   ): Promise<Reminder> {
-    const updatedReminder = await this.reminderModel
-      .findOneAndUpdate({ _id: id, user: userId }, updateReminderDto, {
-        new: true,
-      })
-      .exec();
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException("Invalid reminder ID");
+    }
 
-    if (!updatedReminder) {
+    const reminder = await this.reminderModel.findById(id).exec();
+
+    if (!reminder) {
       throw new NotFoundException("Reminder not found");
     }
 
-    return updatedReminder;
+    if (reminder.user.toString() !== userId) {
+      throw new ForbiddenException(
+        "You do not have permission to update this reminder",
+      );
+    }
+
+    try {
+      return await this.reminderModel
+        .findByIdAndUpdate(id, updateReminderDto, { new: true })
+        .exec();
+    } catch (error) {
+      throw new InternalServerErrorException("Error updating reminder");
+    }
   }
 
   async remove(id: string, userId: string): Promise<void> {
-    const result = await this.reminderModel
-      .deleteOne({ _id: id, user: userId })
-      .exec();
-    if (result.deletedCount === 0) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException("Invalid reminder ID");
+    }
+
+    const reminder = await this.reminderModel.findById(id).exec();
+
+    if (!reminder) {
       throw new NotFoundException("Reminder not found");
+    }
+
+    if (reminder.user.toString() !== userId) {
+      throw new ForbiddenException(
+        "You do not have permission to delete this reminder",
+      );
+    }
+
+    try {
+      await this.reminderModel.deleteOne({ _id: id }).exec();
+    } catch (error) {
+      throw new InternalServerErrorException("Error deleting reminder");
     }
   }
 }
