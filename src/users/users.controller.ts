@@ -45,6 +45,14 @@ export class UsersController {
   findAll() {
     return this.usersService.findAll();
   }
+  @ApiBearerAuth()
+  @Get(":term")
+  @ApiOperation({ summary: "Find a user by ID, email, or username" })
+  @ApiResponse({ status: 200, description: "User found successfully" })
+  @ApiResponse({ status: 404, description: "User not found" })
+  findOne(@Param("term") term: string) {
+    return this.usersService.findOne(term);
+  }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth() // 📌 Requires JWT authentication
@@ -77,14 +85,6 @@ export class UsersController {
       message: "User profile retrieved successfully",
       profile: user.profile || {}, // ✅ Prevents errors if `profile` is undefined
     };
-  }
-
-  @Get(":term")
-  @ApiOperation({ summary: "Find a user by ID, email, or username" })
-  @ApiResponse({ status: 200, description: "User found successfully" })
-  @ApiResponse({ status: 404, description: "User not found" })
-  findOne(@Param("term") term: string) {
-    return this.usersService.findOne(term);
   }
 
   @Patch(":id")

@@ -1,27 +1,28 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { PassportStrategy } from "@nestjs/passport";
 import { ExtractJwt, Strategy } from "passport-jwt";
-import { UsersService } from "src/users/users.service";
+import { User } from "src/users/entities/user.entity";
+import { InjectModel } from "@nestjs/mongoose";
+import { Model } from "mongoose";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly usersService: UsersService) {
+  constructor(
+    private configService: ConfigService,
+    @InjectModel(User.name) private userModel: Model<User>,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || "default_secret",
+      secretOrKey: configService.get<string>("JWT_SECRET"),
     });
   }
 
-async validate(payload: any) {
-  console.log("📌 Payload recibido en validate:", payload);
-
-  const user = await this.usersService.findOne(payload.sub);
-  console.log("📌 Usuario encontrado en DB:", user);
-
-  if (!user) {
-    throw new UnauthorizedException("User not found in database");
+  async validate(payload: { sub: string }): Promise<User> {
+    const user = await this.userModel.findById(payload.sub).select("-password");
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+    return user;
   }
-
-  return { _id: user._id.toString(), email: user.email }; // ✅ Asegura que `_id` es string
-}}
+}

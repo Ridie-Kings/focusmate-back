@@ -8,6 +8,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { ReminderModule } from './reminder/reminder.module';
 
 @Module({
   imports: [
@@ -31,6 +32,8 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
     CommonModule,
 
     AuthModule,
+
+    ReminderModule,
   ],
   controllers: [],
   providers: [
