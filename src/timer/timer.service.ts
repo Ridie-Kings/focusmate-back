@@ -53,13 +53,12 @@ export class TimerService {
     }
 
     if (!updateTimerDto.isRunning) {
-      
       if (timer.startedAt) {
         const now = new Date();
         const elapsed = Math.floor(
           (now.getTime() - timer.startedAt.getTime()) / 1000,
         );
-        timer.elapsedTime += elapsed;
+        timer.elapsedTime += elapsed > 0 ? elapsed : 0; // ✅ Evita sumar tiempo negativo
         timer.startedAt = undefined;
       }
     } else {
@@ -73,12 +72,15 @@ export class TimerService {
     return this.timerModel.find({ user: userId }).exec();
   }
 
-  async deleteTimer(timerId: string, userId: string): Promise<void> {
-    const result = await this.timerModel
-      .deleteOne({ _id: timerId, user: userId })
-      .exec();
-    if (result.deletedCount === 0) {
-      throw new NotFoundException("Timer not found.");
-    }
+ async deleteTimer(timerId: string, userId: string): Promise<void> {
+  const timer = await this.timerModel.findOne({ _id: timerId, user: userId });
+
+  if (!timer) {
+    throw new NotFoundException("Timer not found or unauthorized.");
   }
+
+  await this.timerModel.deleteOne({ _id: timerId });
 }
+
+  }
+

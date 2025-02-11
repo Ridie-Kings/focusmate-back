@@ -54,6 +54,10 @@ export class TimerController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete a timer" })
   @ApiResponse({ status: 200, description: "Timer deleted successfully" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden: You cannot delete this timer",
+  }) 
   deleteTimer(@Param("id") id: string, @GetUser() user: User) {
     return this.timerService.deleteTimer(id, user._id.toString());
   }

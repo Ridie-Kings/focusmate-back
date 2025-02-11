@@ -1,10 +1,10 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
-import { StartTimerDto } from "./create-timer.dto";
-import { IsBoolean, IsMongoId, IsNumber, IsOptional } from "class-validator";
+import { StartTimerDto } from "./start-timer.dto";
+import { IsBoolean, IsMongoId, IsNumber, IsOptional, Min } from "class-validator";
 
 export class UpdateTimerDto extends PartialType(StartTimerDto) {
   @ApiProperty({ example: "65f2c3d8c9a7b98f7e4d1234", description: "Timer ID" })
-  @IsMongoId()
+  @IsMongoId({ message: "Invalid Timer ID" })
   timerId: string;
 
   @ApiPropertyOptional({
@@ -21,5 +21,6 @@ export class UpdateTimerDto extends PartialType(StartTimerDto) {
   })
   @IsOptional()
   @IsNumber()
+  @Min(0, { message: "Elapsed time must be a positive number" })
   elapsedTime?: number;
 }
