@@ -47,4 +47,13 @@ export class AuthService {
       refresh_token: refreshToken,
     };
   }
+  async validateRefreshToken(
+    userId: string,
+    refreshToken: string,
+  ): Promise<boolean> {
+    const user = await this.usersService.findOne(userId);
+    if (!user || !user.refreshToken) return false;
+
+    return await argon2.verify(user.refreshToken, refreshToken);
+  }
 }

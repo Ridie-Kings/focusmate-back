@@ -15,37 +15,33 @@ export class JwtAuthGuard implements CanActivate {
     private reflector: Reflector,
   ) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+ async canActivate(context: ExecutionContext): Promise<boolean> {
+  const request = context.switchToHttp().getRequest();
 
-    // 🚀 Permitir acceso a rutas públicas (con @Public())
-    const isPublic = this.reflector.get<boolean>(
-      IS_PUBLIC_KEY,
-      context.getHandler(),
-    );
-    if (isPublic) {
-      console.log("🚀 Permitiendo acceso sin autenticación:", request.url);
-      return true;
-    }
-
-    console.log("📌 JwtAuthGuard ejecutándose...");
-
-    const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      console.log("❌ No se encontró el token en los headers");
-      throw new UnauthorizedException("Missing or invalid token");
-    }
-
-    const token = authHeader.split(" ")[1];
-
-    try {
-      const payload = this.jwtService.verify(token);
-      console.log("📌 Payload del JWT:", payload);
-      request.user = payload;
-      return true;
-    } catch (error) {
-      console.log("❌ Error al verificar el token:", error.message);
-      throw new UnauthorizedException("Invalid or expired token");
-    }
+  const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, context.getHandler());
+  if (isPublic) {
+    console.log("🚀 Permitiendo acceso sin autenticación:", request.url);
+    return true;
   }
+
+  console.log("📌 JwtAuthGuard ejecutándose...");
+
+  const authHeader = request.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    console.log("❌ No se encontró el token en los headers");
+    throw new UnauthorizedException("Authorization token missing or malformed.");
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const payload = this.jwtService.verify(token);
+    console.log("📌 Payload del JWT:", payload);
+    request.user = payload;
+    return true;
+  } catch (error) {
+    console.log(`❌ Error al verificar el token (${error.message})`);
+    throw new UnauthorizedException("Invalid or expired token.");
+  }
+}
 }

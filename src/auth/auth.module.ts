@@ -11,21 +11,20 @@ import { User, UserSchema } from "src/users/entities/user.entity";
 
 @Module({
   imports: [
-    ConfigModule,
-    forwardRef(() => UsersModule), // ✅ Evita dependencia circular
+    forwardRef(() => UsersModule), // ✅ Evita dependencia circular con UsersModule
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
-      imports: [ConfigModule], // ✅ Importa ConfigModule en JwtModule
-      inject: [ConfigService], // ✅ Inyecta ConfigService en JwtModule
+      imports: [ConfigModule], // ✅ Asegura que ConfigModule esté disponible
+      inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>("JWT_SECRET"), // ✅ Obtener `JWT_SECRET` correctamente
-        signOptions: { expiresIn: "12h" },
+        secret: configService.get<string>("JWT_SECRET"), // ✅ Obtiene JWT_SECRET de variables de entorno
+        signOptions: { expiresIn: "12h" }, // ✅ Expiración de 12h
       }),
     }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // ✅ Registra el esquema de Usuario en MongoDB
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, ConfigService], // ✅ Asegúrate de que ConfigService está aquí
-  exports: [AuthService, JwtModule, ConfigService], // ✅ Exporta ConfigService para que JwtStrategy lo use
+  providers: [AuthService, JwtStrategy], // ✅ No es necesario incluir ConfigService aquí
+  exports: [AuthService, JwtModule], // ✅ Exporta AuthService y JwtModule
 })
 export class AuthModule {}

@@ -31,7 +31,14 @@ export class AuthController {
   @Public()
   @Post("login")
   async login(@Body() loginUserDto: LoginUserDto) {
-    console.log("📌 Login endpoint alcanzado");
-    return this.authService.login(loginUserDto);
+    const { access_token, refresh_token } =
+      await this.authService.login(loginUserDto);
+
+    return {
+      message: "User authenticated successfully",
+      accessToken: access_token,
+      refreshToken: refresh_token,
+      expiresIn: "12h",
+    };
   }
 }
