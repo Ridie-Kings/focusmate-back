@@ -5,6 +5,7 @@ import { config } from "dotenv";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import * as cookieParser from "cookie-parser";
 
 // Carga las variables de entorno
 config();
@@ -23,7 +24,7 @@ async function sherpmain() {
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
-
+  app.use(cookieParser());
   // configuracón de Rate Limiting ()
   app.use(
     rateLimit({
@@ -48,8 +49,8 @@ async function sherpmain() {
     .setVersion("1.0")
     .addBearerAuth() // Para que se pueda autenticar con JWT
     .build();
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("api/docs", app, document);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api/docs", app, document);
   const PORT = process.env.PORT ?? 3000;
   await app.listen(PORT);
 

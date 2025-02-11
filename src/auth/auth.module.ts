@@ -8,23 +8,25 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "src/users/entities/user.entity";
+import { TokenBlacklistModule } from "../token-black-list/token-black-list.module";
 
 @Module({
   imports: [
-    forwardRef(() => UsersModule), // ✅ Evita dependencia circular con UsersModule
+    ConfigModule,
+    forwardRef(() => UsersModule),
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
-      imports: [ConfigModule], // ✅ Asegura que ConfigModule esté disponible
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>("JWT_SECRET"), // ✅ Obtiene JWT_SECRET de variables de entorno
-        signOptions: { expiresIn: "12h" }, // ✅ Expiración de 12h
+        secret: configService.get<string>("JWT_SECRET"),
+        signOptions: { expiresIn: "12h" },
       }),
     }),
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]), // ✅ Registra el esquema de Usuario en MongoDB
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    TokenBlacklistModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], // ✅ No es necesario incluir ConfigService aquí
-  exports: [AuthService, JwtModule], // ✅ Exporta AuthService y JwtModule
+  providers: [AuthService, JwtStrategy, ConfigService],
+  exports: [AuthService, JwtModule, ConfigService],
 })
 export class AuthModule {}

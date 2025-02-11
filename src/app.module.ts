@@ -11,6 +11,7 @@ import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { ReminderModule } from './reminder/reminder.module';
 import { TimerModule } from './timer/timer.module';
 import { ConfigModule } from "@nestjs/config";
+import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
 
 @Module({
   imports: [
@@ -39,6 +40,8 @@ import { ConfigModule } from "@nestjs/config";
     ReminderModule,
 
     TimerModule,
+
+    TokenBlacklistModule,
   ],
   controllers: [],
   providers: [
