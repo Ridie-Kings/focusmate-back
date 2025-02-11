@@ -9,6 +9,8 @@ import {
   Req,
   UseGuards,
   NotFoundException,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { UsersService } from "./users.service";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -22,8 +24,9 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
+import { UpdateProfileDto } from "./dto/updateProfileDto";
 
-@ApiTags("Users") // 📌 Groups all user-related routes under "Users" in Swagger
+@ApiTags("Users")
 @Controller("users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -32,6 +35,7 @@ export class UsersController {
   @ApiOperation({ summary: "Create a new user" })
   @ApiResponse({ status: 201, description: "User successfully created" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -45,6 +49,7 @@ export class UsersController {
   findAll() {
     return this.usersService.findAll();
   }
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @Get(":term")
   @ApiOperation({ summary: "Find a user by ID, email, or username" })
@@ -104,9 +109,12 @@ export class UsersController {
   @ApiOperation({ summary: "Update the authenticated user's profile" })
   @ApiResponse({ status: 200, description: "Profile updated successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async updateProfile(@Req() req: RequestWithUser, @Body() updateData: any) {
-    const userId = req.user._id;
-    return this.usersService.updateProfile(userId, updateData);
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  async updateProfile(
+    @Req() req: RequestWithUser,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(req.user._id, updateProfileDto);
   }
 
   @Delete(":id")

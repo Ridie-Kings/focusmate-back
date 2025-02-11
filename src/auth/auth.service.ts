@@ -18,37 +18,29 @@ export class AuthService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    console.log("Login request received:", loginUserDto);
-    console.log("email before login:", loginUserDto.email)
     loginUserDto.email = sanitizeHtml(loginUserDto.email);
-    console.log("email after login:", loginUserDto.email);
-
     const { email, password } = loginUserDto;
     const user = await this.usersService.findOne(email);
 
     if (!user) {
-      console.log("User not found:", email);
       throw new UnauthorizedException("Invalid credentials");
     }
 
     const isValid = await argon2.verify(user.password, password);
     if (!isValid) {
-      console.log("Invalid password for user:", email);
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    console.log("JWT_SECRET before signing token:", process.env.JWT_SECRET);
-
     const payload = { sub: user._id, email: user.email };
-
-    // 🔹 Generar Access Token (expira en 12h)
     const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
-
-    // 🔹 Generar Refresh Token (expira en 7 días)
     const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
-    // 🔹 Guardar Refresh Token en la base de datos
-    await this.usersService.update(user._id.toString(), { refreshToken });
+    // ✅ Hashear el Refresh Token antes de guardarlo
+    const hashedRefreshToken = await argon2.hash(refreshToken);
+
+    await this.usersService.update(user._id.toString(), {
+      refreshToken: hashedRefreshToken,
+    });
 
     return {
       access_token: accessToken,

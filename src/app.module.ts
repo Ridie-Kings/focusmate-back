@@ -10,6 +10,7 @@ import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { ReminderModule } from './reminder/reminder.module';
 import { TimerModule } from './timer/timer.module';
+import { ConfigModule } from "@nestjs/config";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { TimerModule } from './timer/timer.module';
     MongooseModule.forRoot(
       "mongodb+srv://matisargo:OWHtedoTp8gCz5PI@cluster0.ay2g7.mongodb.net/sherpapp",
     ),
+    ConfigModule.forRoot({ isGlobal: true }),
 
     UsersModule,
 

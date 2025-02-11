@@ -13,6 +13,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
 import { Types } from "mongoose";
+import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 
 @Injectable()
@@ -51,11 +52,8 @@ export class UsersService {
   }
 
   async findOne(term: string) {
-    console.log("📌 findOne() buscando con:", term);
-
     let user: User | null = null;
 
-    // 🔥 Convertir `_id` a ObjectId si es necesario
     if (isValidObjectId(term)) {
       user = await this.userModel.findById(term);
     }
@@ -68,10 +66,16 @@ export class UsersService {
       user = await this.userModel.findOne({ username: term.trim() });
     }
 
-    console.log("📌 Resultado de findOne():", user);
     return user;
   }
 
+  // 🔹 Verificar refresh token
+  async validateRefreshToken(userId: string, token: string): Promise<boolean> {
+    const user = await this.userModel.findById(userId);
+    if (!user || !user.refreshToken) return false;
+
+    return await argon2.verify(user.refreshToken, token);
+  }
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
@@ -106,16 +110,18 @@ export class UsersService {
     return user.profile;
   }
 
-  async updateProfile(userId: string, updateData: any) {
+  async updateProfile(userId: string, updateData: UpdateProfileDto) {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException("User not found");
     }
 
-    // 🔹 Actualizar solo los campos de `profile`
-    if (updateData.bio) user.profile.bio = updateData.bio;
-    if (updateData.avatar) user.profile.avatar = updateData.avatar;
-    if (updateData.settings) user.profile.settings = updateData.settings;
+    // 🔹 Actualiza solo los campos permitidos en `UpdateProfileDto`
+    if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
+    if (updateData.avatar !== undefined)
+      user.profile.avatar = updateData.avatar;
+    if (updateData.settings !== undefined)
+      user.profile.settings = updateData.settings;
 
     await user.save();
     return { message: "Profile updated successfully", profile: user.profile };

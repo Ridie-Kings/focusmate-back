@@ -1,18 +1,15 @@
-import { PartialType } from "@nestjs/mapped-types";
-import { CreateUserDto } from "./create-user.dto";
 import {
   IsEmail,
-  IsNotEmpty,
-  IsNumber,
   IsOptional,
+  IsNumber,
   IsPositive,
   IsString,
   MinLength,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {
-
+export class UpdateUserDto {
   @ApiProperty({
     example: "john.sherp@example.com",
     description: "User email (optional)",
@@ -37,33 +34,23 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
     description: "User XP points (optional)",
     required: false,
   })
+  @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
   @IsNumber()
   @IsPositive()
   @IsOptional()
   readonly xp?: number;
 
- 
   @ApiProperty({
     example: 5,
     description: "User level (optional)",
     required: false,
   })
+  @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
   @IsNumber()
   @IsPositive()
   @IsOptional()
   readonly level?: number;
 
-
-  @ApiProperty({
-    example: { bio: "Gamer and student", avatar: "avatar_url" },
-    description: "User profile (optional)",
-    required: false,
-  })
-  @IsNotEmpty()
-  @IsOptional()
-  readonly profile?: Record<string, any>;
-
-  
   @ApiProperty({
     example: "NewSecurePassword123!",
     description: "New password for user (optional, min 8 characters)",
@@ -73,7 +60,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @IsOptional()
   readonly updatedPassword?: string;
-
 
   @ApiProperty({
     example: "eyJhbGciOiJIUzI1NiIsInR...",
