@@ -68,6 +68,11 @@ export class UsersService {
 
     return user;
   }
+  async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
+    const user = await this.userModel.findOne({ refreshToken });
+
+    return user ? user : null;
+  }
 
   // 🔹 Verificar refresh token
   async validateRefreshToken(userId: string, token: string): Promise<boolean> {
