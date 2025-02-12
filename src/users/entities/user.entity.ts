@@ -3,18 +3,20 @@ import { Document } from "mongoose";
 import { ApiProperty } from "@nestjs/swagger";
 import { Profile, ProfileSchema } from "./profile.entity";
 
-
 @Schema({ timestamps: true })
 export class User extends Document {
   /**
    * 📌 Nombre completo del usuario.
    */
-  @ApiProperty({ example: "Johnan", description: "Full name of the user" })
+  @ApiProperty({
+    example: "Johnan Sherp",
+    description: "Full name of the user",
+  })
   @Prop({
     required: true,
     minlength: 3,
   })
-  name: string;
+  fullname: string;
 
   /**
    * 📌 Correo electrónico único del usuario.
