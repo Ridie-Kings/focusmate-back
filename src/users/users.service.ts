@@ -15,7 +15,6 @@ import * as sanitizeHtml from "sanitize-html";
 import { Types } from "mongoose";
 import { UpdateProfileDto } from "./dto/updateProfileDto";
 
-
 @Injectable()
 export class UsersService {
   constructor(
@@ -26,7 +25,7 @@ export class UsersService {
     try {
       // 🔹 Sanitizar los inputs antes de guardarlos
       createUserDto.username = sanitizeHtml(createUserDto.username);
-      createUserDto.name = sanitizeHtml(createUserDto.name);
+      createUserDto.fullname = sanitizeHtml(createUserDto.fullname);
       createUserDto.email = sanitizeHtml(createUserDto.email);
 
       // 🔹 Hashear la contraseña antes de guardarla

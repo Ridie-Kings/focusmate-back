@@ -14,6 +14,7 @@ async function sherpmain() {
   console.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix("api/");
 
   // Middleware de seguridad HTTP
   app.use(helmet());
@@ -51,7 +52,7 @@ async function sherpmain() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
-  const PORT = process.env.PORT ?? 3000;
+  const PORT = process.env.PORT ?? 4000;
   await app.listen(PORT);
 
   console.log(`Application running on port ${PORT}`);
