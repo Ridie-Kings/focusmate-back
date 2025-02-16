@@ -1,5 +1,7 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { ApiProperty } from "@nestjs/swagger";
+import { Profile, ProfileSchema } from "./profile.entity";
 
 class Profile{
   @Prop()
@@ -14,37 +16,66 @@ class Profile{
 
 @Schema({ timestamps: true })
 export class User extends Document {
+  /**
+   * 📌 Nombre completo del usuario.
+   */
+  @ApiProperty({
+    example: "Johnan Sherp",
+    description: "Full name of the user",
+  })
   @Prop({
     required: true,
   })
-  name: string;
+  fullname: string;
 
+  /**
+   * 📌 Correo electrónico único del usuario.
+   */
+  @ApiProperty({
+    example: "johnan.sherpp@example.com",
+    description: "User email address",
+  })
   @Prop({
     required: true,
     unique: true,
   })
   email: string;
 
+  @ApiProperty({ example: "johnan", description: "Unique username" })
   @Prop({
     required: true,
     unique: true,
+    minlength: 3,
+    maxlength: 128, // Revisar
   })
   username: string;
 
+  @ApiProperty({
+    example: "SecurePassword123!",
+    description: "User password (hashed)",
+  })
   @Prop({
     required: true,
   })
   password: string;
 
+  @ApiProperty({ example: 200, description: "Experience points of the user" })
   @Prop({ default: 0 })
   xp: number;
 
+  @ApiProperty({ example: 5, description: "User level" })
   @Prop({ default: 1 })
   level: number;
 
-  @Prop({ type: Profile, default: {} }) //USAR INTERFAZ??
-  profile: Profile[]; //imagen, descripcion, etc
+  @ApiProperty({ description: "User profile information" })
+  @Prop({ type: ProfileSchema, default: () => ({}) })
+  profile: Profile;
 
+  @ApiProperty({
+    example: "eyJhbGciOiJIUzI1NiIsInR...",
+    description: "Refresh token (optional)",
+    required: false,
+  })
   @Prop({ default: null })
   refreshToken: string;
 }

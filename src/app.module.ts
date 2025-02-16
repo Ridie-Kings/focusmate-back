@@ -7,6 +7,11 @@ import { CommonModule } from "./common/common.module";
 import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { ReminderModule } from './reminder/reminder.module';
+import { TimerModule } from './timer/timer.module';
+import { ConfigModule } from "@nestjs/config";
+import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
 
 @Module({
   imports: [
@@ -24,18 +29,29 @@ import { APP_GUARD } from "@nestjs/core";
     MongooseModule.forRoot(
       "mongodb+srv://matisargo:OWHtedoTp8gCz5PI@cluster0.ay2g7.mongodb.net/sherpapp",
     ),
+    ConfigModule.forRoot({ isGlobal: true }),
 
     UsersModule,
 
     CommonModule,
 
     AuthModule,
+
+    ReminderModule,
+
+    TimerModule,
+
+    TokenBlacklistModule,
   ],
   controllers: [],
   providers: [
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
     },
   ],
 })

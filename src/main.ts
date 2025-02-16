@@ -4,6 +4,8 @@ import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import * as cookieParser from "cookie-parser";
 
 // Carga las variables de entorno
 config();
@@ -12,6 +14,7 @@ async function sherpmain() {
   console.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix("api/");
 
   // Middleware de seguridad HTTP
   app.use(helmet());
@@ -22,7 +25,7 @@ async function sherpmain() {
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
-
+  app.use(cookieParser());
   // configuracón de Rate Limiting ()
   app.use(
     rateLimit({
@@ -41,7 +44,15 @@ async function sherpmain() {
     }),
   );
 
-  const PORT = process.env.PORT ?? 3000;
+  const config = new DocumentBuilder()
+    .setTitle("SherpApp API")
+    .setDescription("API documentation for SherpApp")
+    .setVersion("1.0")
+    .addBearerAuth() // Para que se pueda autenticar con JWT
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api/docs", app, document);
+  const PORT = process.env.PORT ?? 4000;
   await app.listen(PORT);
 
   console.log(`Application running on port ${PORT}`);
