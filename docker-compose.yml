@@ -9,4 +9,3 @@ services:
       MONGODB_DATABASE: sherpapp
     volumes:
       - ./mongo:/data/db
-

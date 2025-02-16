@@ -1,43 +1,97 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
-import { DictsService } from './dicts.service';
-import { CreateDictDto } from './dto/create-dict.dto';
-import { UpdateDictDto } from './dto/update-dict.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
-import { Dict } from './entities/dict.entity';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  Query,
+} from "@nestjs/common";
+import { DictsService } from "./dicts.service";
+import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateWordDto } from "./dto/index";
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
+import { Dict } from "./entities/dict.entity";
+import { User } from "src/users/entities/user.entity";
+import { GetUser } from "src/users/decorators/get-user.decorator";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 
-@Controller('dicts')
+@ApiTags("Dicts")
+@ApiBearerAuth()
+@Controller("dicts")
 @UseGuards(JwtAuthGuard)
 export class DictsController {
   constructor(private readonly dictsService: DictsService) {}
 
   @Post()
-  async create(@Req() req, @Body() createDictDto: CreateDictDto): Promise<Dict>{
-    return this.dictsService.create(req.user.userId, createDictDto);
+  @ApiOperation({ summary: "Create a new dict" })
+  @ApiResponse({ status: 201, description: "Dict successfully created" })
+  @ApiResponse({ status: 400, description: "Invalid data provided" })
+  async create(
+    @Body() createDictDto: CreateDictDto, @GetUser() user: User): Promise<Dict> {
+    return this.dictsService.create(user._id.toString(), createDictDto);
   }
 
   @Get()
-  async findAll(@Req() req): Promise<Dict[]> {
-    return this.dictsService.findMine(req.user.userId);
+  @ApiOperation({ summary: "Retrieve all dicts of the authenticated user" })
+  @ApiResponse({ status: 200, description: "List of dicts retrieved" })
+  async findAll(
+    @GetUser() user: User,
+  ): Promise<Dict[]> {
+    return this.dictsService.findAll(user._id.toString());
   }
 
-  @Get('all')
-  async findAllPublic(): Promise<Dict[]> {
-    return this.dictsService.findAll();
+  // @Get("all")
+  // async findAllPublic(): Promise<Dict[]> {
+  //   return this.dictsService.findAllPublic();
+  // }
+
+  @Get(":id")
+  @ApiOperation({ summary: "Retrieve a specific dict by ID" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 404, description: "Dict not found" })
+  @ApiResponse({ status: 200, description: "Dict retrieved successfully" })
+  async findOne(@Param("id", ParseMongoIdPipe) dictId: string, @GetUser() user: User): Promise<Dict> {
+    return this.dictsService.findOne(dictId, user._id.toString());
   }
 
-  @Get(':term')
-  async findOne(@Param('term') term: string): Promise<Dict> {
-    return this.dictsService.findOne(term);
+  @Patch(":id")
+  @ApiOperation({ summary: "Update a dict by ID" })
+  @ApiResponse({ status: 200, description: "Dict updated successfully" })
+  @ApiResponse({ status: 400, description: "Invalid data provided" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 404, description: "Reminder not found" })
+  async update(
+    @Param("id", ParseMongoIdPipe) dictId: string,
+    @Body() updateDictDto: UpdateDictDto,
+    @GetUser() user: User,
+  ): Promise<Dict> {
+    return this.dictsService.update(dictId, updateDictDto, user._id.toString());
   }
 
-  @Patch(':id')
-  async update(@Param('id', ParseMongoIdPipe) id: string, @Body() updateDictDto: UpdateDictDto): Promise<Dict>{
-    return this.dictsService.update(id, updateDictDto);
+  @Patch(":id")
+  @ApiOperation({ summary: "Soft delete a dict by ID (isDeleted: true)" })
+  @ApiResponse({ status: 200, description: "Dict deleted successfully" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 404, description: "Dict not found" })
+  async softDelete(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
+    return this.dictsService.softDelete(id, user._id.toString());
   }
 
-  @Delete(':id')
-  async remove(@Param('id', ParseMongoIdPipe) id: string): Promise<Dict>{
-    return this.dictsService.remove(id);
+  @Delete(":id")
+  @ApiOperation({ summary: "Delete a dict by ID" })
+  @ApiResponse({ status: 200, description: "Dict deleted successfully" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 404, description: "Dict not found" })
+  async remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
+    return this.dictsService.remove(id, user._id.toString());
   }
 }

@@ -22,22 +22,21 @@ class SharedUser {
 
 @Schema({ timestamps: true })
 export class Dict extends Document {
-
-  @Prop({ 
+  @Prop({
     required: true,
     minlength: 3,
-   })
+  })
   name: string;
 
-  @Prop({ required: true})
+  @Prop({ required: true, ref: "User" })
   ownerId: string;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ""})
   description: string;
 
   @Prop({ default: false })
   public: boolean;
-  
+
   @Prop({ type: [Word], default: [] })
   words: Word[];
 
@@ -47,6 +46,8 @@ export class Dict extends Document {
   @Prop({ type: [SharedUser], default: [] })
   sharedWith: SharedUser[];
 
+  @Prop({ type: [String], default: [] })
+  tags: string[];
 }
 
 export const DictSchema = SchemaFactory.createForClass(Dict);

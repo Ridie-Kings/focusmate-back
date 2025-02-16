@@ -19,4 +19,7 @@ export class CreateDictDto {
   @IsBoolean()
   @IsOptional()
   readonly public?: boolean;
+
+  @IsOptional()
+  readonly tags?: string[];
 }

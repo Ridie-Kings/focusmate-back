@@ -3,17 +3,6 @@ import { Document } from "mongoose";
 import { ApiProperty } from "@nestjs/swagger";
 import { Profile, ProfileSchema } from "./profile.entity";
 
-class Profile{
-  @Prop()
-  image: string;
-
-  @Prop()
-  description: string;
-
-  @Prop()
-  banner: string;
-}
-
 @Schema({ timestamps: true })
 export class User extends Document {
   /**
