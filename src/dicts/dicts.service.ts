@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateWordDto } from "./dto/index";
-import { Dict } from "./entities/dict.entity";
+import { CreateDictDto, UpdateDictDto, AddWordDto, AddListDictDto } from "./dto/index";
+import { Dict, Word } from "./entities/dict.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import { isValidObjectId, Model } from "mongoose";
 
@@ -49,17 +49,60 @@ export class DictsService {
     return dict;
   }
 
-  async update(id: string, updateDictDto: UpdateDictDto, userId: string): Promise<Dict> {
+  async update(id: string, updateDictDto: UpdateDictDto, addListDictDto: AddListDictDto, userId: string): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
-      return await this.dictModel.findByIdAndUpdate(id, updateDictDto, {new: true});
+      const updateDict = await this.dictModel.findByIdAndUpdate(id,
+        {
+          $set: updateDictDto,
+          $addToSet: { sharedWith: {$each: addListDictDto.sharedWith}},
+          $push: { tags: {$each: addListDictDto.tags}},
+          $pull: { tags: {$in: addListDictDto.deleteTags}, sharedWith: {$in: addListDictDto.deleteSharedWith}},
+        },
+        {new: true});
+      return updateDict;
     } catch (error) {
       throw new InternalServerErrorException("Error updating dict");
     }
   }
+
+  async addWord(id: string, addWordDto: AddWordDto, userId: string): Promise<Dict> {
+    const updDict = await this.findOne(id, userId);
+    if (!updDict) throw new NotFoundException(`Dict not found`);
+    const isOwner = updDict.ownerId === userId;
+    if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
+    try {
+      const word = {word: addWordDto.word, definition: addWordDto.meaning, example: addWordDto.example};
+      const updateDict = await this.dictModel.findByIdAndUpdate(id,
+        {
+          $addToSet: { words: word },
+        },
+        {new: true});
+      return updateDict;
+    } catch (error) {
+      throw new InternalServerErrorException("Error updating dict / adding word");
+    }
+  }
+
+  async deleteWord(id: string, word: String, userId: string): Promise<Dict> {
+    const updDict = await this.findOne(id, userId);
+    if (!updDict) throw new NotFoundException(`Dict not found`);
+    const isOwner = updDict.ownerId === userId;
+    if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
+    try {
+      return await this.dictModel.findByIdAndUpdate(id,
+        {
+          $pull: { words: {word: word} },
+        },
+        {new: true});
+    } catch (error) {
+      throw new InternalServerErrorException("Error updating dict / deleting word");
+    }
+  }
+
 
   async softDelete(id: string, userId: string): Promise<Dict> {
     const dict = await this.findOne(id, userId);

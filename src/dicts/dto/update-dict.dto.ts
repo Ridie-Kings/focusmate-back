@@ -14,8 +14,5 @@ export class UpdateDictDto extends PartialType(CreateDictDto) {
 
   @IsBoolean()
   @IsOptional()
-  readonly public?: boolean;  
-
-  @IsOptional()
-  readonly tags?: string[];
+  readonly public?: boolean;
 }

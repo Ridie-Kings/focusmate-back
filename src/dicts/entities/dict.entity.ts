@@ -1,7 +1,7 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 
-class Word {
+export class Word {
   @Prop({ required: true })
   word: string;
 
@@ -12,7 +12,7 @@ class Word {
   example?: string;
 }
 
-class SharedUser {
+export class SharedUser {
   @Prop({ required: true })
   userId: string;
 
@@ -31,7 +31,7 @@ export class Dict extends Document {
   @Prop({ required: true, ref: "User" })
   ownerId: string;
 
-  @Prop({type: String, required: false, default: ""})
+  @Prop({type: String, required: false, default: ""}) 
   description: string;
 
   @Prop({ default: false })
