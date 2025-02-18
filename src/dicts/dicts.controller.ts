@@ -11,7 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { DictsService } from "./dicts.service";
-import { CreateDictDto, UpdateDictDto, AddWordDto, AddListDictDto } from "./dto/index";
+import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
 import { Dict } from "./entities/dict.entity";
@@ -71,10 +71,24 @@ export class DictsController {
   @ApiResponse({ status: 404, description: "Dict not found" })
   async update(
     @Param("id", ParseMongoIdPipe) dictId: string,
-    @Body() updateDictDto: UpdateDictDto, addListDictDto: AddListDictDto,
+    @Body() updateDictDto: UpdateDictDto,
     @GetUser() user: User,
   ): Promise<Dict> {
-    return this.dictsService.update(dictId, updateDictDto, addListDictDto, user._id.toString());
+    return this.dictsService.update(dictId, updateDictDto, user._id.toString());
+  }
+
+  @Patch(":id/sharedwith")
+  @ApiOperation({ summary: "add/delete user shared with" })
+  @ApiResponse({ status: 200, description: "Added /deleted Ok, Dict updated successfully" })
+  @ApiResponse({ status: 400, description: "Invalid data provided" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 404, description: "Dict not found" })
+  async updateUsersDict(
+    @Param("id", ParseMongoIdPipe) dictId: string,
+    @Body() updateUserSharedWithDto: UpdateUserSharedWithDto,
+    @GetUser() user: User,
+  ): Promise<Dict> {
+    return this.dictsService.updateUsersDict(dictId, updateUserSharedWithDto, user._id.toString());
   }
 
   @Patch(":id/addword")

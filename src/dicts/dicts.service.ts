@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
-import { CreateDictDto, UpdateDictDto, AddWordDto, AddListDictDto } from "./dto/index";
+import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { Dict, Word } from "./entities/dict.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import { isValidObjectId, Model } from "mongoose";
@@ -49,7 +49,7 @@ export class DictsService {
     return dict;
   }
 
-  async update(id: string, updateDictDto: UpdateDictDto, addListDictDto: AddListDictDto, userId: string): Promise<Dict> {
+  async update(id: string, updateDictDto: UpdateDictDto, userId: string): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
@@ -57,10 +57,27 @@ export class DictsService {
     try {
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
         {
-          $set: updateDictDto,
-          $addToSet: { sharedWith: {$each: addListDictDto.sharedWith}},
-          $push: { tags: {$each: addListDictDto.tags}},
-          $pull: { tags: {$in: addListDictDto.deleteTags}, sharedWith: {$in: addListDictDto.deleteSharedWith}},
+          $set: {name: updateDictDto.name, description: updateDictDto.description, public: updateDictDto.public},
+          $push: {tags: { $each: updateDictDto.tags }},
+          $pull: {tags: { $in: updateDictDto.deleteTags } },
+        },
+        {new: true});
+      return updateDict;
+    } catch (error) {
+      throw new InternalServerErrorException("Error updating dict");
+    }
+  }
+
+  async updateUsersDict(id: string, updateUserSharedWithDto: UpdateUserSharedWithDto, userId: string): Promise<Dict> {
+    const updDict = await this.findOne(id, userId);
+    if (!updDict) throw new NotFoundException(`Dict not found`);
+    const isOwner = updDict.ownerId === userId;
+    if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
+    try {
+      const updateDict = await this.dictModel.findByIdAndUpdate(id,
+        {
+          $addToSet: {sharedWith: { $each: updateUserSharedWithDto.sharedWith }},
+          $pull: {sharedWith: { userId: { $in: updateUserSharedWithDto.deleteSharedWith } } },
         },
         {new: true});
       return updateDict;
