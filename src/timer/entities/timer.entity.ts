@@ -1,5 +1,6 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import { getDefaultAutoSelectFamily } from "net";
 
 @Schema({ timestamps: true })
 export class Timer extends Document {
@@ -15,7 +16,7 @@ export class Timer extends Document {
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
 
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date})
   startedAt?: Date;
 }
 

@@ -20,6 +20,7 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
   ) {}
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       // 🔹 Sanitizar los inputs antes de guardarlos
@@ -45,11 +46,11 @@ export class UsersService {
     }
   }
 
-  findAll() {
+  async findAll(): Promise<User[]> {
     return this.userModel.find();
   }
 
-  async findOne(term: string) {
+  async findOne(term: string): Promise<User> {
     let user: User | null = null;
 
     if (isValidObjectId(term)) {
@@ -130,7 +131,7 @@ export class UsersService {
     return { message: "Profile updated successfully", profile: user.profile };
   }
 
-  async remove(id: string) {
+  async remove(id: string): Promise<User> {
     const user = await this.userModel.findById(id);
     if (!isValidObjectId(id) || !user) {
       throw new BadRequestException("Invalid id or user not found");

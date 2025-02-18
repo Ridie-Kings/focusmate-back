@@ -12,6 +12,7 @@ import { ReminderModule } from './reminder/reminder.module';
 import { TimerModule } from './timer/timer.module';
 import { ConfigModule } from "@nestjs/config";
 import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
+import { DictsModule } from "./dicts/dicts.module";
 
 @Module({
   imports: [
@@ -42,6 +43,8 @@ import { TokenBlacklistModule } from './token-black-list/token-black-list.module
     TimerModule,
 
     TokenBlacklistModule,
+
+    DictsModule,
   ],
   controllers: [],
   providers: [

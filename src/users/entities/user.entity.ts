@@ -14,7 +14,6 @@ export class User extends Document {
   })
   @Prop({
     required: true,
-    minlength: 3,
   })
   fullname: string;
 
@@ -46,7 +45,6 @@ export class User extends Document {
   })
   @Prop({
     required: true,
-    minlength: 8,
   })
   password: string;
 
