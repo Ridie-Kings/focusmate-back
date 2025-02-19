@@ -16,11 +16,11 @@ export class DictsService {
   async create(ownerId: mongoose.Types.ObjectId, createDictDto: CreateDictDto): Promise<Dict> {
     try {
       createDictDto.description = sanitizeHtml(createDictDto.description);
-      const dict = new this.dictModel({
+      const dict = await this.dictModel.create({
         ...createDictDto,
         ownerId,
       });
-      return dict;
+      return await dict.populate('ownerId');
     } catch (error) {
       throw new InternalServerErrorException("Error creating dict");
     }
@@ -48,7 +48,7 @@ export class DictsService {
     const isOwner = dict.ownerId === userId;
     const isShared = dict.sharedWith.some(u => u.userId === userId);
     if (!isOwner || !isShared) throw new ForbiddenException(`Unauthorized access`);
-    return dict;
+    return await dict.populate('ownerId');
   }
 
   async update(id: string, updateDictDto: UpdateDictDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
@@ -64,7 +64,7 @@ export class DictsService {
           $pull: {tags: { $in: updateDictDto.deleteTags } },
         },
         {new: true});
-      return updateDict;
+      return await updateDict.populate('ownerId');
     } catch (error) {
       throw new InternalServerErrorException("Error updating dict");
     }
@@ -82,7 +82,7 @@ export class DictsService {
           $pull: {sharedWith: { userId: { $in: updateUserSharedWithDto.deleteSharedWith } } },
         },
         {new: true});
-      return updateDict;
+      return await updateDict.populate('ownerId', 'sharedWith.userId');
     } catch (error) {
       throw new InternalServerErrorException("Error updating dict");
     }
@@ -129,8 +129,11 @@ export class DictsService {
     const isOwner = dict.ownerId === userId;
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not delete this dict`);
     try {
-      dict.isDeleted = true;
-      return await dict.save();
+      return await this.dictModel.findByIdAndUpdate(id,
+        {
+          $set: {isDeleted: true},
+        },
+        {new: true}).populate('ownerId');
     } catch (error) {
       throw new InternalServerErrorException("Error deleting dict");
     }
