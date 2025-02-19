@@ -23,6 +23,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
+import mongoose from "mongoose";
 
 @ApiTags("Dicts")
 @ApiBearerAuth()
@@ -37,7 +38,7 @@ export class DictsController {
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   async create(
     @Body() createDictDto: CreateDictDto, @GetUser() user: User): Promise<Dict> {
-    return this.dictsService.create(user._id.toString(), createDictDto);
+    return this.dictsService.create(user.id, createDictDto);
   }
 
   @Get()
@@ -46,7 +47,7 @@ export class DictsController {
   async findAll(
     @GetUser() user: User,
   ): Promise<Dict[]> {
-    return this.dictsService.findAll(user._id.toString());
+    return this.dictsService.findAll(user.id);
   }
 
   // @Get("all")
@@ -60,7 +61,7 @@ export class DictsController {
   @ApiResponse({ status: 404, description: "Dict not found" })
   @ApiResponse({ status: 200, description: "Dict retrieved successfully" })
   async findOne(@Param("id", ParseMongoIdPipe) dictId: string, @GetUser() user: User): Promise<Dict> {
-    return this.dictsService.findOne(dictId, user._id.toString());
+    return this.dictsService.findOne(dictId, user.id);
   }
 
   @Patch(":id")
@@ -74,7 +75,7 @@ export class DictsController {
     @Body() updateDictDto: UpdateDictDto,
     @GetUser() user: User,
   ): Promise<Dict> {
-    return this.dictsService.update(dictId, updateDictDto, user._id.toString());
+    return this.dictsService.update(dictId, updateDictDto, user.id);
   }
 
   @Patch(":id/sharedwith")
@@ -88,7 +89,7 @@ export class DictsController {
     @Body() updateUserSharedWithDto: UpdateUserSharedWithDto,
     @GetUser() user: User,
   ): Promise<Dict> {
-    return this.dictsService.updateUsersDict(dictId, updateUserSharedWithDto, user._id.toString());
+    return this.dictsService.updateUsersDict(dictId, updateUserSharedWithDto, user.id);
   }
 
   @Patch(":id/addword")
@@ -102,7 +103,7 @@ export class DictsController {
     @Body() addWordDto: AddWordDto,
     @GetUser() user: User,
   ): Promise<Dict> {
-    return this.dictsService.addWord(dictId, addWordDto, user._id.toString());
+    return this.dictsService.addWord(dictId, addWordDto, user.id);
   }
 
   @Patch(":id/deleteword")
@@ -116,7 +117,7 @@ export class DictsController {
     @Body() word: String,
     @GetUser() user: User,
   ): Promise<Dict> {
-    return this.dictsService.deleteWord(dictId, word, user._id.toString());
+    return this.dictsService.deleteWord(dictId, word, user.id);
   }
 
   @Patch(":id/delete")
@@ -125,7 +126,7 @@ export class DictsController {
   @ApiResponse({ status: 403, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async softDelete(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
-    return this.dictsService.softDelete(id, user._id.toString());
+    return this.dictsService.softDelete(id, user.id);
   }
 
   @Delete(":id")
@@ -134,6 +135,6 @@ export class DictsController {
   @ApiResponse({ status: 403, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
-    return this.dictsService.remove(id, user._id.toString());
+    return this.dictsService.remove(id, user.id);
   }
 }

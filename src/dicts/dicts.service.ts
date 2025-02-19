@@ -1,8 +1,9 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import * as sanitizeHtml from 'sanitize-html';
 import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { Dict, Word } from "./entities/dict.entity";
 import { InjectModel } from "@nestjs/mongoose";
-import { isValidObjectId, Model } from "mongoose";
+import mongoose, { isValidObjectId, Model } from "mongoose";
 
 //TODO: Implement the DictsService
 @Injectable()
@@ -12,11 +13,12 @@ export class DictsService {
     private readonly dictModel: Model<Dict>,
   ) {}
 
-  async create(ownerId: string, createDictDto: CreateDictDto): Promise<Dict> {
+  async create(ownerId: mongoose.Types.ObjectId, createDictDto: CreateDictDto): Promise<Dict> {
     try {
+      createDictDto.description = sanitizeHtml(createDictDto.description);
       const dict = new this.dictModel({
         ...createDictDto,
-        ownerId: ownerId,
+        ownerId,
       });
       return dict;
     } catch (error) {
@@ -24,18 +26,18 @@ export class DictsService {
     }
   }
 
-  async findAll(ownerId: string): Promise<Dict[]> {
+  async findAll(ownerId: mongoose.Types.ObjectId): Promise<Dict[]> {
     const query: any = {
       $or: [{ ownerId: ownerId }, { "sharedWith.userId": ownerId }],
     };
-    return this.dictModel.find(query);
+    return this.dictModel.find(query).populate('ownerId');
   }
 
   // async findAllPublic(): Promise<Dict[]> {
   //   return this.dictModel.find({ public: true, isDeleted: false });
   // }
 
-  async findOne(id: string, userId: string): Promise<Dict> {
+  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     let dict: Dict;
     if (!isValidObjectId(id)) {
       dict = await this.dictModel.findById({name: id});
@@ -49,7 +51,7 @@ export class DictsService {
     return dict;
   }
 
-  async update(id: string, updateDictDto: UpdateDictDto, userId: string): Promise<Dict> {
+  async update(id: string, updateDictDto: UpdateDictDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
@@ -57,7 +59,7 @@ export class DictsService {
     try {
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
         {
-          $set: {name: updateDictDto.name, description: updateDictDto.description, public: updateDictDto.public},
+          $set: {name: updateDictDto.name, description: sanitizeHtml(updateDictDto.description), public: updateDictDto.public},
           $push: {tags: { $each: updateDictDto.tags }},
           $pull: {tags: { $in: updateDictDto.deleteTags } },
         },
@@ -68,7 +70,7 @@ export class DictsService {
     }
   }
 
-  async updateUsersDict(id: string, updateUserSharedWithDto: UpdateUserSharedWithDto, userId: string): Promise<Dict> {
+  async updateUsersDict(id: string, updateUserSharedWithDto: UpdateUserSharedWithDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
@@ -86,13 +88,13 @@ export class DictsService {
     }
   }
 
-  async addWord(id: string, addWordDto: AddWordDto, userId: string): Promise<Dict> {
+  async addWord(id: string, addWordDto: AddWordDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
-      const word = {word: addWordDto.word, definition: addWordDto.meaning, example: addWordDto.example};
+      const word = {word: sanitizeHtml(addWordDto.word), definition: sanitizeHtml( addWordDto.meaning), example: sanitizeHtml(addWordDto.example)};
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
         {
           $addToSet: { words: word },
@@ -104,7 +106,7 @@ export class DictsService {
     }
   }
 
-  async deleteWord(id: string, word: String, userId: string): Promise<Dict> {
+  async deleteWord(id: string, word: String, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId === userId;
@@ -121,7 +123,7 @@ export class DictsService {
   }
 
 
-  async softDelete(id: string, userId: string): Promise<Dict> {
+  async softDelete(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const dict = await this.findOne(id, userId);
     if (!dict) throw new NotFoundException(`Dict not found`);
     const isOwner = dict.ownerId === userId;
@@ -134,7 +136,7 @@ export class DictsService {
     }
   }
   
-  async remove(id: string, userId: string): Promise<Dict> {
+  async remove(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const dict = await this.findOne(id, userId);
     if (!dict) throw new NotFoundException(`Dict not found`);
     const isOwner = dict.ownerId === userId;
@@ -146,3 +148,4 @@ export class DictsService {
     }
   }
 }
+

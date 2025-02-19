@@ -18,7 +18,7 @@ export class CreateDictDto {
   @ApiProperty({ description: 'Description of the Dictionary', example: 'Description' })
   @IsString()
   @IsOptional()
-  readonly description?: string;
+  description?: string;
 
   @ApiProperty({ description: 'Public status of the Dictionary', example: true })
   @IsBoolean()

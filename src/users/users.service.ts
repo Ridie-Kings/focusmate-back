@@ -10,8 +10,8 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
-import argon2 from "argon2";
-import sanitizeHtml from "sanitize-html";
+import * as argon2 from "argon2";
+import * as sanitizeHtml from 'sanitize-html';
 import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
