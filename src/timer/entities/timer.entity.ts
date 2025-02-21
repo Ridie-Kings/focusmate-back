@@ -1,11 +1,11 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 import { getDefaultAutoSelectFamily } from "net";
 
 @Schema({ timestamps: true })
 export class Timer extends Document {
-  @Prop({ type: String, ref: "User", required: true })
-  user: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
+  user: mongoose.Types.ObjectId;
 
   @Prop({ type: String, required: true })
   task: string;

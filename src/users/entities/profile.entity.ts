@@ -6,10 +6,6 @@ import { ApiProperty } from "@nestjs/swagger";
  */
 @Schema() // ✅ Ahora `Profile` es un Schema de Mongoose
 export class Profile {
-  @ApiProperty({
-    example: "Full-stack developer",
-    description: "User biography",
-  })
   @Prop({ type: String, default: "" })
   bio: string;
 

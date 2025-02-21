@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import mongoose, { Model } from "mongoose";
 import { Timer } from "./entities/timer.entity";
 import { StartTimerDto, UpdateTimerDto } from "./dto/index";
 
@@ -14,7 +14,7 @@ export class TimerService {
 
   async startTimer(
     startTimerDto: StartTimerDto,
-    userId: string,
+    userId: mongoose.Types.ObjectId,
   ): Promise<Timer> {
     const existingTimer = await this.timerModel.findOne({
       user: userId,
@@ -37,7 +37,7 @@ export class TimerService {
 
   async updateTimer(
     updateTimerDto: UpdateTimerDto,
-    userId: string,
+    userId: mongoose.Types.ObjectId,
   ): Promise<Timer> {
     const timer = await this.timerModel.findOne({
       _id: updateTimerDto.timerId,
@@ -68,11 +68,11 @@ export class TimerService {
     return timer.save();
   }
 
-  async getTimers(userId: string): Promise<Timer[]> {
+  async getTimers(userId: mongoose.Types.ObjectId): Promise<Timer[]> {
     return this.timerModel.find({ user: userId }).exec();
   }
 
- async deleteTimer(timerId: string, userId: string): Promise<void> {
+ async deleteTimer(timerId: string, userId: mongoose.Types.ObjectId): Promise<void> {
   const timer = await this.timerModel.findOne({ _id: timerId, user: userId });
 
   if (!timer) {

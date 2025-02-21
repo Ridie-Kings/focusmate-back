@@ -31,14 +31,14 @@ export class TimerController {
   @ApiOperation({ summary: "Start a new timer" })
   @ApiResponse({ status: 201, description: "Timer started successfully" })
   startTimer(@Body() startTimerDto: StartTimerDto, @GetUser() user: User) {
-    return this.timerService.startTimer(startTimerDto, user._id.toString());
+    return this.timerService.startTimer(startTimerDto, user.id);
   }
 
   @Patch("update")
   @ApiOperation({ summary: "Pause, resume or stop a timer" })
   @ApiResponse({ status: 200, description: "Timer updated successfully" })
   updateTimer(@Body() updateTimerDto: UpdateTimerDto, @GetUser() user: User) {
-    return this.timerService.updateTimer(updateTimerDto, user._id.toString());
+    return this.timerService.updateTimer(updateTimerDto, user.id);
   }
 
   @Get()
@@ -48,7 +48,7 @@ export class TimerController {
     description: "List of timers retrieved successfully",
   })
   getTimers(@GetUser() user: User) {
-    return this.timerService.getTimers(user._id.toString());
+    return this.timerService.getTimers(user.id);
   }
 
   @Delete(":id")
@@ -59,6 +59,6 @@ export class TimerController {
     description: "Forbidden: You cannot delete this timer",
   }) 
   deleteTimer(@Param("id") id: string, @GetUser() user: User) {
-    return this.timerService.deleteTimer(id, user._id.toString());
+    return this.timerService.deleteTimer(id, user.id);
   }
 }

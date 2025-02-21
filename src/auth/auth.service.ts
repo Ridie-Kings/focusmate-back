@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     const payload = { sub: user._id, email: user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "15m" });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
     // ✅ Hashear el Refresh Token antes de guardarlo
@@ -67,7 +67,7 @@ export class AuthService {
     // 🔹 Generar un nuevo access token
     const newAccessToken = this.jwtService.sign(
       { sub: user._id, email: user.email },
-      { expiresIn: "12h" },
+      { expiresIn: "15m" },
     );
 
     return { access_token: newAccessToken };

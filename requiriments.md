@@ -20,7 +20,7 @@
 - Diccionario personal (Glosario):
   - Los usuarios deben poder agregar palabras y sus definiciones.
   - El diccionario debe permitir consultar las palabras por nombre o categoría.
-  - Los usuarios deben poder organizar las palabras alfabéticamente, por tema o cualquier otro parámetro.
+  - Los usuarios deben poder organizar las palabras alfabéticamente, por tags o cualquier otro parámetro.
 - Tabla de seguimiento de temas:
   - Los usuarios deben poder añadir y realizar un seguimiento de los temas que están trabajando o estudiando.
   - Deben poder agregar notas, fechas de inicio y final, y el progreso de cada tema.

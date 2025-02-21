@@ -45,16 +45,16 @@ export class DictsService {
       dict = await this.dictModel.findById(id);
     }
     if (!dict) throw new NotFoundException(`Dict not found`);
-    const isOwner = dict.ownerId === userId;
+    const isOwner = dict.ownerId.equals(userId);
     const isShared = dict.sharedWith.some(u => u.userId === userId);
     if (!isOwner || !isShared) throw new ForbiddenException(`Unauthorized access`);
-    return await dict.populate('ownerId');
+    return await dict.populate({path: 'ownerId', select: 'username'});
   }
 
   async update(id: string, updateDictDto: UpdateDictDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
-    const isOwner = updDict.ownerId === userId;
+    const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
@@ -73,7 +73,7 @@ export class DictsService {
   async updateUsersDict(id: string, updateUserSharedWithDto: UpdateUserSharedWithDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
-    const isOwner = updDict.ownerId === userId;
+    const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
@@ -91,7 +91,7 @@ export class DictsService {
   async addWord(id: string, addWordDto: AddWordDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
-    const isOwner = updDict.ownerId === userId;
+    const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
       const word = {word: sanitizeHtml(addWordDto.word), definition: sanitizeHtml( addWordDto.meaning), example: sanitizeHtml(addWordDto.example)};
@@ -109,7 +109,7 @@ export class DictsService {
   async deleteWord(id: string, word: String, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
-    const isOwner = updDict.ownerId === userId;
+    const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
       return await this.dictModel.findByIdAndUpdate(id,
@@ -126,7 +126,7 @@ export class DictsService {
   async softDelete(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const dict = await this.findOne(id, userId);
     if (!dict) throw new NotFoundException(`Dict not found`);
-    const isOwner = dict.ownerId === userId;
+    const isOwner = dict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not delete this dict`);
     try {
       return await this.dictModel.findByIdAndUpdate(id,
@@ -142,7 +142,7 @@ export class DictsService {
   async remove(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const dict = await this.findOne(id, userId);
     if (!dict) throw new NotFoundException(`Dict not found`);
-    const isOwner = dict.ownerId === userId;
+    const isOwner = dict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not delete this dict`);
     try {
       return await this.dictModel.findByIdAndDelete(id);

@@ -33,7 +33,7 @@ export class Dict extends Document {
   name: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
-  ownerId: mongoose.Types.ObjectId;
+  ownerId: mongoose.Types.ObjectId; // Propietario del diccionario
 
   @Prop({type: String, required: false, default: ""}) 
   description: string;
