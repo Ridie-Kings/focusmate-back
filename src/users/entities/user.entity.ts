@@ -1,7 +1,14 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
-import { ApiProperty } from "@nestjs/swagger";
-import { Profile, ProfileSchema } from "./profile.entity";
+// import { Profile, ProfileSchema } from "./profile.entity";
+
+export class Profile {
+  @Prop({ default: "" })
+  bio: string;
+  @Prop({ default: "" })
+  avatar: string;
+  //settings: Record<string, any>;
+}
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -37,7 +44,7 @@ export class User extends Document {
   @Prop({ default: 1 })
   level: number;
 
-  @Prop({ type: ProfileSchema, default: () => ({}) })
+  @Prop({ type: Profile, default: () => ({}) })
   profile: Profile;
 
   @Prop({ default: null })

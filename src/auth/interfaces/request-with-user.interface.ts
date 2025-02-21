@@ -1,5 +1,6 @@
 import { Request } from "express";
+import { JwtPayload } from "./jwt-payload.interface";
 
 export interface RequestWithUser extends Request {
-  user?: any; // O mejor, usa una interfaz específica para el payload del token
+  user?: JwtPayload; // O mejor, usa una interfaz específica para el payload del token
 }

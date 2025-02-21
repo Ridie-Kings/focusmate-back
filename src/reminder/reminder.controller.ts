@@ -20,6 +20,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
+import { JwtPayload } from "src/auth/interfaces/jwt-payload.interface";
 
 @ApiTags("Reminders")
 @ApiBearerAuth()
@@ -33,6 +34,8 @@ export class ReminderController {
   @ApiResponse({ status: 201, description: "Reminder successfully created" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   create(@Body() createReminderDto: CreateReminderDto, @GetUser() user: User) {
+    console.log("MATIAS EL BOBITO");
+    console.log(user);
     return this.remindersService.create(createReminderDto, user.id);
   }
 

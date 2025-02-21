@@ -123,8 +123,8 @@ export class UsersService {
     if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
     if (updateData.avatar !== undefined)
       user.profile.avatar = updateData.avatar;
-    if (updateData.settings !== undefined)
-      user.profile.settings = updateData.settings;
+    // if (updateData.settings !== undefined)
+    //   user.profile.settings = updateData.settings;
 
     await user.save();
     return { message: "Profile updated successfully", profile: user.profile };

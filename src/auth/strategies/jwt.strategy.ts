@@ -5,6 +5,7 @@ import { User } from "src/users/entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { ConfigService } from "@nestjs/config";
+import { JwtPayload } from "../interfaces/jwt-payload.interface";
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -18,9 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string }): Promise<User> {
-    const user = await this.userModel.findById(payload.sub).select("-password");
-    console.log(payload);
+  async validate(payload: JwtPayload): Promise<User> {
+    const user = await this.userModel.findById(payload.id).select("-password");
     if (!user) {
       throw new UnauthorizedException("User not found");
     }

@@ -13,6 +13,7 @@ export class Word {
   example?: string;
 }
 
+export type SharedUserDocument = SharedUser & Document;
 @Schema()
 export class SharedUser extends Document { 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
@@ -24,6 +25,7 @@ export class SharedUser extends Document {
 
 export const SharedUserSchema = SchemaFactory.createForClass(SharedUser);
 
+export type DictDocument = Dict & Document;
 @Schema({ timestamps: true })
 export class Dict extends Document {
   @Prop({

@@ -39,15 +39,11 @@ export class DictsService {
 
   async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Dict> {
     let dict: Dict;
-    if (!isValidObjectId(id)) {
-      dict = await this.dictModel.findById({name: id});
-    }else{
-      dict = await this.dictModel.findById(id);
-    }
+    dict = await this.dictModel.findById(id);
     if (!dict) throw new NotFoundException(`Dict not found`);
     const isOwner = dict.ownerId.equals(userId);
     const isShared = dict.sharedWith.some(u => u.userId === userId);
-    if (!isOwner || !isShared) throw new ForbiddenException(`Unauthorized access`);
+    if (!isOwner && !isShared) throw new ForbiddenException(`Unauthorized access`);
     return await dict.populate({path: 'ownerId', select: 'username'});
   }
 
@@ -57,15 +53,25 @@ export class DictsService {
     const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
-      const updateDict = await this.dictModel.findByIdAndUpdate(id,
+      await this.dictModel.findByIdAndUpdate(id,
         {
           $set: {name: updateDictDto.name, description: sanitizeHtml(updateDictDto.description), public: updateDictDto.public},
-          $push: {tags: { $each: updateDictDto.tags }},
-          $pull: {tags: { $in: updateDictDto.deleteTags } },
         },
-        {new: true});
-      return await updateDict.populate('ownerId');
+        {new: true}).populate('ownerId');
+      if (updateDictDto.updateTags.length) {
+        await this.dictModel.findByIdAndUpdate(id,
+          {
+            $addToSet: {tags: { $each: updateDictDto.updateTags }},
+          },
+          {new: true});
+      }
+      if (updateDictDto.deleteTags.length) {
+        await this.dictModel.findByIdAndUpdate
+        (id, { $pull: {tags: { $in: updateDictDto.deleteTags }}}, {new: true});
+      }
+      return await this.findOne(id, userId);
     } catch (error) {
+      console.error(error);
       throw new InternalServerErrorException("Error updating dict");
     }
   }

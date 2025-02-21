@@ -3,7 +3,7 @@ import mongoose, { Document } from "mongoose";
 
 export type ReminderDocument = Reminder & Document;
 @Schema({ timestamps: true})
-export class Reminder {
+export class Reminder extends Document {
     @Prop({ type: String, required: true }) 
     title: string;
     @Prop({type: String, required: false})

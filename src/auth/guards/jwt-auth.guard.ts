@@ -8,6 +8,7 @@ import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { RequestWithUser } from "../interfaces/request-with-user.interface";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
+import { JwtPayload } from "../interfaces/jwt-payload.interface";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -50,7 +51,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     try {
-      const payload = this.jwtService.verify(token);
+      const payload = this.jwtService.verify<JwtPayload>(token);
       console.log("📌 Payload del JWT:", payload);
       request.user = payload; // Ahora TypeScript reconoce 'user' en request
       return true;

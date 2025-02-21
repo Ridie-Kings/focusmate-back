@@ -22,12 +22,14 @@ export class ReminderService {
     userId: mongoose.Types.ObjectId,
   ): Promise<Reminder> {
     try {
+      console.log(createReminderDto);
+      console.log(userId);
       const reminder = new this.reminderModel({
         ...createReminderDto,
         user: userId,
       });
 
-      return await reminder.save();
+      return (await reminder.save()).populate("user");
     } catch (error) {
       throw new InternalServerErrorException("Error creating reminder");
     }

@@ -103,18 +103,18 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Patch("profile")
+  @Patch(":id/profile")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Update the authenticated user's profile" })
   @ApiResponse({ status: 200, description: "Profile updated successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  //@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async updateProfile(
-    @Req() req: RequestWithUser,
+    @Param("id", ParseMongoIdPipe) id: string,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return this.usersService.updateProfile(req.user._id, updateProfileDto);
+    return this.usersService.updateProfile(id, updateProfileDto);
   }
 
   @Delete(":id")

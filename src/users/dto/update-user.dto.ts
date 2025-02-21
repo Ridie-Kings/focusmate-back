@@ -8,6 +8,7 @@ import {
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
+import { Profile } from "../entities/user.entity";
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -60,6 +61,13 @@ export class UpdateUserDto {
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @IsOptional()
   readonly updatedPassword?: string;
+  @ApiProperty({
+    example: "John Doe",
+    description: "User's full name (optional)",
+    required: false,
+  })
+  // @IsOptional()
+  // readonly updateProfile: Profile;
 
   @ApiProperty({
     example: "eyJhbGciOiJIUzI1NiIsInR...",

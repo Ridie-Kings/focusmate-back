@@ -32,7 +32,7 @@ export class TimerService {
       startedAt: new Date(),
     });
 
-    return timer.save();
+    return (await timer.save()).populate("user");
   }
 
   async updateTimer(
