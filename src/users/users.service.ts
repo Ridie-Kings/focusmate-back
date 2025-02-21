@@ -10,8 +10,8 @@ import { UpdateUserDto } from "./dto/update-user.dto";
 import { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
-import argon2 from "argon2";
-import sanitizeHtml from "sanitize-html";
+import * as argon2 from "argon2";
+import * as sanitizeHtml from "sanitize-html";
 import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
@@ -20,7 +20,6 @@ export class UsersService {
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
   ) {}
-
   async create(createUserDto: CreateUserDto): Promise<User> {
     try {
       // 🔹 Sanitizar los inputs antes de guardarlos
@@ -46,11 +45,11 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<User[]> {
+  findAll() {
     return this.userModel.find();
   }
 
-  async findOne(term: string): Promise<User> {
+  async findOne(term: string) {
     let user: User | null = null;
 
     if (isValidObjectId(term)) {
@@ -124,14 +123,14 @@ export class UsersService {
     if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
     if (updateData.avatar !== undefined)
       user.profile.avatar = updateData.avatar;
-    if (updateData.settings !== undefined)
-      user.profile.settings = updateData.settings;
+    // if (updateData.settings !== undefined)
+    //   user.profile.settings = updateData.settings;
 
     await user.save();
     return { message: "Profile updated successfully", profile: user.profile };
   }
 
-  async remove(id: string): Promise<User> {
+  async remove(id: string) {
     const user = await this.userModel.findById(id);
     if (!isValidObjectId(id) || !user) {
       throw new BadRequestException("Invalid id or user not found");

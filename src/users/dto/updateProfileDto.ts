@@ -18,11 +18,12 @@ export class UpdateProfileDto {
   @IsString()
   avatar?: string;
 
-  @ApiProperty({
-    example: { theme: "dark", notifications: true },
-    description: "User settings",
-  })
-  @IsOptional()
-  @IsObject()
-  settings?: Record<string, any>;
+//   @ApiProperty({
+//     example: { theme: "dark", notifications: true },
+//     description: "User settings",
+//   })
+//   @IsOptional()
+//   @IsObject()
+//   settings?: Record<string, any>;
+// 
 }

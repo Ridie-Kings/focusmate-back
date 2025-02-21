@@ -23,7 +23,7 @@ export class UpdateDictDto extends PartialType(CreateDictDto) {
 
   @ApiProperty({ description: 'Tags list of a Dictionary', example: ['tag1', 'tag2'] })
   @IsOptional()
-  readonly tags?: string[];
+  readonly updateTags?: string[];
 
   @ApiProperty({ description: 'Shared with list to be eliminated from a Dictionary', example: ['tag1', 'tag2'] })
   @IsOptional()

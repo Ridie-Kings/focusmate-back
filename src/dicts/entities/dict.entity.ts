@@ -1,5 +1,6 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
+import mongoose from "mongoose";
 
 export class Word {
   @Prop({ required: true })
@@ -12,14 +13,19 @@ export class Word {
   example?: string;
 }
 
-export class SharedUser {
-  @Prop({ required: true })
-  userId: string;
+export type SharedUserDocument = SharedUser & Document;
+@Schema()
+export class SharedUser extends Document { 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
+  userId: mongoose.Types.ObjectId;
 
   @Prop({ required: true, enum: ["viewer", "editor"] }) // Tipos de permisos
   role: string;
 }
 
+export const SharedUserSchema = SchemaFactory.createForClass(SharedUser);
+
+export type DictDocument = Dict & Document;
 @Schema({ timestamps: true })
 export class Dict extends Document {
   @Prop({
@@ -28,8 +34,8 @@ export class Dict extends Document {
   })
   name: string;
 
-  @Prop({ required: true, ref: "User" })
-  ownerId: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
+  ownerId: mongoose.Types.ObjectId; // Propietario del diccionario
 
   @Prop({type: String, required: false, default: ""}) 
   description: string;
@@ -43,7 +49,7 @@ export class Dict extends Document {
   @Prop({ default: false })
   isDeleted: boolean;
 
-  @Prop({ type: [SharedUser], default: [] })
+  @Prop({ type: [SharedUserSchema], default: [] })
   sharedWith: SharedUser[];
 
   @Prop({ type: [String], default: [] })

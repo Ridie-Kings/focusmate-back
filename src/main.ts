@@ -21,7 +21,7 @@ async function sherpmain() {
 
   // Middleware de seguridad CORS
   app.enableCors({
-    origin: ["http://localhost:3000"], // Dominio o lista de dominios permitidos
+    origin: ["http://localhost:4000"], // Dominio o lista de dominios permitidos
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });

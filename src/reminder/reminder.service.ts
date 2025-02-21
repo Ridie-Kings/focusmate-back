@@ -9,7 +9,7 @@ import { CreateReminderDto } from "./dto/create-reminder.dto";
 import { UpdateReminderDto } from "./dto/update-reminder.dto";
 import { Reminder, ReminderDocument } from "./entities/reminder.entity";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, isValidObjectId } from "mongoose";
+import mongoose, { Model, isValidObjectId } from "mongoose";
 
 @Injectable()
 export class ReminderService {
@@ -19,25 +19,27 @@ export class ReminderService {
 
   async create(
     createReminderDto: CreateReminderDto,
-    userId: string,
+    userId: mongoose.Types.ObjectId,
   ): Promise<Reminder> {
     try {
+      console.log(createReminderDto);
+      console.log(userId);
       const reminder = new this.reminderModel({
         ...createReminderDto,
         user: userId,
       });
 
-      return await reminder.save();
+      return (await reminder.save()).populate("user");
     } catch (error) {
       throw new InternalServerErrorException("Error creating reminder");
     }
   }
 
-  async findAll(userId: string): Promise<Reminder[]> {
+  async findAll(userId: mongoose.Types.ObjectId): Promise<Reminder[]> {
     return this.reminderModel.find({ user: userId }).exec();
   }
 
-  async findOne(id: string, userId: string): Promise<Reminder> {
+  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Reminder> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }
@@ -48,7 +50,7 @@ export class ReminderService {
       throw new NotFoundException("Reminder not found");
     }
 
-    if (reminder.user.toString() !== userId) {
+    if (!reminder.user.equals(userId)) {
       throw new ForbiddenException(
         "You do not have permission to access this reminder",
       );
@@ -59,7 +61,7 @@ export class ReminderService {
 
   async update(
     id: string,
-    userId: string,
+    userId: mongoose.Types.ObjectId,
     updateReminderDto: UpdateReminderDto,
   ): Promise<Reminder> {
     if (!isValidObjectId(id)) {
@@ -72,7 +74,7 @@ export class ReminderService {
       throw new NotFoundException("Reminder not found");
     }
 
-    if (reminder.user.toString() !== userId) {
+    if (!reminder.user.equals(userId)) {
       throw new ForbiddenException(
         "You do not have permission to update this reminder",
       );
@@ -87,7 +89,7 @@ export class ReminderService {
     }
   }
 
-  async remove(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: mongoose.Types.ObjectId): Promise<void> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }
@@ -98,7 +100,7 @@ export class ReminderService {
       throw new NotFoundException("Reminder not found");
     }
 
-    if (reminder.user.toString() !== userId) {
+    if (!reminder.user.equals(userId)) {
       throw new ForbiddenException(
         "You do not have permission to delete this reminder",
       );

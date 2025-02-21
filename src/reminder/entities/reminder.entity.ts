@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 
 export type ReminderDocument = Reminder & Document;
 @Schema({ timestamps: true})
-export class Reminder {
+export class Reminder extends Document {
     @Prop({ type: String, required: true }) 
     title: string;
     @Prop({type: String, required: false})
@@ -16,8 +16,8 @@ export class Reminder {
     repeat: boolean;
     @Prop({type: String, enum: ['daily', 'weekly', 'monthly'], required: false})
     repeatInterval?: string;
-    @Prop({ type: String, ref: 'User', required: true })
-    user: string;
+    @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
+    user: mongoose.Types.ObjectId;
 }
 
 export const ReminderSchema = SchemaFactory.createForClass(Reminder); 
