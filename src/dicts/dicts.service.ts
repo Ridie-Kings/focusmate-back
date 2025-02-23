@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import * as sanitizeHtml from 'sanitize-html';
-import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateUserSharedWithDto } from "./dto/index";
+import { CreateDictDto, UpdateDictDto, AddDeleteWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { Dict, Word } from "./entities/dict.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { isValidObjectId, Model } from "mongoose";
@@ -28,7 +28,10 @@ export class DictsService {
 
   async findAll(ownerId: mongoose.Types.ObjectId): Promise<Dict[]> {
     const query: any = {
-      $or: [{ ownerId: ownerId }, { "sharedWith.userId": ownerId }],
+        $or: [
+          { ownerId: ownerId },
+          { "sharedWith.userId": ownerId },
+        ]
     };
     return this.dictModel.find(query).populate('ownerId');
   }
@@ -82,25 +85,27 @@ export class DictsService {
     const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
-      const updateDict = await this.dictModel.findByIdAndUpdate(id,
-        {
-          $addToSet: {sharedWith: { $each: updateUserSharedWithDto.sharedWith }},
-          $pull: {sharedWith: { userId: { $in: updateUserSharedWithDto.deleteSharedWith } } },
-        },
-        {new: true});
+      let updateDict;
+      if (updateUserSharedWithDto.sharedUsers) {
+        updateDict = await this.dictModel.findByIdAndUpdate(id, { $addToSet: {sharedWith: { $each: updateUserSharedWithDto.sharedUsers }}}, {new: true});
+      }
+      if (updateUserSharedWithDto.deleteSharedWith) {
+        updateDict = await this.dictModel.findByIdAndUpdate (id, { $pull: {sharedWith: {userId: { $in: updateUserSharedWithDto.deleteSharedWith }}}}, {new: true});
+      }
       return await updateDict.populate('ownerId', 'sharedWith.userId');
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException("Error updating dict");
     }
   }
 
-  async addWord(id: string, addWordDto: AddWordDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
+  async addWord(id: string, addWordDto: AddDeleteWordDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId.equals(userId);
     if (!isOwner) throw new ForbiddenException(`Unauthorized access, you can not update this dict`);
     try {
-      const word = {word: sanitizeHtml(addWordDto.word), definition: sanitizeHtml( addWordDto.meaning), example: sanitizeHtml(addWordDto.example)};
+      const word = {word: sanitizeHtml(addWordDto.word), definition: sanitizeHtml( addWordDto.definition), example: sanitizeHtml(addWordDto.example)};
       const updateDict = await this.dictModel.findByIdAndUpdate(id,
         {
           $addToSet: { words: word },
@@ -112,7 +117,7 @@ export class DictsService {
     }
   }
 
-  async deleteWord(id: string, word: String, userId: mongoose.Types.ObjectId): Promise<Dict> {
+  async deleteWord(id: string, word: AddDeleteWordDto, userId: mongoose.Types.ObjectId): Promise<Dict> {
     const updDict = await this.findOne(id, userId);
     if (!updDict) throw new NotFoundException(`Dict not found`);
     const isOwner = updDict.ownerId.equals(userId);
@@ -120,7 +125,7 @@ export class DictsService {
     try {
       return await this.dictModel.findByIdAndUpdate(id,
         {
-          $pull: { words: {word: word} },
+          $pull: { words: word },
         },
         {new: true});
     } catch (error) {

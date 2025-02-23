@@ -6,7 +6,7 @@ export class UpdateUserSharedWithDto {
   
   @ApiProperty({ description: 'Shared with list of a Dictionary', example: [{userId: 'userId', role: 'viewer'},{userId: 'userId2', role: 'editor'}] })
   @IsOptional()
-  readonly sharedWith?: SharedUser[];
+  readonly sharedUsers?: SharedUser[];
 
   @ApiProperty({ description: 'userId list of users to be eliminated', example: ['userid1', 'userid2']})
   @IsOptional()

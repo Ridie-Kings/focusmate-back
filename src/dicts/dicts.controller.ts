@@ -11,7 +11,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { DictsService } from "./dicts.service";
-import { CreateDictDto, UpdateDictDto, AddWordDto, UpdateUserSharedWithDto } from "./dto/index";
+import { CreateDictDto, UpdateDictDto, AddDeleteWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
 import { Dict } from "./entities/dict.entity";
@@ -78,7 +78,7 @@ export class DictsController {
     return this.dictsService.update(dictId, updateDictDto, user.id);
   }
 
-  @Patch(":id/sharedwith")
+  @Patch(":id/sharedusers")
   @ApiOperation({ summary: "add/delete user shared with" })
   @ApiResponse({ status: 200, description: "Added /deleted Ok, Dict updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
@@ -100,7 +100,7 @@ export class DictsController {
   @ApiResponse({ status: 404, description: "Dict not found" })
   async addWord(
     @Param("id", ParseMongoIdPipe) dictId: string,
-    @Body() addWordDto: AddWordDto,
+    @Body() addWordDto: AddDeleteWordDto,
     @GetUser() user: User,
   ): Promise<Dict> {
     return this.dictsService.addWord(dictId, addWordDto, user.id);
@@ -114,7 +114,7 @@ export class DictsController {
   @ApiResponse({ status: 404, description: "Dict not found" })
   async deleteWord(
     @Param("id", ParseMongoIdPipe) dictId: string,
-    @Body() word: String,
+    @Body() word: AddDeleteWordDto,
     @GetUser() user: User,
   ): Promise<Dict> {
     return this.dictsService.deleteWord(dictId, word, user.id);
