@@ -74,7 +74,6 @@ export class DictsService {
       }
       return await this.findOne(id, userId);
     } catch (error) {
-      console.error(error);
       throw new InternalServerErrorException("Error updating dict");
     }
   }

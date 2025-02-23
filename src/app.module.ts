@@ -13,6 +13,10 @@ import { TimerModule } from './timer/timer.module';
 import { ConfigModule } from "@nestjs/config";
 import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
 import { DictsModule } from "./dicts/dicts.module";
+import { GamificationProfileModule } from './gamification-profile/gamification-profile.module';
+import { EventsModule } from './events/events.module';
+import { BadgesModule } from './badges/badges.module';
+import { RewardsModule } from './rewards/rewards.module';
 
 @Module({
   imports: [
@@ -45,6 +49,14 @@ import { DictsModule } from "./dicts/dicts.module";
     TokenBlacklistModule,
 
     DictsModule,
+
+    GamificationProfileModule,
+
+    EventsModule,
+
+    BadgesModule,
+
+    RewardsModule,
   ],
   controllers: [],
   providers: [
