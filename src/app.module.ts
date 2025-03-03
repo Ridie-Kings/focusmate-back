@@ -17,6 +17,7 @@ import { GamificationProfileModule } from './gamification-profile/gamification-p
 import { EventsModule } from './events/events.module';
 import { BadgesModule } from './badges/badges.module';
 import { RewardsModule } from './rewards/rewards.module';
+import { BadgesWebsocketModule } from './badges-websocket/badges-websocket.module';
 
 @Module({
   imports: [
@@ -57,6 +58,8 @@ import { RewardsModule } from './rewards/rewards.module';
     BadgesModule,
 
     RewardsModule,
+
+    BadgesWebsocketModule,
   ],
   controllers: [],
   providers: [

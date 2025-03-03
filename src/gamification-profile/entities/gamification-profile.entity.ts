@@ -20,7 +20,7 @@ export class GamificationProfile extends Document {
   badges: mongoose.Types.ObjectId[];
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Events' }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Events' }], default: []
   })
   events: mongoose.Types.ObjectId[];
   
