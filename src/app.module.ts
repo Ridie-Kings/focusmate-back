@@ -14,10 +14,11 @@ import { ConfigModule } from "@nestjs/config";
 import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
 import { DictsModule } from "./dicts/dicts.module";
 import { GamificationProfileModule } from './gamification-profile/gamification-profile.module';
-import { EventsModule } from './events/events.module';
+//import { EventsModule } from './events/events.module';
 import { BadgesModule } from './badges/badges.module';
+import { RedisModule } from "./redis/redis.module";
+//import { RewardsModule } from './rewards/rewards.module';
 import { RewardsModule } from './rewards/rewards.module';
-import { BadgesWebsocketModule } from './badges-websocket/badges-websocket.module';
 
 @Module({
   imports: [
@@ -53,13 +54,11 @@ import { BadgesWebsocketModule } from './badges-websocket/badges-websocket.modul
 
     GamificationProfileModule,
 
-    EventsModule,
-
     BadgesModule,
-
+    
+    RedisModule,
+    
     RewardsModule,
-
-    BadgesWebsocketModule,
   ],
   controllers: [],
   providers: [

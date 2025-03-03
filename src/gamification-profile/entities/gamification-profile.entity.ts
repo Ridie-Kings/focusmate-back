@@ -2,7 +2,7 @@ import { Prop, Schema } from "@nestjs/mongoose";
 import mongoose, { Document } from "mongoose";
 
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class GamificationProfile extends Document {
   
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User" })

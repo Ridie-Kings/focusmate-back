@@ -6,6 +6,12 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
+import { Socket } from 'socket.io';
+
+interface SocketWithUser extends Socket {
+  user?: JwtPayload;
+}
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
@@ -34,9 +40,9 @@ export class WsJwtAuthGuard implements CanActivate {
 
     try {
       // Verificamos el token. Si es válido, obtenemos el payload.
-      const payload = this.jwtService.verify(token);
+      const payload = this.jwtService.verify<JwtPayload>(token);
       // Puedes asignar el payload al objeto del cliente para tener acceso posterior.
-      client.user = payload;
+      (client as SocketWithUser).user = payload;
       return true;
     } catch (error) {
       throw new UnauthorizedException('Token invalid or expired');

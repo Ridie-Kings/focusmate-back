@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsEnum,
   IsBoolean,
+  MinDate,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
@@ -25,6 +26,7 @@ export class CreateReminderDto {
     example: "2025-02-15T10:00:00.000Z",
   })
   @IsDateString()
+  @MinDate(new Date())
   date: string;
 
   @ApiPropertyOptional({

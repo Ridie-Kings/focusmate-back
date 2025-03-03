@@ -26,7 +26,6 @@ async function sherpmain() {
     credentials: true, // Permitir enviar cookies
   });
 
-  @WebSocketGateway({ cors: true })
   app.use(cookieParser());
   // configuracón de Rate Limiting ()
   app.use(

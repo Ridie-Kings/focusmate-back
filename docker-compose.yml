@@ -9,3 +9,10 @@ services:
       MONGODB_DATABASE: sherpapp
     volumes:
       - ./mongo:/data/db
+
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: sherpapp-redis
+    ports:
+      - 6379:6379
