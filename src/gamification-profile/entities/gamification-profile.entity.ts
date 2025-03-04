@@ -1,34 +1,42 @@
-import { Prop, Schema } from "@nestjs/mongoose";
-import mongoose, { Document } from "mongoose";
-
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true, versionKey: false })
 export class GamificationProfile extends Document {
-  
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User" })
-  user: mongoose.Types.ObjectId;
+  // Cada perfil de gamificación pertenece a un usuario único.
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true, unique: true })
+  user: Types.ObjectId;
 
-  @Prop({ default: 0 })
+  // XP acumulada.
+  @Prop({ required: true, default: 0 })
   xp: number;
 
-  @Prop({ default: 1 })
+  // Nivel actual del usuario.
+  @Prop({ required: true, default: 1 })
   level: number;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Badges' }],
-  })
-  badges: mongoose.Types.ObjectId[];
+  @Prop()
+  banner?: string;
 
-  @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Events' }], default: []
-  })
-  events: mongoose.Types.ObjectId[];
-  
-  @Prop({ default: "" })
-  bio: string;
+  @Prop()
+  avatar?: string;
 
-  @Prop({ default: "" })
-  avatar: string;
+  @Prop()
+  frame?: string;
 
-    
+  @Prop()
+  coins?: number;
+
+  @Prop()
+  bio?: string;
+
+  // Recompensas directas, otorgadas sin estar asociadas a un badge, quest o racha.
+  @Prop({ type: [Types.ObjectId], ref: 'Reward', default: [] })
+  directRewards?: Types.ObjectId[];
+
+  // Badges desbloqueados.
+  @Prop({ type: [Types.ObjectId], ref: 'Badge', default: [] })
+  unlockedBadges?: Types.ObjectId[];
 }
+
+export const GamificationProfileSchema = SchemaFactory.createForClass(GamificationProfile);

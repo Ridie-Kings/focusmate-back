@@ -10,7 +10,7 @@ export class Reward extends Document {
 
   @Prop({ required: true })
   icon: string;
-
+  
   @Prop({ required: true, enum: ['badge', 'quest', 'streak', 'other'] })
   type: RewardType;
 
