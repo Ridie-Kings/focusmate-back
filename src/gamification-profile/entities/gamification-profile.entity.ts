@@ -15,20 +15,23 @@ export class GamificationProfile extends Document {
   @Prop({ required: true, default: 1 })
   level: number;
 
-  @Prop()
+  @Prop({required: true, default: ''})
   banner?: string;
 
-  @Prop()
+  @Prop({required: true, default: ''})
   avatar?: string;
 
-  @Prop()
+  @Prop({required: true, default: ''})
   frame?: string;
 
-  @Prop()
+  @Prop({required: true, default: 0})
   coins?: number;
 
-  @Prop()
+  @Prop({required: true, default: ''})
   bio?: string;
+
+  @Prop({required: true, default: 'Novice'})
+  title?: string;
 
   // Recompensas directas, otorgadas sin estar asociadas a un badge, quest o racha.
   @Prop({ type: [Types.ObjectId], ref: 'Reward', default: [] })
