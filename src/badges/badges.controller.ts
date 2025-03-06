@@ -39,6 +39,15 @@ export class BadgesController {
     return this.badgesService.findOne(id);
   }
 
+  @Get(':name')
+  @ApiOperation({ summary: 'Retrieve a specific badge by ID' })
+  @ApiResponse({ status: 200, description: 'Badge retrieved' })
+  @ApiResponse({ status: 404, description: 'Badge not found' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  async findByName(@Param('name') name: string): Promise<Badge> {
+    return this.badgesService.findByName(name);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update a badge by ID' })
   @ApiResponse({ status: 200, description: 'Badge updated successfully' })

@@ -16,14 +16,14 @@ export class GamificationProfileController {
   @ApiOperation({ summary: 'Create a new gamification profile' })
   @ApiResponse({ status: 201, description: 'Gamification profile successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile creation' })
-  create(@Body() createGamificationProfileDto: CreateGamificationProfileDto) {
+  async create(@Body() createGamificationProfileDto: CreateGamificationProfileDto) {
     return this.gamificationProfileService.create(createGamificationProfileDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Retrieve all gamification profiles' })
   @ApiResponse({ status: 200, description: 'List of gamification profiles retrieved' })
-  findAll() {
+  async findAll() {
     return this.gamificationProfileService.findAll();
   }
 
@@ -32,7 +32,7 @@ export class GamificationProfileController {
   @ApiResponse({ status: 200, description: 'Gamification profile retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.gamificationProfileService.findOne(+id);
   }
 
@@ -42,7 +42,7 @@ export class GamificationProfileController {
   @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile update' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
-  update(@Param('id') id: string, @Body() updateGamificationProfileDto: UpdateGamificationProfileDto) {
+  async update(@Param('id') id: string, @Body() updateGamificationProfileDto: UpdateGamificationProfileDto) {
     return this.gamificationProfileService.update(+id, updateGamificationProfileDto);
   }
 
@@ -51,7 +51,7 @@ export class GamificationProfileController {
   @ApiResponse({ status: 200, description: 'Gamification profile deleted successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.gamificationProfileService.remove(+id);
   }
 }

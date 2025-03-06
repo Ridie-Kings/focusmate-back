@@ -4,23 +4,23 @@ import { UpdateGamificationProfileDto } from './dto/update-gamification-profile.
 
 @Injectable()
 export class GamificationProfileService {
-  create(createGamificationProfileDto: CreateGamificationProfileDto) {
+  async create(createGamificationProfileDto: CreateGamificationProfileDto) {
     return 'This action adds a new gamificationProfile';
   }
 
-  findAll() {
+  async findAll() {
     return `This action returns all gamificationProfile`;
   }
 
-  findOne(id: number) {
+  async findOne(id: number) {
     return `This action returns a #${id} gamificationProfile`;
   }
 
-  update(id: number, updateGamificationProfileDto: UpdateGamificationProfileDto) {
+  async update(id: number, updateGamificationProfileDto: UpdateGamificationProfileDto) {
     return `This action updates a #${id} gamificationProfile`;
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return `This action removes a #${id} gamificationProfile`;
   }
 }

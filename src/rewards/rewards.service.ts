@@ -14,8 +14,8 @@ export class RewardsService {
   // Crea una nueva Reward
   async create(createRewardDto: CreateRewardDto): Promise<Reward> {
     try {
-      const reward = new this.rewardModel(createRewardDto);
-      return await reward;
+      const reward =  await this.rewardModel.create(createRewardDto);
+      return reward;
     } catch (error) {
       throw new InternalServerErrorException('Error creating reward');
     }
@@ -23,7 +23,7 @@ export class RewardsService {
 
   // Retorna todas las Rewards
   async findAll(): Promise<Reward[]> {
-    return this.rewardModel.find();
+    return await this.rewardModel.find();
   }
 
   // Retorna una Reward por su ID

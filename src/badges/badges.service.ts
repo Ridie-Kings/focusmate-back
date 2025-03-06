@@ -37,15 +37,18 @@ export class BadgesService {
   }
 
   async remove(id: mongoose.Types.ObjectId): Promise<Badge> {
-    return await this.badgeModel.findByIdAndDelete(id);
+    try {
+      return (await this.badgeModel.findByIdAndDelete(id));
+    } catch (error) {
+      throw new InternalServerErrorException('Error deleting badge');
+    }
   }
 
   async findByName(name: string): Promise<Badge> {
-    return this.badgeModel.findOne({name}).populate('reward');
+    try {
+      return this.badgeModel.findOne({name}).populate('reward');
+    } catch (error) {
+      throw new InternalServerErrorException('Error finding badge by name');
+    }
   }
-
-  async findByReward(reward: mongoose.Types.ObjectId): Promise<Badge[]> {
-    return this.badgeModel.find({reward}).populate('reward');
-  }
-
 }
