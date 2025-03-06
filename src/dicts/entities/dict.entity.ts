@@ -26,7 +26,7 @@ export class SharedUser extends Document {
 export const SharedUserSchema = SchemaFactory.createForClass(SharedUser);
 
 export type DictDocument = Dict & Document;
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Dict extends Document {
   @Prop({
     required: true,

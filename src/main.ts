@@ -25,6 +25,7 @@ async function sherpmain() {
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
+
   app.use(cookieParser());
   // configuracón de Rate Limiting ()
   app.use(

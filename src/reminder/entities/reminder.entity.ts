@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Document } from "mongoose";
 
 export type ReminderDocument = Reminder & Document;
-@Schema({ timestamps: true})
+@Schema({ timestamps: true, versionKey: false })
 export class Reminder extends Document {
     @Prop({ type: String, required: true }) 
     title: string;
