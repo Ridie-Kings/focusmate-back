@@ -1,33 +1,56 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { GamificationProfileService } from './gamification-profile.service';
 import { CreateGamificationProfileDto } from './dto/create-gamification-profile.dto';
 import { UpdateGamificationProfileDto } from './dto/update-gamification-profile.dto';
+import { ApiBearerAuth, ApiOperation, ApiResetContentResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
+@ApiTags('GamificationProfile')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('gamification-profile')
 export class GamificationProfileController {
   constructor(private readonly gamificationProfileService: GamificationProfileService) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new gamification profile' })
+  @ApiResponse({ status: 201, description: 'Gamification profile successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile creation' })
   create(@Body() createGamificationProfileDto: CreateGamificationProfileDto) {
     return this.gamificationProfileService.create(createGamificationProfileDto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'Retrieve all gamification profiles' })
+  @ApiResponse({ status: 200, description: 'List of gamification profiles retrieved' })
   findAll() {
     return this.gamificationProfileService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Retrieve a specific gamification profile by ID' })
+  @ApiResponse({ status: 200, description: 'Gamification profile retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   findOne(@Param('id') id: string) {
     return this.gamificationProfileService.findOne(+id);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a gamification profile by ID' })
+  @ApiResponse({ status: 200, description: 'Gamification profile updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile update' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   update(@Param('id') id: string, @Body() updateGamificationProfileDto: UpdateGamificationProfileDto) {
     return this.gamificationProfileService.update(+id, updateGamificationProfileDto);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a gamification profile by ID' })
+  @ApiResponse({ status: 200, description: 'Gamification profile deleted successfully' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   remove(@Param('id') id: string) {
     return this.gamificationProfileService.remove(+id);
   }

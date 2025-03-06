@@ -39,4 +39,13 @@ export class BadgesService {
   async remove(id: mongoose.Types.ObjectId): Promise<Badge> {
     return await this.badgeModel.findByIdAndDelete(id);
   }
+
+  async findByName(name: string): Promise<Badge> {
+    return this.badgeModel.findOne({name}).populate('reward');
+  }
+
+  async findByReward(reward: mongoose.Types.ObjectId): Promise<Badge[]> {
+    return this.badgeModel.find({reward}).populate('reward');
+  }
+
 }

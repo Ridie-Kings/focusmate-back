@@ -24,6 +24,7 @@ export class RewardsController {
   @Post()
   @ApiOperation({ summary: 'Create a new reward' })
   @ApiResponse({ status: 201, description: 'Reward successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided' })
   create(@Body() createRewardDto: CreateRewardDto) {
     return this.rewardsService.create(createRewardDto);
   }
@@ -38,6 +39,8 @@ export class RewardsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward retrieved successfully' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Reward not found' })
   findOne(@Param('id') id: string) {
     return this.rewardsService.findOne(id);
   }
@@ -45,6 +48,9 @@ export class RewardsController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward updated successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Reward not found' })
   update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
     return this.rewardsService.update(id, updateRewardDto);
   }
@@ -52,6 +58,8 @@ export class RewardsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward deleted successfully' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Reward not found' })
   remove(@Param('id') id: string) {
     return this.rewardsService.remove(id);
   }
