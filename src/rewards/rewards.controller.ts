@@ -8,6 +8,7 @@ import {
   Delete, 
   UseGuards 
 } from '@nestjs/common';
+import { Reward } from './entities/reward.entity';
 import { RewardsService } from './rewards.service';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
@@ -25,14 +26,14 @@ export class RewardsController {
   @ApiOperation({ summary: 'Create a new reward' })
   @ApiResponse({ status: 201, description: 'Reward successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  create(@Body() createRewardDto: CreateRewardDto) {
+  async create(@Body() createRewardDto: CreateRewardDto): Promise<Reward> {
     return this.rewardsService.create(createRewardDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all rewards' })
   @ApiResponse({ status: 200, description: 'List of rewards retrieved' })
-  findAll() {
+  async findAll() {
     return this.rewardsService.findAll();
   }
 
@@ -41,7 +42,7 @@ export class RewardsController {
   @ApiResponse({ status: 200, description: 'Reward retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  findOne(@Param('id') id: string) {
+  async findOne(@Param('id') id: string) {
     return this.rewardsService.findOne(id);
   }
 
@@ -51,7 +52,7 @@ export class RewardsController {
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
+  async update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
     return this.rewardsService.update(id, updateRewardDto);
   }
 
@@ -60,7 +61,7 @@ export class RewardsController {
   @ApiResponse({ status: 200, description: 'Reward deleted successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string) {
     return this.rewardsService.remove(id);
   }
 }

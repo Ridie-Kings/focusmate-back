@@ -11,7 +11,7 @@ import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { CreateRewardDto } from './dto/create-reward.dto';
 
-@WebSocketGateway({ namespace: 'rewards' })
+@WebSocketGateway({ namespace: '/rewards' })
 @UseGuards(WsJwtAuthGuard)
 export class RewardsGateway {
   @WebSocketServer()

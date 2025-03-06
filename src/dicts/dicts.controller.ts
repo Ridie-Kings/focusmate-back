@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
   Query,
+  Injectable,
 } from "@nestjs/common";
 import { DictsService } from "./dicts.service";
 import { CreateDictDto, UpdateDictDto, AddDeleteWordDto, UpdateUserSharedWithDto } from "./dto/index";

@@ -14,6 +14,9 @@ export class Badge extends Document {
   @Prop({ type: String, required: true })
   icon: string;
 
+  @Prop({ type: String, required: true })
+  conditions: string;
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Reward' })
   reward: mongoose.Types.ObjectId;
 }

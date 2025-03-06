@@ -7,33 +7,30 @@ export type RewardType = 'badge' | 'quest' | 'streak' | 'other';
 export class Reward extends Document {
   @Prop({ required: true })
   xp: number;
-
-  @Prop({ required: true })
-  icon: string;
   
   @Prop({ required: true, enum: ['badge', 'quest', 'streak', 'other'] })
   type: RewardType;
 
-  @Prop()
+  @Prop({type: Number, default: 0, required: false})
   coins?: number;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ''})
   title?: string;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ''})
   description?: string;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ''})
   banner?: string;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ''})
   frame?: string;
 
-  @Prop()
+  @Prop({type: String, required: false, default: ''})
   avatar?: string;
 
-  @Prop()
-  active?: boolean;
+  @Prop({type: Boolean, required: true, default: true})
+  active: boolean;
 }
 
 export const RewardSchema = SchemaFactory.createForClass(Reward);

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, IsEnum } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, IsEnum, IsBoolean } from 'class-validator';
 import { RewardType } from '../entities/reward.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -43,4 +43,9 @@ export class CreateRewardDto {
   @IsEnum(['badge', 'quest', 'streak', 'other'])
   @IsNotEmpty()
   type: RewardType;
+
+  @ApiProperty({ description: 'active or not reward', example: 'reward-status' })
+  @IsBoolean()
+  @IsNotEmpty()
+  active: boolean;
 }
