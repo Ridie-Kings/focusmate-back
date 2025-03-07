@@ -10,6 +10,7 @@ export class Profile {
   //settings: Record<string, any>;
 }
 
+export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User extends Document {
   @Prop({
