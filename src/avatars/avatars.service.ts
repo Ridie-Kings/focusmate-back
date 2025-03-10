@@ -1,26 +1,85 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateAvatarDto } from './dto/create-avatar.dto';
 import { UpdateAvatarDto } from './dto/update-avatar.dto';
+import { Avatar } from './entities/avatar.entity';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class AvatarsService {
-  create(createAvatarDto: CreateAvatarDto) {
-    return 'This action adds a new avatar';
+
+  constructor(
+    @InjectModel(Avatar.name)
+    private readonly avatarModel: Model<Avatar>,
+  ) {}
+  async create(createAvatarDto: CreateAvatarDto, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+    try {
+      const avatar = await this.avatarModel.create({
+        ...createAvatarDto,
+        userId,
+      });
+      return await avatar.populate('userId');
+    } catch (error) {
+      throw new InternalServerErrorException("Error creating avatar");
+    }
   }
 
-  findAll() {
-    return `This action returns all avatars`;
+  async findAll(userId: mongoose.Types.ObjectId): Promise<Avatar[]> {
+    const query: any = {
+      $or: [{ userId: userId }, {userId: null}, {userId:{ $exists: false }}],
+    };
+    return this.avatarModel.find(query);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} avatar`;
+  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+    let avatar: Avatar;
+    avatar = await this.avatarModel.findById(id);
+    if (!avatar) throw new NotFoundException(`Avatar not found`);
+    if (avatar.userId.equals(userId)) {
+      throw new ForbiddenException(`Unauthorized access`);
+    }
+    return avatar;
   }
 
-  update(id: number, updateAvatarDto: UpdateAvatarDto) {
-    return `This action updates a #${id} avatar`;
+  async update(id: string, updateAvatarDto: UpdateAvatarDto, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+    const updAvatar = await this.avatarModel.findById(id);
+    if (!updAvatar) throw new NotFoundException(`Avatar not found`);
+    if (updAvatar.userId.equals(userId)) { 
+      throw new ForbiddenException(`Unauthorized access, you can not update this avatar`);
+    }
+    try {
+      return await this.avatarModel.findByIdAndUpdate(id, updateAvatarDto, {new: true});
+    } catch (error) {
+      throw new InternalServerErrorException("Error updating avatar");
+    } 
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} avatar`;
+  async softDelete(id: string, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+    const avatar = await this.avatarModel.findById(id);
+    if (!avatar) throw new NotFoundException(`Avatar not found`);
+    if (avatar.userId.equals(userId)) {
+      throw new ForbiddenException(`Unauthorized access`);
+    }
+    try {
+      return await this.avatarModel.findByIdAndUpdate(id, {isDeleted: true}, {new: true});
+    }
+    catch (error) {
+      throw new InternalServerErrorException("Error deleting avatar");
+    }
   }
+
+  // async remove(id: string): Promise<Avatar> {
+  //   const avatar = await this.avatarModel.findById(id);
+  //   if (!avatar) throw new NotFoundException(`Avatar not found`);
+  //   if (avatar.userId.equals(userId)) {
+  //     throw new ForbiddenException(`Unauthorized access`);
+  //   }
+  //   try {
+  //     return await this.avatarModel.findByIdAndUpdate(id, {isDeleted: true}, {new: true});
+  //   }
+  //   catch (error) {
+  //     throw new InternalServerErrorException("Error deleting avatar");
+  //   }
+  // }
 }

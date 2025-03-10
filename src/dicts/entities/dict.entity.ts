@@ -40,7 +40,7 @@ export class Dict extends Document {
   @Prop({type: String, required: false, default: ""}) 
   description: string;
 
-  @Prop({ default: false })
+  @Prop({ required: false, default: false })
   public: boolean;
 
   @Prop({ type: [Word], default: [] })
