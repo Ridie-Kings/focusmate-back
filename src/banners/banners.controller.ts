@@ -1,34 +1,77 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { BannersService } from './banners.service';
 import { CreateBannerDto } from './dto/create-banner.dto';
 import { UpdateBannerDto } from './dto/update-banner.dto';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { GetUser } from 'src/users/decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { Banner } from './entities/banner.entity';
 
+@ApiTags('Banners')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('banners')
 export class BannersController {
   constructor(private readonly bannersService: BannersService) {}
 
   @Post()
-  create(@Body() createBannerDto: CreateBannerDto) {
-    return this.bannersService.create(createBannerDto);
+  @ApiOperation({ summary: 'Create a new banner' })
+  @ApiResponse({ status: 201, description: 'Banner successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid request' })
+  create(@Body() createBannerDto: CreateBannerDto, @GetUser() user: User) {
+    return this.bannersService.create(createBannerDto, user.id);
   }
 
   @Get()
-  findAll() {
-    return this.bannersService.findAll();
+  @ApiOperation({ summary: 'Get all banners' })
+  @ApiResponse({ status: 200, description: 'List of banners retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  async findAll(@GetUser() user: User): Promise<Banner[]> {
+    return this.bannersService.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.bannersService.findOne(+id);
+  @ApiOperation({ summary: 'Get a banner by id' })
+  @ApiResponse({ status: 200, description: 'Banner retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Banner not found' })
+  async findOne(@Param('id') id: string, @GetUser() user: User): Promise<Banner> {
+    return this.bannersService.findOne(id, user.id);
+  }
+
+  @Get('system')
+  @ApiOperation({ summary: 'Get a banner by id' })
+  @ApiResponse({ status: 200, description: 'List of banners retrieved'})
+  async findSystemBanners(): Promise<Banner[]> {
+    return this.bannersService.findSystemBanners();
+  }
+  
+  @Get('user')
+  @ApiOperation({ summary: 'Get a banner by id' })
+  @ApiResponse({ status: 200, description: 'List of banners retrieved' })
+  async findUserBanners(
+    @GetUser()
+    user: User
+  ): Promise<Banner[]> {
+    return this.bannersService.findUserBanners(user.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto) {
-    return this.bannersService.update(+id, updateBannerDto);
+  @ApiOperation({ summary: 'Update an existing banner' })
+  @ApiResponse({ status: 200, description: 'Banner updated' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Banner not found' })
+  async update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto, @GetUser() user: User): Promise<Banner> {
+    return this.bannersService.update(id, updateBannerDto, user.id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.bannersService.remove(+id);
+  @ApiOperation({ summary: 'Delete a banner' })
+  @ApiResponse({ status: 200, description: 'Banner deleted' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Banner not found' })
+  remove(@Param('id') id: string, @GetUser() user: User) {
+    return this.bannersService.remove(id, user.id);
   }
 }

@@ -40,6 +40,22 @@ export class AvatarsController {
     return this.avatarsService.findOne(id, user.id);
   }
 
+  @Get('user')
+  @ApiOperation({ summary: 'Retrieve all avatars made by the user' })
+  @ApiResponse({ status: 200, description: 'List of avatars retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  async findUsersAvatars(@GetUser() user: User): Promise<Avatar[]> {
+    return this.avatarsService.findUsersAvatars(user.id);
+  }
+
+  @Get('system')
+  @ApiOperation({ summary: 'Retrieve all system avatars' })
+  @ApiResponse({ status: 200, description: 'List of avatars retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  async findSystemAvatars(): Promise<Avatar[]> {
+    return this.avatarsService.findSystemAvatars();
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update an existing avatar' })
   @ApiResponse({ status: 200, description: 'Avatar updated' })

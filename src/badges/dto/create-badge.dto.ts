@@ -18,4 +18,9 @@ export class CreateBadgeDto {
 
   @ApiProperty({ description: 'Reward of the Badge', example: 'BadgeId' })
   readonly reward: mongoose.Types.ObjectId;
+
+  @ApiProperty({ description: 'Category of the Badge', example: 'BadgeCategory' })
+  @IsString()
+  readonly category: string;
+
 }

@@ -36,12 +36,20 @@ export class AvatarsService {
     let avatar: Avatar;
     avatar = await this.avatarModel.findById(id);
     if (!avatar) throw new NotFoundException(`Avatar not found`);
-    if (avatar.userId.equals(userId)) {
+    if (!avatar.userId.equals(userId) && avatar.userId) {
       throw new ForbiddenException(`Unauthorized access`);
     }
     return avatar;
   }
 
+  async findUsersAvatars(userId: mongoose.Types.ObjectId): Promise<Avatar[]> {
+    return this.avatarModel.find({ userId });
+  }
+  
+  async findSystemAvatars(): Promise<Avatar[]> {
+    return this.avatarModel.find({ $or: [{userId: null}, {userId: { $exists: false }}] });
+  }
+  
   async update(id: string, updateAvatarDto: UpdateAvatarDto, userId: mongoose.Types.ObjectId): Promise<Avatar> {
     const updAvatar = await this.avatarModel.findById(id);
     if (!updAvatar) throw new NotFoundException(`Avatar not found`);
