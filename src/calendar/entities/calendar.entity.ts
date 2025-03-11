@@ -26,4 +26,4 @@ export class Calendar extends Document {
   })
   reminders: mongoose.Types.ObjectId[];
 }
-export const calendarSchema = SchemaFactory.createForClass(Calendar);
+export const CalendarSchema = SchemaFactory.createForClass(Calendar);
