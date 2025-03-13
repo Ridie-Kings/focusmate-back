@@ -5,6 +5,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @ApiTags('titles')
 @ApiBearerAuth()
@@ -26,8 +27,8 @@ export class TitlesController {
   @ApiResponse({ status: 200, description: 'Title retrieved' })
   @ApiResponse({ status: 404, description: 'Title not found' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  async findOne(@Param('id', ParseMongoIdPipe) id: string): Promise<Title> {
-    return this.titlesService.findOne(+id);
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Title> {
+    return this.titlesService.findOne(id);
   }
 
   @Get('search/:title')

@@ -25,6 +25,7 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { UpdateProfileDto } from "./dto/updateProfileDto";
+import mongoose from "mongoose";
 
 @ApiTags("Users")
 @Controller("users")
@@ -97,7 +98,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: "User updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   update(
-    @Param("id", ParseMongoIdPipe) id: string,
+    @Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(id, updateUserDto);
@@ -111,7 +112,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   //@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
   async updateProfile(
-    @Param("id", ParseMongoIdPipe) id: string,
+    @Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(id, updateProfileDto);
@@ -121,7 +122,7 @@ export class UsersController {
   @ApiOperation({ summary: "Delete a user by ID" })
   @ApiResponse({ status: 200, description: "User deleted successfully" })
   @ApiResponse({ status: 404, description: "User not found" })
-  remove(@Param("id", ParseMongoIdPipe) id: string) {
+  remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.usersService.remove(id);
   }
 }

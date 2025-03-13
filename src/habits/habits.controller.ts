@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { HabitsService } from './habits.service';
 import { CreateHabitDto } from './dto/create-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @Controller('habits')
 export class HabitsController {
@@ -18,17 +20,17 @@ export class HabitsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.habitsService.findOne(+id);
+  findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
+    return this.habitsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateHabitDto: UpdateHabitDto) {
-    return this.habitsService.update(+id, updateHabitDto);
+  update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateHabitDto: UpdateHabitDto) {
+    return this.habitsService.update(id, updateHabitDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.habitsService.remove(+id);
+  remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
+    return this.habitsService.remove(id);
   }
 }

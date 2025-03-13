@@ -14,6 +14,8 @@ import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @ApiTags('Rewards')
 @ApiBearerAuth()
@@ -42,7 +44,7 @@ export class RewardsController {
   @ApiResponse({ status: 200, description: 'Reward retrieved successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.rewardsService.findOne(id);
   }
 
@@ -52,7 +54,7 @@ export class RewardsController {
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  async update(@Param('id') id: string, @Body() updateRewardDto: UpdateRewardDto) {
+  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateRewardDto: UpdateRewardDto) {
     return this.rewardsService.update(id, updateRewardDto);
   }
 
@@ -61,7 +63,7 @@ export class RewardsController {
   @ApiResponse({ status: 200, description: 'Reward deleted successfully' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.rewardsService.remove(id);
   }
 }

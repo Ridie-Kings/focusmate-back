@@ -7,7 +7,7 @@ import {
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
-import { isValidObjectId, Model } from "mongoose";
+import mongoose, { isValidObjectId, Model } from "mongoose";
 import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
@@ -73,13 +73,13 @@ export class UsersService {
   }
 
   // 🔹 Verificar refresh token
-  async validateRefreshToken(userId: string, token: string): Promise<boolean> {
+  async validateRefreshToken(userId: mongoose.Types.ObjectId, token: string): Promise<boolean> {
     const user = await this.userModel.findById(userId);
     if (!user || !user.refreshToken) return false;
 
     return await argon2.verify(user.refreshToken, token);
   }
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: mongoose.Types.ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
@@ -104,7 +104,7 @@ export class UsersService {
     return user_new;
   }
 
-  async getProfile(id: string) {
+  async getProfile(id: mongoose.Types.ObjectId) {
     const user = await this.userModel.findById(id);
     if (!user) {
       throw new NotFoundException("User not found");
@@ -113,7 +113,7 @@ export class UsersService {
     return user.profile;
   }
 
-  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+  async updateProfile(userId: mongoose.Types.ObjectId, updateData: UpdateProfileDto) {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException("User not found");
@@ -130,7 +130,7 @@ export class UsersService {
     return { message: "Profile updated successfully", profile: user.profile };
   }
 
-  async remove(id: string) {
+  async remove(id: mongoose.Types.ObjectId) {
     const user = await this.userModel.findById(id);
     if (!isValidObjectId(id) || !user) {
       throw new BadRequestException("Invalid id or user not found");

@@ -32,7 +32,7 @@ export class AvatarsService {
     return this.avatarModel.find(query);
   }
 
-  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Avatar> {
     let avatar: Avatar;
     avatar = await this.avatarModel.findById(id);
     if (!avatar) throw new NotFoundException(`Avatar not found`);
@@ -50,7 +50,7 @@ export class AvatarsService {
     return this.avatarModel.find({ $or: [{userId: null}, {userId: { $exists: false }}] });
   }
   
-  async update(id: string, updateAvatarDto: UpdateAvatarDto, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+  async update(id: mongoose.Types.ObjectId, updateAvatarDto: UpdateAvatarDto, userId: mongoose.Types.ObjectId): Promise<Avatar> {
     const updAvatar = await this.avatarModel.findById(id);
     if (!updAvatar) throw new NotFoundException(`Avatar not found`);
     if (updAvatar.userId.equals(userId)) { 
@@ -63,7 +63,7 @@ export class AvatarsService {
     } 
   }
 
-  async softDelete(id: string, userId: mongoose.Types.ObjectId): Promise<Avatar> {
+  async softDelete(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Avatar> {
     const avatar = await this.avatarModel.findById(id);
     if (!avatar) throw new NotFoundException(`Avatar not found`);
     if (avatar.userId.equals(userId)) {

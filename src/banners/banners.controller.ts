@@ -7,6 +7,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Banner } from './entities/banner.entity';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @ApiTags('Banners')
 @ApiBearerAuth()
@@ -36,7 +38,7 @@ export class BannersController {
   @ApiResponse({ status: 200, description: 'Banner retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
-  async findOne(@Param('id') id: string, @GetUser() user: User): Promise<Banner> {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Banner> {
     return this.bannersService.findOne(id, user.id);
   }
 
@@ -62,7 +64,7 @@ export class BannersController {
   @ApiResponse({ status: 200, description: 'Banner updated' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
-  async update(@Param('id') id: string, @Body() updateBannerDto: UpdateBannerDto, @GetUser() user: User): Promise<Banner> {
+  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateBannerDto: UpdateBannerDto, @GetUser() user: User): Promise<Banner> {
     return this.bannersService.update(id, updateBannerDto, user.id);
   }
 
@@ -71,7 +73,7 @@ export class BannersController {
   @ApiResponse({ status: 200, description: 'Banner deleted' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
-  remove(@Param('id') id: string, @GetUser() user: User) {
+  remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.bannersService.remove(id, user.id);
   }
 }

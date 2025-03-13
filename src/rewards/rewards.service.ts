@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateRewardDto } from './dto/create-reward.dto';
 import { UpdateRewardDto } from './dto/update-reward.dto';
 import { Reward } from './entities/reward.entity';
@@ -27,7 +27,7 @@ export class RewardsService {
   }
 
   // Retorna una Reward por su ID
-  async findOne(id: string): Promise<Reward> {
+  async findOne(id: mongoose.Types.ObjectId): Promise<Reward> {
     const reward = await this.rewardModel.findById(id);
     if (!reward) {
       throw new NotFoundException('Reward not found');
@@ -36,7 +36,7 @@ export class RewardsService {
   }
 
   // Actualiza una Reward por su ID
-  async update(id: string, updateRewardDto: UpdateRewardDto): Promise<Reward> {
+  async update(id: mongoose.Types.ObjectId, updateRewardDto: UpdateRewardDto): Promise<Reward> {
     const reward = await this.rewardModel.findByIdAndUpdate(id, updateRewardDto, { new: true });
     if (!reward) {
       throw new NotFoundException('Reward not found');
@@ -45,7 +45,7 @@ export class RewardsService {
   }
 
   // Elimina una Reward por su ID
-  async remove(id: string): Promise<Reward> {
+  async remove(id: mongoose.Types.ObjectId): Promise<Reward> {
     const reward = await this.rewardModel.findByIdAndDelete(id);
     if (!reward) {
       throw new NotFoundException('Reward not found');
@@ -65,7 +65,7 @@ export class RewardsService {
    * @param userId Identificador del usuario que reclama la reward.
    * @returns Un objeto con un mensaje y los detalles de la reward.
    */
-  async claimReward(rewardId: string, userId: string): Promise<{ message: string; reward: Reward }> {
+  async claimReward(rewardId: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<{ message: string; reward: Reward }> {
     // Buscamos la reward en la base de datos
     const reward = await this.findOne(rewardId);
     if (!reward) {

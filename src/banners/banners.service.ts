@@ -33,7 +33,7 @@ export class BannersService {
     return await this.bannerModel.find(query);
   }
 
-  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Banner> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Banner> {
     let banner: Banner;
     banner = await this.bannerModel.findById(id);
     if (!banner) throw new NotFoundException(`Banner not found`);
@@ -51,7 +51,7 @@ export class BannersService {
     return this.bannerModel.find({ userId });
   }
 
-  async update(id: string, updateBannerDto: UpdateBannerDto, userId: mongoose.Types.ObjectId): Promise<Banner> {
+  async update(id: mongoose.Types.ObjectId, updateBannerDto: UpdateBannerDto, userId: mongoose.Types.ObjectId): Promise<Banner> {
     const updBanner = await this.bannerModel.findById(id);
     if (!updBanner) throw new NotFoundException(`Banner not found`);
     if (!updBanner.userId.equals(userId)) { 
@@ -64,7 +64,7 @@ export class BannersService {
     }
   }
 
-  async remove(id: string, userId: mongoose.Types.ObjectId): Promise<Banner> {
+  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Banner> {
     const banner = await this.bannerModel.findById(id);
     if (!banner) throw new NotFoundException(`Banner not found`);
     if (!banner.userId.equals(userId)) {

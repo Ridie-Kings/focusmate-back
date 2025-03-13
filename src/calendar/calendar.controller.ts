@@ -10,6 +10,8 @@ import {
 } from "@nestjs/swagger";
 import { GetUser } from "../users/decorators/get-user.decorator";
 import { User } from "../users/entities/user.entity";
+import mongoose from "mongoose";
+import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
 
 @ApiTags("Calendar")
 @Controller("calendar")
@@ -26,13 +28,22 @@ export class CalendarController {
     return this.calendarService.createCalendar(user.id);
   }
 
+  @Get()
+  @ApiOperation({ summary: "Retrieve the user's calendar" })
+  @ApiResponse({ status: 200, description: "Calendar retrieved" })
+  @ApiResponse({ status: 404, description: "Calendar not found" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  async getCalendar(@GetUser() user: User) {
+    return this.calendarService.getCalendar(user.id);
+  }
+
   @Patch(':id/addTask/:taskId')
   @ApiOperation({ summary: 'Add a task to a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async addTask(@Param('id') id: string, @GetUser() user: User, @Param('taskId') taskId: string) {
+  async addTask(@Param('id') id: string, @GetUser() user: User, @Param('taskId') taskId: ParseMongoIdPipe) {
     return this.calendarService.addTask(id, user.id, taskId);
   }
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGamificationProfileDto } from './dto/create-gamification-profile.dto';
 import { UpdateGamificationProfileDto } from './dto/update-gamification-profile.dto';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class GamificationProfileService {
@@ -12,15 +13,15 @@ export class GamificationProfileService {
     return `This action returns all gamificationProfile`;
   }
 
-  async findOne(id: number) {
+  async findOne(id: mongoose.Types.ObjectId) {
     return `This action returns a #${id} gamificationProfile`;
   }
 
-  async update(id: number, updateGamificationProfileDto: UpdateGamificationProfileDto) {
+  async update(id: mongoose.Types.ObjectId, updateGamificationProfileDto: UpdateGamificationProfileDto) {
     return `This action updates a #${id} gamificationProfile`;
   }
 
-  async remove(id: number) {
+  async remove(id: mongoose.Types.ObjectId) {
     return `This action removes a #${id} gamificationProfile`;
   }
 }

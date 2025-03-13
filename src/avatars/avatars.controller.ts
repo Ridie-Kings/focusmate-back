@@ -7,6 +7,8 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Avatar } from './entities/avatar.entity';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @ApiTags('Avatars')
 @ApiBearerAuth()
@@ -36,7 +38,7 @@ export class AvatarsController {
   @ApiResponse({ status: 200, description: 'Avatar retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Avatar not found' })
-  async findOne(@Param('id') id: string, @GetUser() user: User): Promise<Avatar> {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.findOne(id, user.id);
   }
 
@@ -61,7 +63,7 @@ export class AvatarsController {
   @ApiResponse({ status: 200, description: 'Avatar updated' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  async update(@Param('id') id: string, @Body() updateAvatarDto: UpdateAvatarDto, @GetUser() user: User): Promise<Avatar> {
+  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateAvatarDto: UpdateAvatarDto, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.update(id, updateAvatarDto, user.id);
   }
 
@@ -70,7 +72,7 @@ export class AvatarsController {
   @ApiResponse({ status: 200, description: 'Avatar deleted' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Avatar not found' })
-  async softDelete(@Param('id') id: string, @GetUser() user: User): Promise<Avatar> {
+  async softDelete(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.softDelete(id, user.id);
   }
 

@@ -4,6 +4,7 @@ import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FramesService } from './frames.service';
 import { Frame } from './entities/frame.entity';
+import mongoose from 'mongoose';
 
 @ApiTags('frames')
 @ApiBearerAuth()
@@ -24,7 +25,7 @@ export class FramesController {
   @ApiResponse({ status: 200, description: 'Frame retrieved' })
   @ApiResponse({ status: 404, description: 'Frame not found' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  async findOne(@Param('id', ParseMongoIdPipe) id: string): Promise<Frame> {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Frame> {
     return this.framesService.findOne(id);
   }
 }
