@@ -1,19 +1,25 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import mongoose, { Model } from "mongoose";
 import { Calendar } from "./entities/calendar.entity";
+import { TasksService } from "src/tasks/tasks.service";
+import { EventsCalendarService } from "src/events-calendar/events-calendar.service";
+import { RemindersService } from "src/reminders/reminders.service";
 
 @Injectable()
 export class CalendarService {
   constructor(
     @InjectModel(Calendar.name) private calendarModel: Model<Calendar>,
+    @Inject(TasksService) private readonly tasksService: TasksService,
+    @Inject(EventsCalendarService) private readonly eventsService: EventsCalendarService,
+    @Inject(RemindersService) private readonly remindersService: RemindersService,
   ) {}
 
   private formatDate(dateString?: string): Date | undefined {
     return dateString ? new Date(dateString) : undefined;
   }
 
-  async createCalendar(userId: string): Promise<Calendar> {
+  async createCalendar(userId: mongoose.Types.ObjectId): Promise<Calendar> {
     try {
       const calendar = await this.calendarModel.create({ userId, tasks: [], reminders: [], events: []});
       return calendar;
@@ -22,13 +28,17 @@ export class CalendarService {
     }
   }
 
-  async addTask(userId: string, taskId: string): Promise<Calendar> {
-    const calendar = await this.calendarModel.findOne({ user: userId });
+  async addTask(calendarID: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+    const calendar = await this.calendarModel.findOne(calendarID);
+    const task = await this.tasksService.findOne(taskId, userId);
     if (!calendar) {
       throw new NotFoundException("Calendar not found");
     }
     if (!calendar.user.equals(userId)) {
-      throw new ForbiddenException("Calendar not found");
+      throw new ForbiddenException("Forbidden access");
+    }
+    if (!task) {
+      throw new NotFoundException("Task not found");
     }
     try {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $push: { tasks: taskId } }, { new: true });
@@ -38,16 +48,20 @@ export class CalendarService {
     }
   }
 
-  async addEvent(userId: string, eventID: string): Promise<Calendar> {
+  async addEvent(userId: mongoose.Types.ObjectId, eventID: mongoose.Types.ObjectId): Promise<Calendar> {
     const calendar = await this.calendarModel.findOne({ user: userId });
     if (!calendar) {
       throw new NotFoundException("Calendar not found");
     }
     if (!calendar.user.equals(userId)) {
-      throw new ForbiddenException("Calendar not found");
+      throw new ForbiddenException("Forbidden access");
+    }
+    const event = await this.eventsService.findOne(eventID, userId);
+    if (!event) {
+      throw new NotFoundException("Event not found");
     }
     try {
-      const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $push: { tasks: taskId } }, { new: true });
+      const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $push: { events: eventID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
       throw new InternalServerErrorException("Error adding task to calendar");

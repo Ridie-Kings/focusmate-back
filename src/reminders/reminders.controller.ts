@@ -8,7 +8,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ReminderService } from "./reminder.service";
+import { RemindersService } from "./reminders.service";
 import { CreateReminderDto, UpdateReminderDto } from "./dto/index";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { GetUser } from "src/users/decorators/get-user.decorator";
@@ -27,8 +27,8 @@ import mongoose from "mongoose";
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("reminders")
-export class ReminderController {
-  constructor(private readonly remindersService: ReminderService) {}
+export class RemindersController {
+  constructor(private readonly remindersService: RemindersService) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new reminder" })

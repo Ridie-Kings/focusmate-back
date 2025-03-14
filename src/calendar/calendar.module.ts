@@ -4,19 +4,25 @@ import { CalendarController } from "./calendar.controller";
 import { CalendarService } from "./calendar.service";
 import { Calendar, CalendarSchema } from "./entities/calendar.entity";
 import { AuthModule } from "../auth/auth.module"; // ✅ Importar AuthModule
-import { Reminder, ReminderSchema } from "src/reminder/entities/reminder.entity";
+import { Reminders, RemindersSchema } from "src/reminders/entities/reminders.entity";
 import { Task, TaskSchema } from "src/tasks/entities/task.entity";
 import { EventsCalendar, EventsCalendarSchema } from "src/events-calendar/entities/events-calendar.entity";
+import { TasksModule } from "src/tasks/tasks.module";
+import { RemindersModule } from "src/reminders/reminders.module";
+import { EventsCalendarModule } from "src/events-calendar/events-calendar.module";
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Calendar.name, schema: CalendarSchema },
-      {name: Reminder.name, schema: ReminderSchema },
+      {name: Reminders.name, schema: RemindersSchema },
       {name: Task.name, schema: TaskSchema },
       {name: EventsCalendar.name, schema: EventsCalendarSchema },
     ]),
     AuthModule,
+    TasksModule,
+    RemindersModule,
+    EventsCalendarModule,
   ],
   controllers: [CalendarController],
   providers: [CalendarService],

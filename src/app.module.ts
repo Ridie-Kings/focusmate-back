@@ -8,7 +8,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { ReminderModule } from './reminder/reminder.module';
+import { RemindersModule } from './reminders/reminders.module';
 import { TimerModule } from './timer/timer.module';
 import { ConfigModule } from "@nestjs/config";
 import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
@@ -53,7 +53,7 @@ import { EventsCalendarModule } from './events-calendar/events-calendar.module';
 
     AuthModule,
 
-    ReminderModule,
+    RemindersModule,
 
     TimerModule,
 

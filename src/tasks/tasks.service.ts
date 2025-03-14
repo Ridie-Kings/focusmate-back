@@ -33,6 +33,7 @@ export class TasksService {
   async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
     try {
       const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       return await task.populate('userId');
     }catch (error) {
