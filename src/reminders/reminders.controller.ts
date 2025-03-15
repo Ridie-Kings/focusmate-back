@@ -8,7 +8,7 @@ import {
   Patch,
   UseGuards,
 } from "@nestjs/common";
-import { ReminderService } from "./reminder.service";
+import { RemindersService } from "./reminders.service";
 import { CreateReminderDto, UpdateReminderDto } from "./dto/index";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { GetUser } from "src/users/decorators/get-user.decorator";
@@ -21,21 +21,20 @@ import {
   ApiBearerAuth,
 } from "@nestjs/swagger";
 import { JwtPayload } from "src/auth/interfaces/jwt-payload.interface";
+import mongoose from "mongoose";
 
 @ApiTags("Reminders")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller("reminders")
-export class ReminderController {
-  constructor(private readonly remindersService: ReminderService) {}
+export class RemindersController {
+  constructor(private readonly remindersService: RemindersService) {}
 
   @Post()
   @ApiOperation({ summary: "Create a new reminder" })
   @ApiResponse({ status: 201, description: "Reminder successfully created" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   create(@Body() createReminderDto: CreateReminderDto, @GetUser() user: User) {
-    console.log("MATIAS EL BOBITO");
-    console.log(user);
     return this.remindersService.create(createReminderDto, user.id);
   }
 
@@ -51,7 +50,7 @@ export class ReminderController {
   @ApiResponse({ status: 200, description: "Reminder retrieved successfully" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
-  findOne(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User) {
+  findOne(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.remindersService.findOne(id, user.id);
   }
 
@@ -62,7 +61,7 @@ export class ReminderController {
   @ApiResponse({ status: 403, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
   update(
-    @Param("id", ParseMongoIdPipe) id: string,
+    @Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @Body() updateReminderDto: UpdateReminderDto,
     @GetUser() user: User,
   ) {
@@ -78,7 +77,7 @@ export class ReminderController {
   @ApiResponse({ status: 200, description: "Reminder deleted successfully" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
-  remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User) {
+  remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.remindersService.remove(id, user.id);
   }
 }

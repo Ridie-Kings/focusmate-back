@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { QuestsService } from './quests.service';
 import { CreateQuestDto } from './dto/create-quest.dto';
 import { UpdateQuestDto } from './dto/update-quest.dto';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import mongoose from 'mongoose';
 
 @Controller('quests')
 export class QuestsController {
@@ -18,17 +20,17 @@ export class QuestsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.questsService.findOne(+id);
+  findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
+    return this.questsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateQuestDto: UpdateQuestDto) {
-    return this.questsService.update(+id, updateQuestDto);
+  update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateQuestDto: UpdateQuestDto) {
+    return this.questsService.update(id, updateQuestDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.questsService.remove(+id);
+  remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
+    return this.questsService.remove(id);
   }
 }

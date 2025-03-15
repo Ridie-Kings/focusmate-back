@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Frame } from './entities/frame.entity'; // Add this line to import Frame
-import { Model, Mongoose } from 'mongoose';
+import mongoose, { Model, Mongoose } from 'mongoose';
 
 @Injectable()
 export class FramesService {
@@ -15,7 +15,7 @@ export class FramesService {
     return this.frameModel.find();
   }
 
-  async findOne(id: string): Promise<Frame>{
+  async findOne(id: mongoose.Types.ObjectId): Promise<Frame>{
     try {
       const frame = await this.frameModel.findById(id);
       if (!frame) {

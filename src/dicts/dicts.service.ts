@@ -5,7 +5,7 @@ import { Dict, Word } from "./entities/dict.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { isValidObjectId, Model } from "mongoose";
 
-//TODO: Implement the DictsService
+
 @Injectable()
 export class DictsService {
   constructor(

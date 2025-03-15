@@ -8,7 +8,7 @@ import { AuthModule } from "./auth/auth.module";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
-import { ReminderModule } from './reminder/reminder.module';
+import { RemindersModule } from './reminders/reminders.module';
 import { TimerModule } from './timer/timer.module';
 import { ConfigModule } from "@nestjs/config";
 import { TokenBlacklistModule } from './token-black-list/token-black-list.module';
@@ -19,16 +19,15 @@ import { BadgesModule } from './badges/badges.module';
 import { RedisModule } from "./redis/redis.module";
 //import { RewardsModule } from './rewards/rewards.module';
 import { RewardsModule } from './rewards/rewards.module';
-import { TittlesModule } from './tittles/tittles.module';
+import { TitlesModule } from './titles/titles.module';
 import { BannersModule } from './banners/banners.module';
 import { FramesModule } from './frames/frames.module';
 import { AvatarsModule } from './avatars/avatars.module';
 import { HabitsModule } from './habits/habits.module';
-import { TasksModule } from './quests/tasks/tasks.module';
-import { TasksQuestsModule } from './tasks-quests/tasks-quests.module';
 import { TasksModule } from './tasks/tasks.module';
 import { QuestsModule } from './quests/quests.module';
-import { TitlesModule } from './titles/titles.module';
+import { CalendarModule } from './calendar/calendar.module';
+import { EventsCalendarModule } from './events-calendar/events-calendar.module';
 
 @Module({
   imports: [
@@ -54,7 +53,7 @@ import { TitlesModule } from './titles/titles.module';
 
     AuthModule,
 
-    ReminderModule,
+    RemindersModule,
 
     TimerModule,
 
@@ -70,8 +69,6 @@ import { TitlesModule } from './titles/titles.module';
     
     RewardsModule,
     
-    TittlesModule,
-    
     BannersModule,
     
     FramesModule,
@@ -82,11 +79,13 @@ import { TitlesModule } from './titles/titles.module';
     
     TasksModule,
     
-    TasksQuestsModule,
-    
     QuestsModule,
     
     TitlesModule,
+    
+    CalendarModule,
+    
+    EventsCalendarModule,
   ],
   controllers: [],
   providers: [

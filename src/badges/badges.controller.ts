@@ -15,13 +15,13 @@ import mongoose from 'mongoose';
 export class BadgesController {
   constructor(private readonly badgesService: BadgesService) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create a new badge' })
-  @ApiResponse({ status: 201, description: 'Badge successfully created' })
-  @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  async create(@Body() createBadgeDto: CreateBadgeDto): Promise<Badge> {
-    return this.badgesService.create(createBadgeDto);
-  }
+  // @Post()
+  // @ApiOperation({ summary: 'Create a new badge' })
+  // @ApiResponse({ status: 201, description: 'Badge successfully created' })
+  // @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  // async create(@Body() createBadgeDto: CreateBadgeDto): Promise<Badge> {
+  //   return this.badgesService.create(createBadgeDto);
+  // }
 
   @Get()
   @ApiOperation({ summary: 'Retrieve all badges' })
@@ -48,22 +48,37 @@ export class BadgesController {
     return this.badgesService.findByName(name);
   }
 
-  @Patch(':id')
-  @ApiOperation({ summary: 'Update a badge by ID' })
-  @ApiResponse({ status: 200, description: 'Badge updated successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 404, description: 'Badge not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateBadgeDto: UpdateBadgeDto): Promise<Badge> {
-    return this.badgesService.update(id, updateBadgeDto);
+  @Get(':reward')
+  @ApiOperation({ summary: 'Retrieve a specific badge by reward' })
+  @ApiResponse({ status: 200, description: 'Badge retrieved' })
+  @ApiResponse({ status: 404, description: 'Badge or Reward not found' })
+  async findByReward(@Param('reward', ParseMongoIdPipe) reward: mongoose.Types.ObjectId): Promise<Badge> {
+    return this.badgesService.findByReward(reward);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a badge by ID' })
-  @ApiResponse({ status: 200, description: 'Badge deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Badge not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Badge> {
-    return this.badgesService.remove(id);
+  @Get(':category')
+  @ApiOperation({ summary: 'Retrieve a specific badge by category' })
+  @ApiResponse({ status: 200, description: 'Badge retrieved' })
+  async findByCategory(@Param('category') category: string): Promise<Badge[]> {
+    return this.badgesService.findByCategory(category);
   }
+
+  // @Patch(':id')
+  // @ApiOperation({ summary: 'Update a badge by ID' })
+  // @ApiResponse({ status: 200, description: 'Badge updated successfully' })
+  // @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  // @ApiResponse({ status: 404, description: 'Badge not found' })
+  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateBadgeDto: UpdateBadgeDto): Promise<Badge> {
+  //   return this.badgesService.update(id, updateBadgeDto);
+  // }
+
+  // @Delete(':id')
+  // @ApiOperation({ summary: 'Delete a badge by ID' })
+  // @ApiResponse({ status: 200, description: 'Badge deleted successfully' })
+  // @ApiResponse({ status: 404, description: 'Badge not found' })
+  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Badge> {
+  //   return this.badgesService.remove(id);
+  // }
 }

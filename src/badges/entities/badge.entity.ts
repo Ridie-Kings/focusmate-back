@@ -19,5 +19,8 @@ export class Badge extends Document {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, required: true, ref: 'Reward' })
   reward: mongoose.Types.ObjectId;
+
+  @Prop({ type: String, required: true, default: '' })
+  category: string;
 }
 export const BadgeSchema = SchemaFactory.createForClass(Badge);

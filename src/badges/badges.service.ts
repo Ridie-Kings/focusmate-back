@@ -12,13 +12,13 @@ export class BadgesService {
     private readonly badgeModel: Model<Badge>,
   ) {}
   
-  async create(createBadgeDto: CreateBadgeDto): Promise<Badge> {
-    try {
-      return (await this.badgeModel.create(createBadgeDto)).populate('reward');
-    } catch (error) {
-      throw new InternalServerErrorException('Error creating badge');
-    }
-  }
+  // async create(createBadgeDto: CreateBadgeDto): Promise<Badge> {
+  //   try {
+  //     return (await this.badgeModel.create(createBadgeDto)).populate('reward');
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Error creating badge');
+  //   }
+  // }
 
   async findAll(): Promise<Badge[]> {
     return this.badgeModel.find().populate('reward');
@@ -28,27 +28,43 @@ export class BadgesService {
     return this.badgeModel.findById(id).populate('reward');
   }
 
-  async update(id: mongoose.Types.ObjectId, updateBadgeDto: UpdateBadgeDto): Promise<Badge> {
-    try {
-      return (await this.badgeModel.findByIdAndUpdate(id, updateBadgeDto, {new: true})).populate('reward');
-    } catch (error) {
-      throw new InternalServerErrorException('Error updating badge'); 
-    }
-  }
+  // async update(id: mongoose.Types.ObjectId, updateBadgeDto: UpdateBadgeDto): Promise<Badge> {
+  //   try {
+  //     return (await this.badgeModel.findByIdAndUpdate(id, updateBadgeDto, {new: true})).populate('reward');
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Error updating badge'); 
+  //   }
+  // }
 
-  async remove(id: mongoose.Types.ObjectId): Promise<Badge> {
-    try {
-      return (await this.badgeModel.findByIdAndDelete(id));
-    } catch (error) {
-      throw new InternalServerErrorException('Error deleting badge');
-    }
-  }
+  // async remove(id: mongoose.Types.ObjectId): Promise<Badge> {
+  //   try {
+  //     return (await this.badgeModel.findByIdAndDelete(id));
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Error deleting badge');
+  //   }
+  // }
 
   async findByName(name: string): Promise<Badge> {
     try {
       return this.badgeModel.findOne({name}).populate('reward');
     } catch (error) {
       throw new InternalServerErrorException('Error finding badge by name');
+    }
+  }
+
+  async findByReward(reward: mongoose.Types.ObjectId): Promise<Badge> {
+    try {
+      return this.badgeModel.findOne({reward}).populate('reward');
+    } catch (error) {
+      throw new InternalServerErrorException('Error finding badge by reward');
+    }
+  }
+
+  async findByCategory(category: string): Promise<Badge[]> {
+    try {
+      return this.badgeModel.find({category}).populate('reward');
+    } catch (error) {
+      throw new InternalServerErrorException('Error finding badge by category');
     }
   }
 }

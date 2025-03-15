@@ -19,6 +19,8 @@ import {
   ApiOperation,
   ApiResponse,
 } from "@nestjs/swagger";
+import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
+import mongoose from "mongoose";
 
 @ApiTags("Timers")
 @ApiBearerAuth()
@@ -58,7 +60,7 @@ export class TimerController {
     status: 403,
     description: "Forbidden: You cannot delete this timer",
   }) 
-  deleteTimer(@Param("id") id: string, @GetUser() user: User) {
+  deleteTimer(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.timerService.deleteTimer(id, user.id);
   }
 }

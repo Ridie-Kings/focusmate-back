@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Document } from "mongoose";
 
-export type ReminderDocument = Reminder & Document;
+export type RemindersDocument = Reminders & Document;
 @Schema({ timestamps: true, versionKey: false })
-export class Reminder extends Document {
+export class Reminders extends Document {
     @Prop({ type: String, required: true }) 
     title: string;
     @Prop({type: String, required: false})
@@ -20,4 +20,4 @@ export class Reminder extends Document {
     user: mongoose.Types.ObjectId;
 }
 
-export const ReminderSchema = SchemaFactory.createForClass(Reminder); 
+export const RemindersSchema = SchemaFactory.createForClass(Reminders); 

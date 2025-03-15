@@ -45,6 +45,7 @@ export class DictsController {
   @Get()
   @ApiOperation({ summary: "Retrieve all dicts of the authenticated user" })
   @ApiResponse({ status: 200, description: "List of dicts retrieved" })
+  @ApiResponse({ status: 403, description: "Unauthorized access" })
   async findAll(
     @GetUser() user: User,
   ): Promise<Dict[]> {

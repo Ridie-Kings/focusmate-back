@@ -7,20 +7,20 @@ import {
 } from "@nestjs/common";
 import { CreateReminderDto } from "./dto/create-reminder.dto";
 import { UpdateReminderDto } from "./dto/update-reminder.dto";
-import { Reminder, ReminderDocument } from "./entities/reminder.entity";
+import { Reminders, RemindersDocument } from "./entities/reminders.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model, isValidObjectId } from "mongoose";
 
 @Injectable()
-export class ReminderService {
+export class RemindersService {
   constructor(
-    @InjectModel(Reminder.name) private reminderModel: Model<ReminderDocument>,
+    @InjectModel(Reminders.name) private reminderModel: Model<RemindersDocument>,
   ) {}
 
   async create(
     createReminderDto: CreateReminderDto,
     userId: mongoose.Types.ObjectId,
-  ): Promise<Reminder> {
+  ): Promise<Reminders> {
     try {
       console.log(createReminderDto);
       console.log(userId);
@@ -35,11 +35,11 @@ export class ReminderService {
     }
   }
 
-  async findAll(userId: mongoose.Types.ObjectId): Promise<Reminder[]> {
+  async findAll(userId: mongoose.Types.ObjectId): Promise<Reminders[]> {
     return this.reminderModel.find({ user: userId }).exec();
   }
 
-  async findOne(id: string, userId: mongoose.Types.ObjectId): Promise<Reminder> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Reminders> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }
@@ -60,10 +60,10 @@ export class ReminderService {
   }
 
   async update(
-    id: string,
+    id: mongoose.Types.ObjectId,
     userId: mongoose.Types.ObjectId,
     updateReminderDto: UpdateReminderDto,
-  ): Promise<Reminder> {
+  ): Promise<Reminders> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }
@@ -89,7 +89,7 @@ export class ReminderService {
     }
   }
 
-  async remove(id: string, userId: mongoose.Types.ObjectId): Promise<void> {
+  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<void> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }

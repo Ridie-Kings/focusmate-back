@@ -1,6 +1,6 @@
 import { CreateTitleDto } from './dto/create-title.dto';
 import { UpdateTitleDto } from './dto/update-title.dto';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Title } from './entities/title.entity';
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
@@ -17,7 +17,7 @@ export class TitlesService {
     return this.titleModel.find();
   }
 
-  async findOne(id: number): Promise<Title> {
+  async findOne(id: mongoose.Types.ObjectId): Promise<Title> {
     try {
       const tit = await this.titleModel.findById(id);
       if (!tit) {

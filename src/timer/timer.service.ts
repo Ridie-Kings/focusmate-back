@@ -72,7 +72,7 @@ export class TimerService {
     return this.timerModel.find({ user: userId }).exec();
   }
 
- async deleteTimer(timerId: string, userId: mongoose.Types.ObjectId): Promise<void> {
+ async deleteTimer(timerId: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<void> {
   const timer = await this.timerModel.findOne({ _id: timerId, user: userId });
 
   if (!timer) {
