@@ -33,4 +33,4 @@ EventsCalendarSchema.index({ endDate: 1 });
 EventsCalendarSchema.index({ user: 1, startDate: 1 });
 EventsCalendarSchema.index({ user: 1, endDate: 1 });
 EventsCalendarSchema.index({ category: 1 });
-EventsCalendarSchema.index({_id: 1});
+//EventsCalendarSchema.index({_id: 1});
