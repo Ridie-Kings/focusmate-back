@@ -100,7 +100,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: "User updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   async update(
-    @Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId,
+    @Param("id", ParseMongoIdPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return this.usersService.update(id, updateUserDto);
