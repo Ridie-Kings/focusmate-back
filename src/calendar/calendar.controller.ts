@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Patch, UseGuards, Param } from "@nestjs/common";
+import { Controller, Get, Post, Query, Patch, UseGuards, Param, UsePipes, ValidationPipe } from "@nestjs/common";
 import { CalendarService } from "./calendar.service";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import {
@@ -12,9 +12,11 @@ import { GetUser } from "../users/decorators/get-user.decorator";
 import { User } from "../users/entities/user.entity";
 import mongoose from "mongoose";
 import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
+import { Calendar } from "./entities/calendar.entity";
 
 @ApiTags("Calendar")
 @Controller("calendar")
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class CalendarController {
@@ -24,7 +26,7 @@ export class CalendarController {
   @ApiOperation({ summary: "Create a new Calendar" })
   @ApiResponse({ status: 201, description: "Calendar successfully created" })
   @ApiResponse({ status: 400, description: "Invalid request" })
-  async createCalendar(@GetUser() user: User) {
+  async createCalendar(@GetUser() user: User): Promise<Calendar>{
     return this.calendarService.createCalendar(user.id);
   }
 
@@ -33,230 +35,258 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar retrieved" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async getCalendar(@GetUser() user: User) {
+  async getCalendar(@GetUser() user: User): Promise<Calendar> {
     return this.calendarService.getCalendar(user.id);
   }
 
-  @Patch(':id/addTask/:taskId')
+  @Patch('addTask/:taskId')
   @ApiOperation({ summary: 'Add a task to a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async addTask(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId) {
-    return this.calendarService.addTask(id, user.id, taskId);
+  async addTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.addTask(user.id, taskId);
   }
 
-  @Patch(':id/addEvent/:eventId')
+  @Patch('addEvent/:eventId')
   @ApiOperation({ summary: 'Add a Event to a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async addEvent(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId) {
-    return this.calendarService.addEvent(id, user.id, eventId);
+  async addEvent( @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.addEvent(user.id, eventId);
   }
 
-  @Patch(':id/addReminder/:reminderId')
+  @Patch('addReminder/:reminderId')
   @ApiOperation({ summary: 'Add a Event to a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async addReminder(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId) {
-    return this.calendarService.addReminder(id, user.id, reminderId);
+  async addReminder(
+     @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.addReminder(user.id, reminderId);
   }
 
-  @Patch(':id/removeTask/:taskId')
+  @Patch('removeTask/:taskId')
   @ApiOperation({ summary: 'Remove a task from a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async removeTask(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId) {
-    return this.calendarService.removeTask(id, user.id, taskId);
+  async removeTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.removeTask( user.id, taskId);
   }
 
-  @Patch(':id/removeEvent/:eventId')
+  @Patch('removeEvent/:eventId')
   @ApiOperation({ summary: 'Remove a Event from a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async removeEvent(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId) {
-    return this.calendarService.removeEvent(id, user.id, eventId);
+  async removeEvent(@GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.removeEvent(user.id, eventId);
   }
 
-  @Patch(':id/removeReminder/:reminderId')
+  @Patch('removeReminder/:reminderId')
   @ApiOperation({ summary: 'Remove a Reminder from a calendar' })
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 403, description: "Unauthorized access" })
-  async removeReminder(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId) {
-    return this.calendarService.removeReminder(id, user.id, reminderId);
+  async removeReminder(@GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
+    return this.calendarService.removeReminder(user.id, reminderId);
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Retrieve a calendar by id' })
-  @ApiResponse({ status: 200, description: 'Calendar retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findOne(id, user.id);
-  }
+  // @Get(':id')
+  // @ApiOperation({ summary: 'Retrieve a calendar by id' })
+  // @ApiResponse({ status: 200, description: 'Calendar retrieved' })
+  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
+  //   return this.calendarService.findOne(id, user.id);
+  // }
 
-  @Get(':id/tasks')
+  @Get('tasks')
   @ApiOperation({ summary: 'Retrieve all tasks from a calendar' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findTasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findTasks(id, user.id);
+  async findTasks(@GetUser() user: User): Promise<Calendar> {
+    return this.calendarService.findTasks(user.id);
   }
 
-  @Get(':id/events')
+  @Get('events')
   @ApiOperation({ summary: 'Retrieve all events from a calendar' })
   @ApiResponse({ status: 200, description: 'Events retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findEvents(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findEvents(id, user.id);
+  async findEvents( @GetUser() user: User): Promise<Calendar> {
+    return this.calendarService.findEvents(user.id);
   }
 
-  @Get(':id/reminders')
+  @Get('reminders')
   @ApiOperation({ summary: 'Retrieve all reminders from a calendar' })
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findReminders(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findReminders(id, user.id);
+  async findReminders( @GetUser() user: User): Promise<Calendar> {
+    return this.calendarService.findReminders(user.id);
   }
 
-  @Get(':id/today')
+  @Get('today')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from today' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findToday(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findToday(id, user.id);
+  async findToday( @GetUser() user: User){
+    return this.calendarService.findToday( user.id);
   }
 
-  @Get(':id/week')
+  @Get('week')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this week' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findWeek(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findWeek(id, user.id);
+  async findWeek(@GetUser() user: User) {
+    return this.calendarService.findWeek(user.id);
   }
 
-  @Get(':id/month')
+  @Get('month')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this month' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findMonth(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findMonth(id, user.id);
+  async findMonth( @GetUser() user: User) {
+    return this.calendarService.findMonth(user.id);
   }
 
-  @Get(':id/year')
+  @Get('year')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this year' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findYear(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findYear(id, user.id);
+  async findYear(@GetUser() user: User) {
+    return this.calendarService.findYear(user.id);
   }
 
-  @Get(':id/nextWeek')
+  @Get('nextWeek')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from next week' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findNextWeek(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findNextWeek(id, user.id);
+  async findNextWeek(@GetUser() user: User) {
+    return this.calendarService.findNextWeek( user.id);
   }
 
-  @Get(':id/nextMonth')
+  @Get('nextMonth')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from next month' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findNextMonth(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.calendarService.findNextMonth(id, user.id);
+  async findNextMonth( @GetUser() user: User) {
+    return this.calendarService.findNextMonth( user.id);
   }
 
-  @Get(':id/:date')
+  @Get(':date')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific date' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findDate(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('date') date: string, @GetUser() user: User) {
-    return this.calendarService.findDate(id, user.id, date);
+  async findDate(@Param('date') date: Date, @GetUser() user: User) {
+    return this.calendarService.findByDate( user.id, date);
   }
 
-  @Get(':id/:startDate/:endDate')
+  @Get(':startDate/:endDate')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a date range' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findRange(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('startDate') startDate: string, @Param('endDate') endDate: string, @GetUser() user: User) {
-    return this.calendarService.findRange(id, user.id, startDate, endDate);
+  async findRange(@Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
+    return this.calendarService.findRange( user.id, startDate, endDate);
   }
 
-  @Get(':id/:category')
+  @Get(':category')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific category' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findCategory(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('category') category: string, @GetUser() user: User) {
-    return this.calendarService.findCategory(id, user.id, category);
+  async findCategory( @Param('category') category: string, @GetUser() user: User) {
+    return this.calendarService.findCategory( user.id, category);
   }
 
-  @Get(':id/:priority')
+  @Get(':priority')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific priority' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findPriority(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('priority') priority: string, @GetUser() user: User) {
-    return this.calendarService.findPriority(id, user.id, priority);
+  async findPriority( @Param('priority') priority: string, @GetUser() user: User) {
+    return this.calendarService.findPriority( user.id, priority);
   }
 
-  @Get(':id/:status')
+  @Get(':status')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific status' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findStatus(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('status') status: string, @GetUser() user: User) {
-    return this.calendarService.findStatus(id, user.id, status);
+  async findStatus( @Param('status') status: string, @GetUser() user: User) {
+    return this.calendarService.findStatus( user.id, status);
   }
 
-  @Get(':id/:startDate/:endDate/tasks')
+  @Get(':startDate/tasks')
   @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findTasksDate(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('startDate') startDate: string, @Param('endDate') endDate: string, @GetUser() user: User) {
-    return this.calendarService.findTasksDate(id, user.id, startDate, endDate);
+  async findTasksDate( @Param('startDate') startDate: Date, @GetUser() user: User) {
+    return this.calendarService.findTasksDate(user.id, startDate);
   }
 
-  @Get(':id/:startDate/:endDate/events')
+  @Get(':startDate/events')
   @ApiOperation({ summary: 'Retrieve all events from a date range' })
   @ApiResponse({ status: 200, description: 'Events retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findEventsDate(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('startDate') startDate: string, @Param('endDate') endDate: string, @GetUser() user: User) {
-    return this.calendarService.findEventsDate(id, user.id, startDate, endDate);
+  async findEventsDate( @Param('startDate') startDate: Date, @GetUser() user: User) {
+    return this.calendarService.findEventsDate( user.id, startDate);
   }
 
-  @Get(':id/:startDate/:endDate/reminders')
+  @Get(':startDate/reminders')
   @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
   @ApiResponse({ status: 403, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findRemindersDate(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Param('startDate') startDate: string, @Param('endDate') endDate: string, @GetUser() user: User) {
-    return this.calendarService.findRemindersDate(id, user.id, startDate, endDate);
+  async findRemindersDate(@Param('startDate') startDate: Date, @GetUser() user: User) {
+    return this.calendarService.findRemindersDate( user.id, startDate);
+  }
+
+  @Get(':startDate/:endDate/tasks')
+  @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
+  @ApiResponse({ status: 200, description: 'Tasks retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Calendar not found' })
+  async findTasksRange( @Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
+    return this.calendarService.findTasksRange(user.id, startDate, endDate);
+  }
+
+  @Get(':startDate/:endDate/events')
+  @ApiOperation({ summary: 'Retrieve all events from a date range' })
+  @ApiResponse({ status: 200, description: 'Events retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Calendar not found' })
+  async findEventsRange( @Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
+    return this.calendarService.findEventsRange( user.id, startDate, endDate);
+  }
+
+  @Get(':startDate/:endDate/reminders')
+  @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
+  @ApiResponse({ status: 200, description: 'Reminders retrieved' })
+  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Calendar not found' })
+  async findRemindersRange(@Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
+    return this.calendarService.findRemindersRange( user.id, startDate, endDate);
   }
 
 

@@ -7,6 +7,8 @@ import {
   Body,
   Param,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { TimerService } from "./timer.service";
 import { StartTimerDto, UpdateTimerDto } from "./dto/index";
@@ -24,6 +26,7 @@ import mongoose from "mongoose";
 
 @ApiTags("Timers")
 @ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @UseGuards(JwtAuthGuard)
 @Controller("timers")
 export class TimerController {

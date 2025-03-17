@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Title } from './entities/title.entity';
 import { TitlesService } from './titles.service';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 @ApiTags('titles')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @Controller('titles')
 export class TitlesController {
   constructor(private readonly titlesService: TitlesService) {}

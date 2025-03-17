@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -13,6 +13,7 @@ import mongoose from 'mongoose';
 
 @ApiTags('Tasks')
 @ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {

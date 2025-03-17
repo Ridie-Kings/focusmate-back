@@ -6,7 +6,9 @@ import {
   Patch, 
   Param, 
   Delete, 
-  UseGuards 
+  UseGuards,
+  UsePipes,
+  ValidationPipe
 } from '@nestjs/common';
 import { Reward } from './entities/reward.entity';
 import { RewardsService } from './rewards.service';
@@ -19,6 +21,7 @@ import mongoose from 'mongoose';
 
 @ApiTags('Rewards')
 @ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @UseGuards(JwtAuthGuard)
 @Controller('rewards')
 export class RewardsController {

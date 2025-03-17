@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, IsMongoId } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, IsMongoId, isDate, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -28,17 +28,17 @@ export class CreateTaskDto{
 
   @ApiProperty({ description: 'Start Date of the Task', example: '2025-02-24T00:00:00Z' })
   @IsOptional()
-  @Type(() => Date)
+  @IsDate()
   readonly startDate?: Date;
 
   @ApiProperty({ description: 'End Date of the Task', example: '2025-02-28T23:59:59Z' })
   @IsOptional()
-  @Type(() => Date)
+  @IsDate()
   readonly endDate?: Date;
 
   @ApiProperty({ description: 'Due Date of the Task', example: '2025-02-28T23:59:59Z' })
   @IsOptional()
-  @Type(() => Date)
+  @IsDate()
   readonly dueDate?: Date;
 
   @ApiProperty({ description: 'tags of the task', example: ['tag1', 'tag2'] })

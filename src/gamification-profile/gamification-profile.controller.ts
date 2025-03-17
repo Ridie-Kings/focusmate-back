@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { GamificationProfileService } from './gamification-profile.service';
 import { CreateGamificationProfileDto } from './dto/create-gamification-profile.dto';
 import { UpdateGamificationProfileDto } from './dto/update-gamification-profile.dto';
@@ -10,6 +10,7 @@ import mongoose from 'mongoose';
 @ApiTags('GamificationProfile')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @Controller('gamification-profile')
 export class GamificationProfileController {
   constructor(private readonly gamificationProfileService: GamificationProfileService) {}

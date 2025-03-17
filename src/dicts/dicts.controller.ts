@@ -10,6 +10,8 @@ import {
   Req,
   Query,
   Injectable,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { DictsService } from "./dicts.service";
 import { CreateDictDto, UpdateDictDto, AddDeleteWordDto, UpdateUserSharedWithDto } from "./dto/index";
@@ -28,6 +30,7 @@ import mongoose from "mongoose";
 
 @ApiTags("Dicts")
 @ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @Controller("dicts")
 @UseGuards(JwtAuthGuard)
 export class DictsController {
