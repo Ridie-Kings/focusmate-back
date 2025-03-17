@@ -10,6 +10,7 @@ import { RewardsService } from './rewards.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
 import { CreateRewardDto } from './dto/create-reward.dto';
+import mongoose from 'mongoose';
 
 @WebSocketGateway({ namespace: '/rewards' })
 @UseGuards(WsJwtAuthGuard)
@@ -25,7 +26,7 @@ export class RewardsGateway {
    */
   @SubscribeMessage('claimReward')
   async handleClaimReward(
-    @MessageBody() data: { rewardId: string },
+    @MessageBody() data: { rewardId: mongoose.Types.ObjectId },
     @ConnectedSocket() client: Socket,
   ) {
     // Se asume que el guard asigna el payload a client.user

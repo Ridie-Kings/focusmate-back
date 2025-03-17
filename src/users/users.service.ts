@@ -79,7 +79,7 @@ export class UsersService {
 
     return await argon2.verify(user.refreshToken, token);
   }
-  async update(id: mongoose.Types.ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {//REVISA ESTO
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
