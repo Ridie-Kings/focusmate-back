@@ -7,6 +7,8 @@ import {
   Delete,
   Patch,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from "@nestjs/common";
 import { RemindersService } from "./reminders.service";
 import { CreateReminderDto, UpdateReminderDto } from "./dto/index";
@@ -25,6 +27,7 @@ import mongoose from "mongoose";
 
 @ApiTags("Reminders")
 @ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @UseGuards(JwtAuthGuard)
 @Controller("reminders")
 export class RemindersController {

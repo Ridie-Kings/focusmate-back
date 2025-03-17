@@ -12,7 +12,7 @@ import mongoose from 'mongoose';
 
 @ApiTags('Events Calendar')
 @ApiBearerAuth()
-@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }))
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @UseGuards(JwtAuthGuard)
 @Controller('events-calendar')
 export class EventsCalendarController {
