@@ -12,7 +12,7 @@ import { User } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
-import { UpdateProfileDto } from "./dto/updateProfileDto";
+// import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
 export class UsersService {
@@ -104,31 +104,31 @@ export class UsersService {
     return user_new;
   }
 
-  async getProfile(id: mongoose.Types.ObjectId) {
-    const user = await this.userModel.findById(id);
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-    console.log("get profile");
-    return user.profile;
-  }
+  // async getProfile(id: mongoose.Types.ObjectId) {
+  //   const user = await this.userModel.findById(id);
+  //   if (!user) {
+  //     throw new NotFoundException("User not found");
+  //   }
+  //   console.log("get profile");
+  //   return user.profile;
+  // }
 
-  async updateProfile(userId: mongoose.Types.ObjectId, updateData: UpdateProfileDto) {
-    const user = await this.userModel.findById(userId);
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
+  // async updateProfile(userId: mongoose.Types.ObjectId, updateData: UpdateProfileDto) {
+  //   const user = await this.userModel.findById(userId);
+  //   if (!user) {
+  //     throw new NotFoundException("User not found");
+  //   }
 
-    // 🔹 Actualiza solo los campos permitidos en `UpdateProfileDto`
-    if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
-    if (updateData.avatar !== undefined)
-      user.profile.avatar = updateData.avatar;
-    // if (updateData.settings !== undefined)
-    //   user.profile.settings = updateData.settings;
+  //   // 🔹 Actualiza solo los campos permitidos en `UpdateProfileDto`
+  //   if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
+  //   if (updateData.avatar !== undefined)
+  //     user.profile.avatar = updateData.avatar;
+  //   // if (updateData.settings !== undefined)
+  //   //   user.profile.settings = updateData.settings;
 
-    await user.save();
-    return { message: "Profile updated successfully", profile: user.profile };
-  }
+  //   await user.save();
+  //   return { message: "Profile updated successfully", profile: user.profile };
+  // }
 
   async remove(id: mongoose.Types.ObjectId) {
     const user = await this.userModel.findById(id);

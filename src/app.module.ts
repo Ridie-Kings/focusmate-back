@@ -28,6 +28,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { QuestsModule } from './quests/quests.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { EventsCalendarModule } from './events-calendar/events-calendar.module';
+import { ChecklistsModule } from './checklists/checklists.module';
 
 @Module({
   imports: [
@@ -86,6 +87,8 @@ import { EventsCalendarModule } from './events-calendar/events-calendar.module';
     CalendarModule,
     
     EventsCalendarModule,
+    
+    ChecklistsModule,
   ],
   controllers: [],
   providers: [

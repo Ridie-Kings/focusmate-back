@@ -2,13 +2,13 @@ import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 // import { Profile, ProfileSchema } from "./profile.entity";
 
-export class Profile {
-  @Prop({ default: "" })
-  bio: string;
-  @Prop({ default: "" })
-  avatar: string;
-  //settings: Record<string, any>;
-}
+// export class Profile {
+//   @Prop({ default: "" })
+//   bio: string;
+//   @Prop({ default: "" })
+//   avatar: string;
+//   //settings: Record<string, any>;
+// }
 
 export type UserDocument = User & Document;
 @Schema({ timestamps: true })
@@ -39,18 +39,18 @@ export class User extends Document {
   })
   password: string;
 
-  @Prop({ default: 0 })
-  xp: number;
+  // @Prop({ default: 0 })
+  // xp: number;
 
-  @Prop({ default: 1 })
-  level: number;
+  // @Prop({ default: 1 })
+  // level: number;
 
-  @Prop({ type: Profile, default: () => ({}) })
-  profile: Profile;
+  // @Prop({ type: Profile, default: () => ({}) })
+  // profile: Profile;
 
   @Prop({ default: null })
   refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
-UserSchema.index({ _id: 1 });
+//UserSchema.index({ _id: 1 });
