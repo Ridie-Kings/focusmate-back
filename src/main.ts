@@ -6,7 +6,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cookieParser from "cookie-parser";
-
+import * as express from "express";
 // Carga las variables de entorno
 config();
 
@@ -21,7 +21,7 @@ async function sherpmain() {
 
   // Middleware de seguridad CORS
   app.enableCors({
-    origin: ["http://localhost:4000"], // Dominio o lista de dominios permitidos
+    origin: ["*"], // Dominio o lista de dominios permitidos
     methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
@@ -35,7 +35,8 @@ async function sherpmain() {
       message: "Global API limit reached. Please try again later.",
     }),
   );
-
+const expressApp = app.getHttpAdapter().getInstance();
+expressApp.set("trust proxy", 1);
   // Configuración global de validaciones
   app.useGlobalPipes(
     new ValidationPipe({

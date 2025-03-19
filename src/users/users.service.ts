@@ -66,20 +66,27 @@ export class UsersService {
 
     return user;
   }
-  async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ refreshToken });
 
-    return user ? user : null;
+  async findOneByRefreshToken(accessToken: string): Promise<User> {
+    if (!accessToken) throw new BadRequestException("Invalid token or null");
+    const decode = atob(accessToken.split(".")[1]);
+    const {id} = JSON.parse(decode);
+    console.log("id", id);
+    return await this.userModel.findById(id);
   }
 
   // 🔹 Verificar refresh token
-  async validateRefreshToken(userId: mongoose.Types.ObjectId, token: string): Promise<boolean> {
+  async validateRefreshToken(
+    userId: mongoose.Types.ObjectId,
+    token: string,
+  ): Promise<boolean> {
     const user = await this.userModel.findById(userId);
     if (!user || !user.refreshToken) return false;
 
     return await argon2.verify(user.refreshToken, token);
   }
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {//REVISA ESTO
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    //REVISA ESTO
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
@@ -113,7 +120,10 @@ export class UsersService {
     return user.profile;
   }
 
-  async updateProfile(userId: mongoose.Types.ObjectId, updateData: UpdateProfileDto) {
+  async updateProfile(
+    userId: mongoose.Types.ObjectId,
+    updateData: UpdateProfileDto,
+  ) {
     const user = await this.userModel.findById(userId);
     if (!user) {
       throw new NotFoundException("User not found");
