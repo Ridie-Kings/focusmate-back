@@ -6,7 +6,7 @@ import { FramesService } from './frames.service';
 import { Frame } from './entities/frame.entity';
 import mongoose from 'mongoose';
 
-@ApiTags('frames')
+@ApiTags('Frames')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))

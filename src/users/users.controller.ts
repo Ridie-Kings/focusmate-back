@@ -24,9 +24,10 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from "@nestjs/swagger";
-import { UpdateProfileDto } from "./dto/updateProfileDto";
+// import { UpdateProfileDto } from "./dto/updateProfileDto";
 import mongoose from "mongoose";
 import { User } from "./entities/user.entity";
+import { GetUser } from "./decorators/get-user.decorator";
 
 @ApiTags("Users")
 @Controller("users")
@@ -51,6 +52,18 @@ export class UsersController {
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
+
+  // @Get("@me")
+  // @ApiOperation({ summary: "Retrieve the current user" })
+  // @ApiResponse({ status: 200, description: "User found successfully" })
+  // @ApiResponse({ status: 404, description: "User not found" })
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
+  // async findMe(@Req() req: RequestWithUser): Promise<User> {
+  //   const token = req.headers.authorization.split(" ")[1];
+
+  //   return this.usersService.findMe(req.user._id);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
