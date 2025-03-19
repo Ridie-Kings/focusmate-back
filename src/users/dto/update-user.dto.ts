@@ -8,7 +8,7 @@ import {
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { Profile } from "../entities/user.entity";
+// import { Profile } from "../entities/user.entity";
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -30,27 +30,27 @@ export class UpdateUserDto {
   @IsOptional()
   password?: string;
 
-  @ApiProperty({
-    example: 150,
-    description: "User XP points (optional)",
-    required: false,
-  })
-  @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
-  @IsNumber()
-  @IsPositive()
-  @IsOptional()
-  readonly xp?: number;
+  // @ApiProperty({
+  //   example: 150,
+  //   description: "User XP points (optional)",
+  //   required: false,
+  // })
+  // @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
+  // @IsNumber()
+  // @IsPositive()
+  // @IsOptional()
+  // readonly xp?: number;
 
-  @ApiProperty({
-    example: 5,
-    description: "User level (optional)",
-    required: false,
-  })
-  @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
-  @IsNumber()
-  @IsPositive()
-  @IsOptional()
-  readonly level?: number;
+  // @ApiProperty({
+  //   example: 5,
+  //   description: "User level (optional)",
+  //   required: false,
+  // })
+  // @Transform(({ value }) => Number(value)) // ✅ Convierte strings a números
+  // @IsNumber()
+  // @IsPositive()
+  // @IsOptional()
+  // readonly level?: number;
 
   @ApiProperty({
     example: "NewSecurePassword123!",
