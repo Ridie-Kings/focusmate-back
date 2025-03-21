@@ -11,7 +11,7 @@ import mongoose from 'mongoose';
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
-@Controller('gamification-profile')
+@Controller('profile')
 export class GamificationProfileController {
   constructor(private readonly gamificationProfileService: GamificationProfileService) {}
 

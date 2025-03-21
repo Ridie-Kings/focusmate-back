@@ -1,5 +1,5 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
 // import { Profile, ProfileSchema } from "./profile.entity";
 
 // export class Profile {
@@ -45,8 +45,8 @@ export class User extends Document {
   // @Prop({ default: 1 })
   // level: number;
 
-  // @Prop({ type: Profile, default: () => ({}) })
-  // profile: Profile;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
+  profile: mongoose.Types.ObjectId;
 
   @Prop({ default: null })
   refreshToken: string;

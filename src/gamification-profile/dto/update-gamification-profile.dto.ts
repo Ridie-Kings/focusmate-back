@@ -4,7 +4,7 @@ import { OmitType } from '@nestjs/mapped-types';
 import { ArrayUnique, IsArray, IsMongoId, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateGamificationProfileDto extends OmitType(CreateGamificationProfileDto, ['user'] as const) {
-  
+
   // La XP se puede dejar opcional y asignar un valor por defecto en el esquema (0)
   @IsOptional()
   @IsNumber()
