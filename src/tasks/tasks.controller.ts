@@ -139,4 +139,6 @@ export class TasksController {
   {
     return this.tasksService.remove(id, user.id);
   }
+
+  //todo filtro prioridad, categoria, devolver subtasks
 }
