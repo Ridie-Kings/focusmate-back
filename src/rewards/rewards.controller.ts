@@ -45,7 +45,7 @@ export class RewardsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.rewardsService.findOne(id);
@@ -55,7 +55,7 @@ export class RewardsController {
   @ApiOperation({ summary: 'Update a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
   async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateRewardDto: UpdateRewardDto) {
     return this.rewardsService.update(id, updateRewardDto);
@@ -64,7 +64,7 @@ export class RewardsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a reward by its id' })
   @ApiResponse({ status: 200, description: 'Reward deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Reward not found' })
   async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.rewardsService.remove(id);

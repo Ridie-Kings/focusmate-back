@@ -29,7 +29,7 @@ export class BannersController {
   @Get()
   @ApiOperation({ summary: 'Get all banners' })
   @ApiResponse({ status: 200, description: 'List of banners retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findAll(@GetUser() user: User): Promise<Banner[]> {
     return this.bannersService.findAll(user.id);
   }
@@ -37,7 +37,7 @@ export class BannersController {
   @Get(':id')
   @ApiOperation({ summary: 'Get a banner by id' })
   @ApiResponse({ status: 200, description: 'Banner retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Banner> {
     return this.bannersService.findOne(id, user.id);
@@ -63,7 +63,7 @@ export class BannersController {
   @Patch(':id')
   @ApiOperation({ summary: 'Update an existing banner' })
   @ApiResponse({ status: 200, description: 'Banner updated' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
   async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateBannerDto: UpdateBannerDto, @GetUser() user: User): Promise<Banner> {
     return this.bannersService.update(id, updateBannerDto, user.id);
@@ -72,7 +72,7 @@ export class BannersController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a banner' })
   @ApiResponse({ status: 200, description: 'Banner deleted' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Banner not found' })
   remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.bannersService.remove(id, user.id);

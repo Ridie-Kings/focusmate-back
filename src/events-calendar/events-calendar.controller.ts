@@ -29,7 +29,7 @@ export class EventsCalendarController {
   @ApiOperation({ summary: 'Retrieve all events' })
   @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
   @ApiResponse({ status: 404, description: 'No events found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get()
   async findAll(@GetUser() user: User): Promise<EventsCalendar[]> {
     return this.eventsCalendarService.findAll(user.id);
@@ -38,7 +38,7 @@ export class EventsCalendarController {
   @ApiOperation({ summary: 'Retrieve an event by ID' })
   @ApiResponse({ status: 200, description: 'Event retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Event not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get(':id')
   async findOne(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendar> {
     return this.eventsCalendarService.findOne(id, user.id);
@@ -47,7 +47,7 @@ export class EventsCalendarController {
   @ApiOperation({ summary: 'Update an event' })
   @ApiResponse({ status: 200, description: 'Event updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Patch(':id')
   async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateEventsCalendarDto: UpdateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendar> {
     return this.eventsCalendarService.update(id, updateEventsCalendarDto, user.id);
@@ -55,7 +55,7 @@ export class EventsCalendarController {
 
   @ApiOperation({ summary: 'Delete an event' })
   @ApiResponse({ status: 200, description: 'Event deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Delete(':id')
   async remove(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendar> {
     return this.eventsCalendarService.remove(id, user.id);

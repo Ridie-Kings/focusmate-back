@@ -34,7 +34,7 @@ export class TasksController {
   @Get()
   @ApiOperation({ summary: 'Retrieve all tasks' })
   @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findAll(
     @GetUser() user: User
   ) {
@@ -44,7 +44,7 @@ export class TasksController {
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a task by ID' })
   @ApiResponse({ status: 200, description: 'Task successfully retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async findOne(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
@@ -58,7 +58,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Update a task by ID' })
   @ApiResponse({ status: 200, description: 'Task updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async update(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
@@ -73,7 +73,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Update a task by ID' })
   @ApiResponse({ status: 200, description: 'Task updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async updateTags(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
@@ -88,7 +88,7 @@ export class TasksController {
   // @ApiOperation({ summary: 'Update a task by ID' })
   // @ApiResponse({ status: 200, description: 'Task updated successfully' })
   // @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // @ApiResponse({ status: 404, description: 'Task not found' })
   // async updateDates(
   //   @Param('id', ParseMongoIdPipe) id: string, 
@@ -103,7 +103,7 @@ export class TasksController {
   // @ApiOperation({ summary: 'Update a task by ID' })
   // @ApiResponse({ status: 200, description: 'Task updated successfully' })
   // @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // @ApiResponse({ status: 404, description: 'Task not found' })
   // async updateStatus(
   //   @Param('id', ParseMongoIdPipe) id: string, 
@@ -118,7 +118,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Update a task by ID' })
   @ApiResponse({ status: 200, description: 'Task updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Task not found' })
   async softDelete(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
@@ -131,7 +131,7 @@ export class TasksController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a task by ID' })
   @ApiResponse({ status: 200, description: 'Task deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   remove(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @GetUser() user: User

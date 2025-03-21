@@ -29,7 +29,7 @@ export class AvatarsController {
   @Get()
   @ApiOperation({ summary: 'Retrieve all avatars' })
   @ApiResponse({ status: 200, description: 'List of avatars retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findAll( @GetUser() user: User): Promise<Avatar[]> {
     return this.avatarsService.findAll(user.id);
   }
@@ -37,7 +37,7 @@ export class AvatarsController {
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve an avatar by id' })
   @ApiResponse({ status: 200, description: 'Avatar retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Avatar not found' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.findOne(id, user.id);
@@ -46,7 +46,7 @@ export class AvatarsController {
   @Get('user')
   @ApiOperation({ summary: 'Retrieve all avatars made by the user' })
   @ApiResponse({ status: 200, description: 'List of avatars retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findUsersAvatars(@GetUser() user: User): Promise<Avatar[]> {
     return this.avatarsService.findUsersAvatars(user.id);
   }
@@ -54,7 +54,7 @@ export class AvatarsController {
   @Get('system')
   @ApiOperation({ summary: 'Retrieve all system avatars' })
   @ApiResponse({ status: 200, description: 'List of avatars retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findSystemAvatars(): Promise<Avatar[]> {
     return this.avatarsService.findSystemAvatars();
   }
@@ -63,7 +63,7 @@ export class AvatarsController {
   @ApiOperation({ summary: 'Update an existing avatar' })
   @ApiResponse({ status: 200, description: 'Avatar updated' })
   @ApiResponse({ status: 400, description: 'Invalid request' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateAvatarDto: UpdateAvatarDto, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.update(id, updateAvatarDto, user.id);
   }
@@ -71,7 +71,7 @@ export class AvatarsController {
   @Delete('softDelete/:id')
   @ApiOperation({ summary: 'Delete an avatar' })
   @ApiResponse({ status: 200, description: 'Avatar deleted' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Avatar not found' })
   async softDelete(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Avatar> {
     return this.avatarsService.softDelete(id, user.id);
@@ -80,7 +80,7 @@ export class AvatarsController {
   // @Delete(':id')
   // @ApiOperation({ summary: 'Delete an avatar' })
   // @ApiResponse({ status: 200, description: 'Avatar deleted' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // @ApiResponse({ status: 404, description: 'Avatar not found' })
   // async remove(@Param('id') id: string, @GetUser() user: User): Promise<Avatar> {
   //   return this.avatarsService.remove(id);

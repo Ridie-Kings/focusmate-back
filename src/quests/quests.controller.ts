@@ -34,7 +34,7 @@ export class QuestsController {
   @ApiResponse({ status: 200, description: 'List of quests retrieved' })
   @ApiResponse({ status: 402, description: 'Invalid category' })
   @ApiResponse({ status: 404, description: 'Quests not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
   async findQuestsByCategory(@Param('category') category: string): Promise<Quest[]> {
     return this.questsService.findQuestsByCategory(category);
   }
@@ -43,7 +43,7 @@ export class QuestsController {
   @ApiOperation({ summary: 'Search for a quest by its title' })
   @ApiResponse({ status: 200, description: 'Quest retrieved' })
   @ApiResponse({ status: 404, description: 'Quest not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
   async searchQuest(@Param('title') title: string): Promise<Quest> {
     return this.questsService.searchQuest(title);
   }
@@ -53,7 +53,7 @@ export class QuestsController {
   @ApiResponse({ status: 200, description: 'List of quests retrieved' })
   @ApiResponse({ status: 402, description: 'Invalid level' })
   @ApiResponse({ status: 404, description: 'Quests not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
   async findQuestsByLevel(@Param('level') level: number): Promise<Quest[]>  {
     return this.questsService.findQuestsByLevel(level);
   }

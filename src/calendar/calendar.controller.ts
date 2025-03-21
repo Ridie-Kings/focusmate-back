@@ -34,7 +34,7 @@ export class CalendarController {
   @ApiOperation({ summary: "Retrieve the user's calendar" })
   @ApiResponse({ status: 200, description: "Calendar retrieved" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async getCalendar(@GetUser() user: User): Promise<Calendar> {
     return this.calendarService.getCalendar(user.id);
   }
@@ -44,7 +44,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async addTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.addTask(user.id, taskId);
   }
@@ -54,7 +54,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async addEvent( @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.addEvent(user.id, eventId);
   }
@@ -64,7 +64,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async addReminder(
      @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.addReminder(user.id, reminderId);
@@ -75,7 +75,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async removeTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.removeTask( user.id, taskId);
   }
@@ -85,7 +85,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async removeEvent(@GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.removeEvent(user.id, eventId);
   }
@@ -95,7 +95,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar successfully updated" })
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async removeReminder(@GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
     return this.calendarService.removeReminder(user.id, reminderId);
   }
@@ -103,7 +103,7 @@ export class CalendarController {
   // @Get(':id')
   // @ApiOperation({ summary: 'Retrieve a calendar by id' })
   // @ApiResponse({ status: 200, description: 'Calendar retrieved' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // @ApiResponse({ status: 404, description: 'Calendar not found' })
   // async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
   //   return this.calendarService.findOne(id, user.id);
@@ -112,7 +112,7 @@ export class CalendarController {
   @Get('tasks')
   @ApiOperation({ summary: 'Retrieve all tasks from a calendar' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findTasks(@GetUser() user: User): Promise<Calendar> {
     return this.calendarService.findTasks(user.id);
@@ -121,7 +121,7 @@ export class CalendarController {
   @Get('events')
   @ApiOperation({ summary: 'Retrieve all events from a calendar' })
   @ApiResponse({ status: 200, description: 'Events retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findEvents( @GetUser() user: User): Promise<Calendar> {
     return this.calendarService.findEvents(user.id);
@@ -130,7 +130,7 @@ export class CalendarController {
   @Get('reminders')
   @ApiOperation({ summary: 'Retrieve all reminders from a calendar' })
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findReminders( @GetUser() user: User): Promise<Calendar> {
     return this.calendarService.findReminders(user.id);
@@ -139,7 +139,7 @@ export class CalendarController {
   @Get('today')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from today' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findToday( @GetUser() user: User){
     return this.calendarService.findToday( user.id);
@@ -148,7 +148,7 @@ export class CalendarController {
   @Get('week')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this week' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findWeek(@GetUser() user: User) {
     return this.calendarService.findWeek(user.id);
@@ -157,7 +157,7 @@ export class CalendarController {
   @Get('month')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this month' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findMonth( @GetUser() user: User) {
     return this.calendarService.findMonth(user.id);
@@ -166,7 +166,7 @@ export class CalendarController {
   @Get('year')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from this year' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findYear(@GetUser() user: User) {
     return this.calendarService.findYear(user.id);
@@ -175,7 +175,7 @@ export class CalendarController {
   @Get('nextWeek')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from next week' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findNextWeek(@GetUser() user: User) {
     return this.calendarService.findNextWeek( user.id);
@@ -184,7 +184,7 @@ export class CalendarController {
   @Get('nextMonth')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from next month' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findNextMonth( @GetUser() user: User) {
     return this.calendarService.findNextMonth( user.id);
@@ -193,7 +193,7 @@ export class CalendarController {
   @Get(':date')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific date' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findDate(@Param('date') date: Date, @GetUser() user: User) {
     return this.calendarService.findByDate( user.id, date);
@@ -202,7 +202,7 @@ export class CalendarController {
   @Get(':startDate/:endDate')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a date range' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findRange(@Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
     return this.calendarService.findRange( user.id, startDate, endDate);
@@ -211,7 +211,7 @@ export class CalendarController {
   @Get(':category')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific category' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findCategory( @Param('category') category: string, @GetUser() user: User) {
     return this.calendarService.findCategory( user.id, category);
@@ -220,7 +220,7 @@ export class CalendarController {
   @Get(':priority')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific priority' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findPriority( @Param('priority') priority: string, @GetUser() user: User) {
     return this.calendarService.findPriority( user.id, priority);
@@ -229,7 +229,7 @@ export class CalendarController {
   @Get(':status')
   @ApiOperation({ summary: 'Retrieve all tasks, events and reminders from a specific status' })
   @ApiResponse({ status: 200, description: 'Tasks, events and reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findStatus( @Param('status') status: string, @GetUser() user: User) {
     return this.calendarService.findStatus( user.id, status);
@@ -238,7 +238,7 @@ export class CalendarController {
   @Get(':startDate/tasks')
   @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findTasksDate( @Param('startDate') startDate: Date, @GetUser() user: User) {
     return this.calendarService.findTasksDate(user.id, startDate);
@@ -247,7 +247,7 @@ export class CalendarController {
   @Get(':startDate/events')
   @ApiOperation({ summary: 'Retrieve all events from a date range' })
   @ApiResponse({ status: 200, description: 'Events retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findEventsDate( @Param('startDate') startDate: Date, @GetUser() user: User) {
     return this.calendarService.findEventsDate( user.id, startDate);
@@ -256,7 +256,7 @@ export class CalendarController {
   @Get(':startDate/reminders')
   @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findRemindersDate(@Param('startDate') startDate: Date, @GetUser() user: User) {
     return this.calendarService.findRemindersDate( user.id, startDate);
@@ -265,7 +265,7 @@ export class CalendarController {
   @Get(':startDate/:endDate/tasks')
   @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findTasksRange( @Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
     return this.calendarService.findTasksRange(user.id, startDate, endDate);
@@ -274,7 +274,7 @@ export class CalendarController {
   @Get(':startDate/:endDate/events')
   @ApiOperation({ summary: 'Retrieve all events from a date range' })
   @ApiResponse({ status: 200, description: 'Events retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findEventsRange( @Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
     return this.calendarService.findEventsRange( user.id, startDate, endDate);
@@ -283,7 +283,7 @@ export class CalendarController {
   @Get(':startDate/:endDate/reminders')
   @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findRemindersRange(@Param('startDate') startDate: Date, @Param('endDate') endDate: Date, @GetUser() user: User) {
     return this.calendarService.findRemindersRange( user.id, startDate, endDate);

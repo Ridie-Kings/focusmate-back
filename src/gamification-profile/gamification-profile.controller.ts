@@ -33,7 +33,7 @@ export class GamificationProfileController {
   @Get(':id')
   @ApiOperation({ summary: 'Retrieve a specific gamification profile by ID' })
   @ApiResponse({ status: 200, description: 'Gamification profile retrieved successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.gamificationProfileService.findOne(id);
@@ -43,7 +43,7 @@ export class GamificationProfileController {
   @ApiOperation({ summary: 'Update a gamification profile by ID' })
   @ApiResponse({ status: 200, description: 'Gamification profile updated successfully' })
   @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile update' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateGamificationProfileDto: UpdateGamificationProfileDto) {
     return this.gamificationProfileService.update(id, updateGamificationProfileDto);
@@ -52,7 +52,7 @@ export class GamificationProfileController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a gamification profile by ID' })
   @ApiResponse({ status: 200, description: 'Gamification profile deleted successfully' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Gamification profile not found' })
   async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.gamificationProfileService.remove(id);
