@@ -14,7 +14,7 @@ export class Task extends Document{
   @Prop({type: String, required: false, default: ""}) 
   description: string;
 
-  @Prop({ required: true, enum: ["completed", "pending", "started", "dropped"] }) // Tipos de permisos
+  @Prop({ required: true, enum: ["completed", "earrings", "progress", "dropped", "revision"] }) // 
   status: string;
 
   @Prop({ type: Date, required: false })
@@ -32,7 +32,7 @@ export class Task extends Document{
   @Prop({ type: [String], default: [], required: false })
   tags: string[];
 
-  @Prop({ type: String, required: false })
+  @Prop({ required: false, enum: ["low", "medium", "high"] })
   priority?: string;
 
   @Prop({type: String, required: true, default: ''})
