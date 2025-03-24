@@ -105,4 +105,58 @@ export class TasksService {
       throw new InternalServerErrorException('Error deleting task');
     }
   }
+
+  async createSubtask(id: mongoose.Types.ObjectId, subtask: CreateTaskDto, userId: mongoose.Types.ObjectId): Promise<Task> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      const newSubtask = await this.taskModel.create({
+        ...subtask,
+        userId,
+      });
+      const parentTask = await this.taskModel.findByIdAndUpdate(id, { $push: {subtasks: newSubtask._id}}, {new: true});
+      return parentTask.populate('userId');
+    } catch (error) {
+      throw new InternalServerErrorException('Error creating subtask');
+    }
+  }
+
+  async getSubtasks(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      return task.populate('subtasks');
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting subtasks');
+    }
+  }
+
+  async getTasksByTags(tagsArray: string[] ,userId: mongoose.Types.ObjectId): Promise<Task[]> {
+    try {
+      const tasks = await this.taskModel.find({tags: tagsArray, userId});
+      return tasks;
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting tasks by tags');
+    }
+  }
+
+  async getTasksByPriority(priority: string, userId: mongoose.Types.ObjectId): Promise<Task[]> {
+    try {
+      const tasks = await this.taskModel.find({priority, userId});
+      return tasks;
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting tasks by priority');
+    }
+  }
+
+  async getTasksByCategory(category: string, userId: mongoose.Types.ObjectId): Promise<Task[]> {
+    try {
+      const tasks = await this.taskModel.find({category, userId});
+      return tasks;
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting tasks by category');
+    }
+  }
 }

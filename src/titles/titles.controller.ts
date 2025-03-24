@@ -27,7 +27,7 @@ export class TitlesController {
   @ApiOperation({ summary: 'Retrieve a title by its ID' })
   @ApiResponse({ status: 200, description: 'Title retrieved' })
   @ApiResponse({ status: 404, description: 'Title not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Title> {
     return this.titlesService.findOne(id);
   }
@@ -36,7 +36,7 @@ export class TitlesController {
   @ApiOperation({ summary: 'Search for a title by its title' })
   @ApiResponse({ status: 200, description: 'Title retrieved' })
   @ApiResponse({ status: 404, description: 'Title not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async search(@Param('title') title: string): Promise<Title> {
     return this.titlesService.search(title);
   }

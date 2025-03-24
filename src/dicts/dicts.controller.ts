@@ -48,7 +48,7 @@ export class DictsController {
   @Get()
   @ApiOperation({ summary: "Retrieve all dicts of the authenticated user" })
   @ApiResponse({ status: 200, description: "List of dicts retrieved" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   async findAll(
     @GetUser() user: User,
   ): Promise<Dict[]> {
@@ -62,7 +62,7 @@ export class DictsController {
 
   @Get(":id")
   @ApiOperation({ summary: "Retrieve a specific dict by ID" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   @ApiResponse({ status: 200, description: "Dict retrieved successfully" })
   async findOne(@Param("id", ParseMongoIdPipe) dictId: string, @GetUser() user: User): Promise<Dict> {
@@ -73,7 +73,7 @@ export class DictsController {
   @ApiOperation({ summary: "Update a dict by ID" })
   @ApiResponse({ status: 200, description: "Dict updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async update(
     @Param("id", ParseMongoIdPipe) dictId: string,
@@ -87,7 +87,7 @@ export class DictsController {
   @ApiOperation({ summary: "add/delete user shared with" })
   @ApiResponse({ status: 200, description: "Added /deleted Ok, Dict updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async updateUsersDict(
     @Param("id", ParseMongoIdPipe) dictId: string,
@@ -101,7 +101,7 @@ export class DictsController {
   @ApiOperation({ summary: "add a Word to a Dict by ID" })
   @ApiResponse({ status: 200, description: "Added Word succesfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async addWord(
     @Param("id", ParseMongoIdPipe) dictId: string,
@@ -115,7 +115,7 @@ export class DictsController {
   @ApiOperation({ summary: "add a Word to a Dict by ID" })
   @ApiResponse({ status: 200, description: "Added Word succesfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async deleteWord(
     @Param("id", ParseMongoIdPipe) dictId: string,
@@ -128,7 +128,7 @@ export class DictsController {
   @Patch(":id/delete")
   @ApiOperation({ summary: "Soft delete a dict by ID (isDeleted: true)" })
   @ApiResponse({ status: 200, description: "Dict deleted successfully" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async softDelete(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
     return this.dictsService.softDelete(id, user.id);
@@ -137,7 +137,7 @@ export class DictsController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete a dict by ID" })
   @ApiResponse({ status: 200, description: "Dict deleted successfully" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   async remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
     return this.dictsService.remove(id, user.id);

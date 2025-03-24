@@ -35,7 +35,7 @@ export class BadgesController {
   @ApiOperation({ summary: 'Retrieve a specific badge by ID' })
   @ApiResponse({ status: 200, description: 'Badge retrieved' })
   @ApiResponse({ status: 404, description: 'Badge not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Badge> {
     return this.badgesService.findOne(id);
   }
@@ -44,7 +44,7 @@ export class BadgesController {
   @ApiOperation({ summary: 'Retrieve a specific badge by ID' })
   @ApiResponse({ status: 200, description: 'Badge retrieved' })
   @ApiResponse({ status: 404, description: 'Badge not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findByName(@Param('name') name: string): Promise<Badge> {
     return this.badgesService.findByName(name);
   }
@@ -69,7 +69,7 @@ export class BadgesController {
   // @ApiResponse({ status: 200, description: 'Badge updated successfully' })
   // @ApiResponse({ status: 400, description: 'Invalid data provided' })
   // @ApiResponse({ status: 404, description: 'Badge not found' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateBadgeDto: UpdateBadgeDto): Promise<Badge> {
   //   return this.badgesService.update(id, updateBadgeDto);
   // }
@@ -78,7 +78,7 @@ export class BadgesController {
   // @ApiOperation({ summary: 'Delete a badge by ID' })
   // @ApiResponse({ status: 200, description: 'Badge deleted successfully' })
   // @ApiResponse({ status: 404, description: 'Badge not found' })
-  // @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
   // async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Badge> {
   //   return this.badgesService.remove(id);
   // }

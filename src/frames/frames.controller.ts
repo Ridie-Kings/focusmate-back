@@ -25,7 +25,7 @@ export class FramesController {
   @ApiOperation({ summary: 'Retrieve a frame by its ID' })
   @ApiResponse({ status: 200, description: 'Frame retrieved' })
   @ApiResponse({ status: 404, description: 'Frame not found' })
-  @ApiResponse({ status: 403, description: 'Unauthorized access' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Frame> {
     return this.framesService.findOne(id);
   }

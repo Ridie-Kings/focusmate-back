@@ -60,7 +60,7 @@ export class TimerController {
   @ApiOperation({ summary: "Delete a timer" })
   @ApiResponse({ status: 200, description: "Timer deleted successfully" })
   @ApiResponse({
-    status: 403,
+    status: 401,
     description: "Forbidden: You cannot delete this timer",
   }) 
   deleteTimer(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {

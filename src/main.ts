@@ -53,6 +53,10 @@ async function sherpmain() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
+  // app.getHttpAdapter().get('/api-json', (req, res) => {
+  //   res.json(document);
+  // });
+
   const PORT = process.env.PORT ?? 4000;
   await app.listen(PORT);
 

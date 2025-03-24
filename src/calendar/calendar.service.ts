@@ -31,7 +31,7 @@ export class CalendarService {
   async getCalendar(userId: string): Promise<Calendar> {
     return await this.calendarModel.findOne({ user: userId }).populate("tasks events reminders");
   }
-  
+
   async addTask(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<Calendar> {
     const calendar = await this.calendarModel.findOne({ user: userId });
     const task = await this.tasksService.findOne(taskId, userId);

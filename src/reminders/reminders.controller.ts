@@ -51,7 +51,7 @@ export class RemindersController {
   @Get(":id")
   @ApiOperation({ summary: "Retrieve a specific reminder by ID" })
   @ApiResponse({ status: 200, description: "Reminder retrieved successfully" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
   findOne(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.remindersService.findOne(id, user.id);
@@ -61,7 +61,7 @@ export class RemindersController {
   @ApiOperation({ summary: "Update a reminder by ID" })
   @ApiResponse({ status: 200, description: "Reminder updated successfully" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
   update(
     @Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId,
@@ -78,7 +78,7 @@ export class RemindersController {
   @Delete(":id")
   @ApiOperation({ summary: "Delete a reminder by ID" })
   @ApiResponse({ status: 200, description: "Reminder deleted successfully" })
-  @ApiResponse({ status: 403, description: "Unauthorized access" })
+  @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Reminder not found" })
   remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
     return this.remindersService.remove(id, user.id);
