@@ -1,8 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { CreateRewardDto } from './dto/create-reward.dto';
-import { UpdateRewardDto } from './dto/update-reward.dto';
 import { Reward } from './entities/reward.entity';
 
 @Injectable()
@@ -10,16 +8,6 @@ export class RewardsService {
   constructor(
     @InjectModel(Reward.name) private readonly rewardModel: Model<Reward>,
   ) {}
-
-  // Crea una nueva Reward
-  async create(createRewardDto: CreateRewardDto): Promise<Reward> {
-    try {
-      const reward =  await this.rewardModel.create(createRewardDto);
-      return reward;
-    } catch (error) {
-      throw new InternalServerErrorException('Error creating reward');
-    }
-  }
 
   // Retorna todas las Rewards
   async findAll(): Promise<Reward[]> {
@@ -29,24 +17,6 @@ export class RewardsService {
   // Retorna una Reward por su ID
   async findOne(id: mongoose.Types.ObjectId): Promise<Reward> {
     const reward = await this.rewardModel.findById(id);
-    if (!reward) {
-      throw new NotFoundException('Reward not found');
-    }
-    return reward;
-  }
-
-  // Actualiza una Reward por su ID
-  async update(id: mongoose.Types.ObjectId, updateRewardDto: UpdateRewardDto): Promise<Reward> {
-    const reward = await this.rewardModel.findByIdAndUpdate(id, updateRewardDto, { new: true });
-    if (!reward) {
-      throw new NotFoundException('Reward not found');
-    }
-    return reward;
-  }
-
-  // Elimina una Reward por su ID
-  async remove(id: mongoose.Types.ObjectId): Promise<Reward> {
-    const reward = await this.rewardModel.findByIdAndDelete(id);
     if (!reward) {
       throw new NotFoundException('Reward not found');
     }

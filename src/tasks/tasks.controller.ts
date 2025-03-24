@@ -31,6 +31,19 @@ export class TasksController {
     return this.tasksService.create(createTaskDto, user.id);
   }
 
+  @Post(':idParent/subtask')
+  @ApiOperation({ summary: 'Create a new subtask' })
+  @ApiResponse({ status: 201, description: 'Subtask successfully created' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  async createSubtask(
+    @Param('idParent', ParseMongoIdPipe) idParent: mongoose.Types.ObjectId,
+    CreateTaskDto: CreateTaskDto,
+    @GetUser() user: User
+  ): Promise<Task> 
+  {
+    return this.tasksService.createSubtask(idParent, CreateTaskDto, user.id);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Retrieve all tasks' })
   @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
@@ -140,5 +153,38 @@ export class TasksController {
     return this.tasksService.remove(id, user.id);
   }
 
-  //todo filtro prioridad, categoria, devolver subtasks
+  @Get('priority/:priority')
+  @ApiOperation({ summary: 'Retrieve all tasks by priority' })
+  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getTasksByPriority(@Param('priority') priority: string, @GetUser() user: User): Promise<Task[]> {
+    return this.tasksService.getTasksByPriority(priority, user.id);
+  }
+
+  @Get('category/:category')
+  @ApiOperation({ summary: 'Retrieve all tasks by category' })
+  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getTasksByCategory(@Param('category') category: string, @GetUser() user: User): Promise<Task[]> {
+    return this.tasksService.getTasksByCategory(category, user.id);
+  }
+
+  @Get(':idTask/subtasks/:id')
+  @ApiOperation({ summary: 'Retrieve all subtasks by task ID' })
+  @ApiResponse({ status: 200, description: 'List of subtasks retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getSubtasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Task> {
+    return this.tasksService.getSubtasks(id, user.id);
+  }
+
+  @Get('tags/:tags')
+  @ApiOperation({ summary: 'Retrieve all tasks by tags' })
+  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getTasksByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<Task[]> {
+    // Se espera una cadena de tags separados por comas, por ejemplo: "tag1,tag2,tag3"
+    const tagsArray = tags.split(',').map(tag => tag.trim());
+    return this.tasksService.getTasksByTags(tagsArray, user.id);
+  }
+
 }
