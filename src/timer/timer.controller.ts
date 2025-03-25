@@ -39,11 +39,11 @@ export class TimerController {
     return this.timerService.startTimer(startTimerDto, user.id);
   }
 
-  @Patch("update")
+  @Patch(':id')
   @ApiOperation({ summary: "Pause, resume or stop a timer" })
   @ApiResponse({ status: 200, description: "Timer updated successfully" })
-  updateTimer(@Body() updateTimerDto: UpdateTimerDto, @GetUser() user: User) {
-    return this.timerService.updateTimer(updateTimerDto, user.id);
+  updateTimer(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateTimerDto: UpdateTimerDto, @GetUser() user: User) {
+    return this.timerService.updateTimer(id, updateTimerDto, user.id);
   }
 
   @Get()
