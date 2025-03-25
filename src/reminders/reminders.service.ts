@@ -20,7 +20,7 @@ export class RemindersService {
   async create(
     createReminderDto: CreateReminderDto,
     userId: mongoose.Types.ObjectId,
-  ): Promise<Reminders> {
+  ): Promise<RemindersDocument> {
     try {
       console.log(createReminderDto);
       console.log(userId);
@@ -35,11 +35,11 @@ export class RemindersService {
     }
   }
 
-  async findAll(userId: mongoose.Types.ObjectId): Promise<Reminders[]> {
+  async findAll(userId: mongoose.Types.ObjectId): Promise<RemindersDocument[]> {
     return this.reminderModel.find({ user: userId }).exec();
   }
 
-  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Reminders> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<RemindersDocument> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }
@@ -63,7 +63,7 @@ export class RemindersService {
     id: mongoose.Types.ObjectId,
     userId: mongoose.Types.ObjectId,
     updateReminderDto: UpdateReminderDto,
-  ): Promise<Reminders> {
+  ): Promise<RemindersDocument> {
     if (!isValidObjectId(id)) {
       throw new BadRequestException("Invalid reminder ID");
     }

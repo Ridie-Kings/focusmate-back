@@ -1,14 +1,14 @@
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Task } from './entities/task.entity';
+import { Task, TaskDocument } from './entities/task.entity';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectModel(Task.name) private taskModel: Model<Task>,
+    @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
   ) {}
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
     try {
@@ -22,7 +22,7 @@ export class TasksService {
     }
   }
 
-  async findAll(userId: mongoose.Types.ObjectId): Promise<Task[]> {
+  async findAll(userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
       return await this.taskModel.find({userId: userId}).populate('userId');
     }catch (error) {
@@ -30,7 +30,7 @@ export class TasksService {
     }
   }
 
-  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -41,7 +41,7 @@ export class TasksService {
     }
   }
 
-  async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -60,7 +60,7 @@ export class TasksService {
     }
   }
 
-  async updateTags(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async updateTags(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -82,7 +82,7 @@ export class TasksService {
     }
   }
 
-  async softDelete(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async softDelete(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -95,7 +95,7 @@ export class TasksService {
   }
 
   
-  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -106,7 +106,7 @@ export class TasksService {
     }
   }
 
-  async createSubtask(id: mongoose.Types.ObjectId, subtask: CreateTaskDto, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async createSubtask(id: mongoose.Types.ObjectId, subtask: CreateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -122,7 +122,7 @@ export class TasksService {
     }
   }
 
-  async getSubtasks(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<Task> {
+  async getSubtasks(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
@@ -133,7 +133,7 @@ export class TasksService {
     }
   }
 
-  async getTasksByTags(tagsArray: string[] ,userId: mongoose.Types.ObjectId): Promise<Task[]> {
+  async getTasksByTags(tagsArray: string[] ,userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
       const tasks = await this.taskModel.find({tags: tagsArray, userId});
       return tasks;
@@ -142,7 +142,7 @@ export class TasksService {
     }
   }
 
-  async getTasksByPriority(priority: string, userId: mongoose.Types.ObjectId): Promise<Task[]> {
+  async getTasksByPriority(priority: string, userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
       const tasks = await this.taskModel.find({priority, userId});
       return tasks;
@@ -151,7 +151,7 @@ export class TasksService {
     }
   }
 
-  async getTasksByCategory(category: string, userId: mongoose.Types.ObjectId): Promise<Task[]> {
+  async getTasksByCategory(category: string, userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
       const tasks = await this.taskModel.find({category, userId});
       return tasks;

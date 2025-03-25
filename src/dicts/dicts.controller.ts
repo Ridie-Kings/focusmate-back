@@ -17,7 +17,7 @@ import { DictsService } from "./dicts.service";
 import { CreateDictDto, UpdateDictDto, AddDeleteWordDto, UpdateUserSharedWithDto } from "./dto/index";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
 import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
-import { Dict } from "./entities/dict.entity";
+import { DictDocument } from "./entities/dict.entity";
 import { User } from "src/users/entities/user.entity";
 import { GetUser } from "src/users/decorators/get-user.decorator";
 import {
@@ -41,7 +41,7 @@ export class DictsController {
   @ApiResponse({ status: 201, description: "Dict successfully created" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   async create(
-    @Body() createDictDto: CreateDictDto, @GetUser() user: User): Promise<Dict> {
+    @Body() createDictDto: CreateDictDto, @GetUser() user: User): Promise<DictDocument> {
     return this.dictsService.create(user.id, createDictDto);
   }
 
@@ -51,12 +51,12 @@ export class DictsController {
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   async findAll(
     @GetUser() user: User,
-  ): Promise<Dict[]> {
+  ): Promise<DictDocument[]> {
     return this.dictsService.findAll(user.id);
   }
 
   // @Get("all")
-  // async findAllPublic(): Promise<Dict[]> {
+  // async findAllPublic(): Promise<DictDocument[]> {
   //   return this.dictsService.findAllPublic();
   // }
 
@@ -65,7 +65,7 @@ export class DictsController {
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
   @ApiResponse({ status: 200, description: "Dict retrieved successfully" })
-  async findOne(@Param("id", ParseMongoIdPipe) dictId: string, @GetUser() user: User): Promise<Dict> {
+  async findOne(@Param("id", ParseMongoIdPipe) dictId: string, @GetUser() user: User): Promise<DictDocument> {
     return this.dictsService.findOne(dictId, user.id);
   }
 
@@ -79,7 +79,7 @@ export class DictsController {
     @Param("id", ParseMongoIdPipe) dictId: string,
     @Body() updateDictDto: UpdateDictDto,
     @GetUser() user: User,
-  ): Promise<Dict> {
+  ): Promise<DictDocument> {
     return this.dictsService.update(dictId, updateDictDto, user.id);
   }
 
@@ -93,7 +93,7 @@ export class DictsController {
     @Param("id", ParseMongoIdPipe) dictId: string,
     @Body() updateUserSharedWithDto: UpdateUserSharedWithDto,
     @GetUser() user: User,
-  ): Promise<Dict> {
+  ): Promise<DictDocument> {
     return this.dictsService.updateUsersDict(dictId, updateUserSharedWithDto, user.id);
   }
 
@@ -107,7 +107,7 @@ export class DictsController {
     @Param("id", ParseMongoIdPipe) dictId: string,
     @Body() addWordDto: AddDeleteWordDto,
     @GetUser() user: User,
-  ): Promise<Dict> {
+  ): Promise<DictDocument> {
     return this.dictsService.addWord(dictId, addWordDto, user.id);
   }
 
@@ -121,7 +121,7 @@ export class DictsController {
     @Param("id", ParseMongoIdPipe) dictId: string,
     @Body() word: AddDeleteWordDto,
     @GetUser() user: User,
-  ): Promise<Dict> {
+  ): Promise<DictDocument> {
     return this.dictsService.deleteWord(dictId, word, user.id);
   }
 
@@ -130,7 +130,7 @@ export class DictsController {
   @ApiResponse({ status: 200, description: "Dict deleted successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
-  async softDelete(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
+  async softDelete(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<DictDocument> {
     return this.dictsService.softDelete(id, user.id);
   }
 
@@ -139,7 +139,7 @@ export class DictsController {
   @ApiResponse({ status: 200, description: "Dict deleted successfully" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   @ApiResponse({ status: 404, description: "Dict not found" })
-  async remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<Dict> {
+  async remove(@Param("id", ParseMongoIdPipe) id: string, @GetUser() user: User): Promise<DictDocument> {
     return this.dictsService.remove(id, user.id);
   }
 }

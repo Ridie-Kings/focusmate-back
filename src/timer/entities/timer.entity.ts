@@ -1,6 +1,7 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Document, mongo } from "mongoose";
 
+export type TimerDocument = Timer & Document;
 @Schema({ timestamps: true,
   versionKey: false,
 })
@@ -19,9 +20,6 @@ export class Timer extends Document {
 
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
-
-  @Prop({ type: Date, default: Date.now })
-  startedTime: Date;
   
   @Prop({ type: Date })
   endTime?: Date;

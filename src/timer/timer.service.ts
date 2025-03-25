@@ -5,12 +5,12 @@ import {
 } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
-import { Timer } from "./entities/timer.entity";
+import { Timer, TimerDocument } from "./entities/timer.entity";
 import { StartTimerDto, UpdateTimerDto } from "./dto/index";
 
 @Injectable()
 export class TimerService {
-  constructor(@InjectModel(Timer.name) private timerModel: Model<Timer>) {}
+  constructor(@InjectModel(Timer.name) private timerModel: Model<TimerDocument>) {}
 
   async startTimer(
     startTimerDto: StartTimerDto,

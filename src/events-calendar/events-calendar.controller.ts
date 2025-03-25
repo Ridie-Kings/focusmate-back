@@ -4,7 +4,7 @@ import { CreateEventsCalendarDto } from './dto/create-events-calendar.dto';
 import { UpdateEventsCalendarDto } from './dto/update-events-calendar.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { EventsCalendar } from './entities/events-calendar.entity';
+import { EventsCalendarDocument } from './entities/events-calendar.entity';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import mongoose from 'mongoose';
@@ -22,7 +22,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 201, description: 'Event successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   @Post()
-  async create(@Body() createEventsCalendarDto: CreateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendar> {
+  async create(@Body() createEventsCalendarDto: CreateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.create(createEventsCalendarDto, user.id);
   }
 
@@ -31,7 +31,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 404, description: 'No events found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get()
-  async findAll(@GetUser() user: User): Promise<EventsCalendar[]> {
+  async findAll(@GetUser() user: User): Promise<EventsCalendarDocument[]> {
     return this.eventsCalendarService.findAll(user.id);
   }
 
@@ -40,7 +40,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 404, description: 'Event not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Get(':id')
-  async findOne(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendar> {
+  async findOne(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.findOne(id, user.id);
   }
 
@@ -49,7 +49,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Patch(':id')
-  async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateEventsCalendarDto: UpdateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendar> {
+  async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateEventsCalendarDto: UpdateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.update(id, updateEventsCalendarDto, user.id);
   }
 
@@ -57,7 +57,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 200, description: 'Event deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Delete(':id')
-  async remove(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendar> {
+  async remove(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.remove(id, user.id);
     
   }

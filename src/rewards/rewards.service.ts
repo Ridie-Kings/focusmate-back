@@ -1,21 +1,21 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { Reward } from './entities/reward.entity';
+import { Reward, RewardDocument } from './entities/reward.entity';
 
 @Injectable()
 export class RewardsService {
   constructor(
-    @InjectModel(Reward.name) private readonly rewardModel: Model<Reward>,
+    @InjectModel(Reward.name) private readonly rewardModel: Model<RewardDocument>,
   ) {}
 
   // Retorna todas las Rewards
-  async findAll(): Promise<Reward[]> {
+  async findAll(): Promise<RewardDocument[]> {
     return await this.rewardModel.find();
   }
 
   // Retorna una Reward por su ID
-  async findOne(id: mongoose.Types.ObjectId): Promise<Reward> {
+  async findOne(id: mongoose.Types.ObjectId): Promise<RewardDocument> {
     const reward = await this.rewardModel.findById(id);
     if (!reward) {
       throw new NotFoundException('Reward not found');

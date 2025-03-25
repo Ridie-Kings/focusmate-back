@@ -8,7 +8,7 @@ import {
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import mongoose, { isValidObjectId, Model } from "mongoose";
-import { User } from "./entities/user.entity";
+import { User, UserDocument } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
@@ -18,9 +18,9 @@ import * as sanitizeHtml from "sanitize-html";
 export class UsersService {
   constructor(
     @InjectModel(User.name)
-    private readonly userModel: Model<User>,
+    private readonly userModel: Model<UserDocument>,
   ) {}
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
       // 🔹 Sanitizar los inputs antes de guardarlos
       createUserDto.username = sanitizeHtml(createUserDto.username);
@@ -79,7 +79,7 @@ export class UsersService {
 
     return await argon2.verify(user.refreshToken, token);
   }
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {//REVISA ESTO
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {//REVISA ESTO
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
