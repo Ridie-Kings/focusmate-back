@@ -25,6 +25,8 @@ export class Section extends Document {
     category?: string;
     @Prop({ type: Number, default: 0, required: false})
     order?: number;
+    @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: "Note", required: false, default: [] })
+    note: [mongoose.Types.ObjectId];
 
 }
 export const SectionSchema = SchemaFactory.createForClass(Section);

@@ -32,6 +32,7 @@ import { ChecklistsModule } from './checklists/checklists.module';
 import { UserLogsModule } from './user-logs/user-logs.module';
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { SectionsModule } from './sections/sections.module';
+import { NotesModule } from './notes/notes.module';
 
 @Module({
   imports: [
@@ -100,6 +101,8 @@ import { SectionsModule } from './sections/sections.module';
     UserLogsModule,
     
     SectionsModule,
+    
+    NotesModule,
   ],
   controllers: [],
   providers: [

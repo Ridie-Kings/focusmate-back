@@ -65,9 +65,73 @@ export class SectionsController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sectionsService.remove(+id);
+  @ApiOperation({ description: 'Delete a section by ID' })
+  @ApiResponse({ status: 204, description: 'Section deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 404, description: 'Section not found' })
+  async remove(@Param('id') id: string, @GetUser() user: User): Promise<SectionDocument> {
+    return this.sectionsService.remove(id);
   }
-}
 
-//TODO: filtro y busqueda por distinto tipo
+  @Get(':id/tasks')
+  @ApiOperation({ description: 'Get all tasks in a section' })
+  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 404, description: 'Section not found' })
+  async getTasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
+    return this.sectionsService.getTasks(id, user.id);
+  }
+
+  @Get(':id/subsections')
+  @ApiOperation({ description: 'Get all subsections in a section' })
+  @ApiResponse({ status: 200, description: 'List of subsections retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 404, description: 'Section not found' })
+  async getSubsections(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
+    return this.sectionsService.getSubsections(id, user.id);
+  }
+
+  @Get(':id/notes')
+  @ApiOperation({ description: 'Get all notes in a section' })
+  @ApiResponse({ status: 200, description: 'List of notes retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  @ApiResponse({ status: 404, description: 'Section not found' })
+  async getNotes(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
+    return this.sectionsService.getNotes(id, user.id);
+  }
+
+  @Get('tags/:tags')
+  @ApiOperation({ summary: 'Retrieve all Sections by tags' })
+  @ApiResponse({ status: 200, description: 'List of sections retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getSectionsByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<SectionDocument[]> {
+    // Se espera una cadena de tags separados por comas, por ejemplo: "tag1,tag2,tag3"
+    const tagsArray = tags.split(',').map(tag => tag.trim());
+    return this.sectionsService.getSectionsByTags(tagsArray, user.id);
+  }
+
+  @Get('category/:category')
+  @ApiOperation({ summary: 'Retrieve all Sections by category' })
+  @ApiResponse({ status: 200, description: 'List of sections retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getSectionsByCategory(@Param('category') category: string, @GetUser() user: User): Promise<SectionDocument[]> {
+    return this.sectionsService.getSectionsByCategory(category, user.id);
+  }
+
+  @Get('completed')
+  @ApiOperation({ summary: 'Retrieve all completed sections' })
+  @ApiResponse({ status: 200, description: 'List of completed sections retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getCompletedSections(@GetUser() user: User): Promise<SectionDocument[]> {
+    return this.sectionsService.getCompletedSections(user.id);
+  }
+
+  @Get('incompleted')
+  @ApiOperation({ summary: 'Retrieve all incompleted sections' })
+  @ApiResponse({ status: 200, description: 'List of incompleted sections retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getIncompletedSections(@GetUser() user: User): Promise<SectionDocument[]> {
+    return this.sectionsService.getIncompletedSections(user.id);
+  }
+  
+}
