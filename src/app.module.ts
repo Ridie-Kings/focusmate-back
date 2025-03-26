@@ -31,6 +31,7 @@ import { EventsCalendarModule } from './events-calendar/events-calendar.module';
 import { ChecklistsModule } from './checklists/checklists.module';
 import { UserLogsModule } from './user-logs/user-logs.module';
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { SectionsModule } from './sections/sections.module';
 
 @Module({
   imports: [
@@ -97,6 +98,8 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
     ChecklistsModule,
     
     UserLogsModule,
+    
+    SectionsModule,
   ],
   controllers: [],
   providers: [
