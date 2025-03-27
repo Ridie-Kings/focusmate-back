@@ -39,7 +39,7 @@ export class Task extends Document{
   category: string;
 
   @Prop({type: [mongoose.Schema.Types.ObjectId], ref: "Task", default: []  })
-  subTasks: [mongoose.Schema.Types.ObjectId];
+  subTasks: mongoose.Schema.Types.ObjectId[];
 
 }
 
