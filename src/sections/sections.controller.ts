@@ -6,6 +6,8 @@ import { ApiTags, ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagg
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { SectionDocument } from './entities/section.entity';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import { TaskDocument } from 'src/tasks/entities/task.entity';
+import { NoteDocument } from 'src/notes/entities/note.entity';
 import mongoose from 'mongoose';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
@@ -60,8 +62,8 @@ export class SectionsController {
   @ApiResponse({ status: 400, description: 'Invalid parameters were passed' })
   @ApiResponse({ status: 401, description: 'Unauthorized access'  })
   @ApiResponse({ status: 404, description: 'Section not found' })
-  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateSectionDto: UpdateSectionDto) {
-    return this.sectionsService.update(+id, updateSectionDto);
+  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateSectionDto: UpdateSectionDto, @GetUser() user: User): Promise<SectionDocument> {
+    return this.sectionsService.update(id, updateSectionDto, user.id);
   }
 
   @Delete(':id')
@@ -69,36 +71,36 @@ export class SectionsController {
   @ApiResponse({ status: 204, description: 'Section deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized access'  })
   @ApiResponse({ status: 404, description: 'Section not found' })
-  async remove(@Param('id') id: string, @GetUser() user: User): Promise<SectionDocument> {
-    return this.sectionsService.remove(id);
+  async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<SectionDocument> {
+    return this.sectionsService.remove(id, user.id);
   }
 
-  @Get(':id/tasks')
-  @ApiOperation({ description: 'Get all tasks in a section' })
-  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  @ApiResponse({ status: 404, description: 'Section not found' })
-  async getTasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.sectionsService.getTasks(id, user.id);
-  }
+  // @Get(':id/tasks')
+  // @ApiOperation({ description: 'Get all tasks in a section' })
+  // @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  // @ApiResponse({ status: 404, description: 'Section not found' })
+  // async getTasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<TaskDocument[]> {
+  //   return this.sectionsService.getTasks(id, user.id);
+  // }
 
-  @Get(':id/subsections')
-  @ApiOperation({ description: 'Get all subsections in a section' })
-  @ApiResponse({ status: 200, description: 'List of subsections retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  @ApiResponse({ status: 404, description: 'Section not found' })
-  async getSubsections(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.sectionsService.getSubsections(id, user.id);
-  }
+  // @Get(':id/subsections')
+  // @ApiOperation({ description: 'Get all subsections in a section' })
+  // @ApiResponse({ status: 200, description: 'List of subsections retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  // @ApiResponse({ status: 404, description: 'Section not found' })
+  // async getSubsections(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<SectionDocument[]> {
+  //   return this.sectionsService.getSubsections(id, user.id);
+  // }
 
-  @Get(':id/notes')
-  @ApiOperation({ description: 'Get all notes in a section' })
-  @ApiResponse({ status: 200, description: 'List of notes retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  @ApiResponse({ status: 404, description: 'Section not found' })
-  async getNotes(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User) {
-    return this.sectionsService.getNotes(id, user.id);
-  }
+  // @Get(':id/notes')
+  // @ApiOperation({ description: 'Get all notes in a section' })
+  // @ApiResponse({ status: 200, description: 'List of notes retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access'  })
+  // @ApiResponse({ status: 404, description: 'Section not found' })
+  // async getNotes(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<NoteDocument[]> {
+  //   return this.sectionsService.getNotes(id, user.id);
+  // }
 
   @Get('tags/:tags')
   @ApiOperation({ summary: 'Retrieve all Sections by tags' })
@@ -132,6 +134,14 @@ export class SectionsController {
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async getIncompletedSections(@GetUser() user: User): Promise<SectionDocument[]> {
     return this.sectionsService.getIncompletedSections(user.id);
+  }
+
+  @Get(':id/progress')
+  @ApiOperation({ summary: 'Retrieve section progress' })
+  @ApiResponse({ status: 200, description: 'List of sections with progress retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  async getSectionsWithProgress(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Number> {
+    return this.sectionsService.getSectionProgress(id, user.id);
   }
   
 }
