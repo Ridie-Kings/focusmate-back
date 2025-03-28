@@ -23,7 +23,7 @@ export class Habit extends Document{
   streak: number;
 
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Task' })
-  taskId: mongoose.Types.ObjectId;
+  taskId?: mongoose.Types.ObjectId;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: mongoose.Types.ObjectId;

@@ -33,6 +33,7 @@ import { UserLogsModule } from './user-logs/user-logs.module';
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { SectionsModule } from './sections/sections.module';
 import { NotesModule } from './notes/notes.module';
+import { PomodoroModule } from './pomodoro/pomodoro.module';
 
 @Module({
   imports: [
@@ -103,6 +104,8 @@ import { NotesModule } from './notes/notes.module';
     SectionsModule,
     
     NotesModule,
+    
+    PomodoroModule,
   ],
   controllers: [],
   providers: [
