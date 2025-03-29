@@ -4,14 +4,60 @@ import {
   IsOptional,
   IsMongoId, 
   IsArray, 
-  ArrayUnique 
+  ArrayUnique, 
+  IsString,
+  IsNumber
 } from 'class-validator';
 
 export class CreateGamificationProfileDto {
-  @ApiProperty({description: 'ID of the user associated with the profile', example: '60f7b3b4b3f4f0001f000001'})
-  @IsNotEmpty()
-  @IsMongoId()
-  user: string; // ID del usuario asociado
+
+  @ApiProperty({
+    description: 'Banner del perfil de gamificación',
+    example: 'https://example.com/banner.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  banner?: string;
+
+  @ApiProperty({
+    description: 'Avatar del perfil de gamificación',
+    example: 'https://example.com/avatar.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
+  @ApiProperty({
+    description: 'Marco del perfil de gamificación',
+    example: 'https://example.com/frame.jpg',
+  })
+  @IsOptional()
+  @IsString()
+  frame?: string;
+
+  @ApiProperty({
+    description: 'Biografía del perfil de gamificación',
+    example: 'Soy un apasionado de la tecnología.',
+  })
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @ApiProperty({
+    description: 'Título del perfil de gamificación',
+    example: 'Novato',
+  })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
+  @ApiProperty({
+    description: 'Cantidad de monedas del perfil de gamificación',
+    example: 100,
+  })
+  @IsOptional()
+  @IsNumber()
+  coins?: number;
 
   // Para las directRewards, se espera un array de IDs de Reward
   @IsOptional()
