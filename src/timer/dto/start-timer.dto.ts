@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, MinLength } from "class-validator";
+import { IsOptional, IsString, MinLength } from "class-validator";
 
 export class StartTimerDto {
   @ApiProperty({
@@ -8,5 +8,14 @@ export class StartTimerDto {
   })
   @IsString()
   @MinLength(3, { message: "Task name must be at least 3 characters long" })
+  @IsOptional()
   task: string;
+
+  @ApiProperty({
+    example: "Studying Math",
+    description: "Activity name",
+  })
+  @IsString()
+  @MinLength(3, { message: "Timer name must be at least 3 characters long" })
+  title: string;
 }

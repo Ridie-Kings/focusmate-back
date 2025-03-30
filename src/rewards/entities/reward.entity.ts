@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 
 export type RewardType = 'badge' | 'quest' | 'streak' | 'other';
 
+export type RewardDocument = Reward & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class Reward extends Document {
   @Prop({ required: true })

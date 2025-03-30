@@ -7,6 +7,7 @@ export enum TaskStatus {
   PENDING = 'pending',
   STARTED = 'started',
   DROPPED = 'dropped',
+  REVISION = 'revision',
 }
 
 export class CreateTaskDto{

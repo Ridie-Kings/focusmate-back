@@ -2,17 +2,17 @@ import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundE
 import { CreateEventsCalendarDto } from './dto/create-events-calendar.dto';
 import { UpdateEventsCalendarDto } from './dto/update-events-calendar.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { EventsCalendar } from './entities/events-calendar.entity';
+import { EventsCalendar, EventsCalendarDocument } from './entities/events-calendar.entity';
 import mongoose, { Model } from 'mongoose';
 
 @Injectable()
 export class EventsCalendarService {
   constructor(
     @InjectModel(EventsCalendar.name)
-    private readonly eventsCalendarModel: Model<EventsCalendar>,
+    private readonly eventsCalendarModel: Model<EventsCalendarDocument>,
   ) {}
 
-  async create(createEventsCalendarDto: CreateEventsCalendarDto, userId: mongoose.Types.ObjectId): Promise<EventsCalendar> {
+  async create(createEventsCalendarDto: CreateEventsCalendarDto, userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument> {
     try {
       const event = await this.eventsCalendarModel.create({
         ...createEventsCalendarDto,
@@ -25,7 +25,7 @@ export class EventsCalendarService {
     }
   }
 
-  async findAll(userId: mongoose.Types.ObjectId): Promise<EventsCalendar[]> {
+  async findAll(userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument[]> {
     try {
       return await this.eventsCalendarModel.find({userId: userId}).populate('userId');
     }
@@ -34,7 +34,7 @@ export class EventsCalendarService {
     }
   }
 
-  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<EventsCalendar> {
+  async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument> {
     try {
       const event = await this.eventsCalendarModel.findById(id);
       if(!event) throw new NotFoundException('Event not found');
@@ -45,7 +45,7 @@ export class EventsCalendarService {
     }
   }
 
-  async update(id: mongoose.Types.ObjectId, updateEventsCalendarDto: UpdateEventsCalendarDto, userId: mongoose.Types.ObjectId): Promise<EventsCalendar> {
+  async update(id: mongoose.Types.ObjectId, updateEventsCalendarDto: UpdateEventsCalendarDto, userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument> {
     try {
       const event = await this.eventsCalendarModel.findById(id);
       if (!event) throw new NotFoundException('Event not found');
@@ -59,7 +59,7 @@ export class EventsCalendarService {
     }
   }
 
-  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<EventsCalendar> {
+  async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument> {
     try {
       const event = await this.eventsCalendarModel.findById(id);
       if (!event) throw new NotFoundException('Event not found');
@@ -70,7 +70,7 @@ export class EventsCalendarService {
     }
   }
 
-  async getEventsCategory(userId: mongoose.Types.ObjectId, category: string): Promise<EventsCalendar[]> {
+  async getEventsCategory(userId: mongoose.Types.ObjectId, category: string): Promise<EventsCalendarDocument[]> {
     try {
       const events = await this.eventsCalendarModel.find({ userId, category }).populate('userId');
       if (!events) throw new NotFoundException('Events not found');

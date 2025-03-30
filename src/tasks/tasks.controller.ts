@@ -7,7 +7,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
-import { Task } from './entities/task.entity';
+import { Task, TaskDocument } from './entities/task.entity';
 import mongoose from 'mongoose';
 
 
@@ -26,7 +26,7 @@ export class TasksController {
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User
-  ): Promise<Task> 
+  ): Promise<TaskDocument> 
   {
     return this.tasksService.create(createTaskDto, user.id);
   }
@@ -39,7 +39,7 @@ export class TasksController {
     @Param('idParent', ParseMongoIdPipe) idParent: mongoose.Types.ObjectId,
     CreateTaskDto: CreateTaskDto,
     @GetUser() user: User
-  ): Promise<Task> 
+  ): Promise<TaskDocument> 
   {
     return this.tasksService.createSubtask(idParent, CreateTaskDto, user.id);
   }
@@ -62,7 +62,7 @@ export class TasksController {
   async findOne(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @GetUser() user: User
-  ): Promise<Task>
+  ): Promise<TaskDocument>
   {
     return this.tasksService.findOne(id, user.id);
   }
@@ -77,7 +77,7 @@ export class TasksController {
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
     @Body() updateTaskDto: UpdateTaskDto,
     @GetUser() user: User
-  ): Promise<Task> 
+  ): Promise<TaskDocument> 
   {
     return this.tasksService.update(id, updateTaskDto, user.id);
   }
@@ -92,7 +92,7 @@ export class TasksController {
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
     @Body() updateTaskDto: UpdateTaskDto,
     @GetUser() user: User
-  ): Promise<Task> 
+  ): Promise<TaskDocument> 
   {
     return this.tasksService.updateTags(id, updateTaskDto, user.id);
   }
@@ -107,7 +107,7 @@ export class TasksController {
   //   @Param('id', ParseMongoIdPipe) id: string, 
   //   @Body() updateTaskDto: UpdateTaskDto,
   //   @GetUser() user: User
-  // ): Promise<Task> 
+  // ): Promise<TaskDocument> 
   // {
   //   return this.tasksService.updateDates(id, updateTaskDto, user.id);
   // }
@@ -122,7 +122,7 @@ export class TasksController {
   //   @Param('id', ParseMongoIdPipe) id: string, 
   //   @Body() updateTaskDto: UpdateTaskDto,
   //   @GetUser() user: User
-  // ): Promise<Task> 
+  // ): Promise<TaskDocument> 
   // {
   //   return this.tasksService.updateStatus(id, updateTaskDto, user.id);
   // }
@@ -136,7 +136,7 @@ export class TasksController {
   async softDelete(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, 
     @Body() updateTaskDto: UpdateTaskDto,
-    @GetUser() user: User): Promise<Task>
+    @GetUser() user: User): Promise<TaskDocument>
     {    
       return this.tasksService.softDelete(id, user.id);
     }
@@ -148,7 +148,7 @@ export class TasksController {
   remove(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @GetUser() user: User
-  ): Promise<Task>
+  ): Promise<TaskDocument>
   {
     return this.tasksService.remove(id, user.id);
   }
@@ -157,7 +157,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Retrieve all tasks by priority' })
   @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getTasksByPriority(@Param('priority') priority: string, @GetUser() user: User): Promise<Task[]> {
+  async getTasksByPriority(@Param('priority') priority: string, @GetUser() user: User): Promise<TaskDocument[]> {
     return this.tasksService.getTasksByPriority(priority, user.id);
   }
 
@@ -165,7 +165,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Retrieve all tasks by category' })
   @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getTasksByCategory(@Param('category') category: string, @GetUser() user: User): Promise<Task[]> {
+  async getTasksByCategory(@Param('category') category: string, @GetUser() user: User): Promise<TaskDocument[]> {
     return this.tasksService.getTasksByCategory(category, user.id);
   }
 
@@ -173,7 +173,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Retrieve all subtasks by task ID' })
   @ApiResponse({ status: 200, description: 'List of subtasks retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getSubtasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<Task> {
+  async getSubtasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<TaskDocument> {
     return this.tasksService.getSubtasks(id, user.id);
   }
 
@@ -181,7 +181,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Retrieve all tasks by tags' })
   @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getTasksByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<Task[]> {
+  async getTasksByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<TaskDocument[]> {
     // Se espera una cadena de tags separados por comas, por ejemplo: "tag1,tag2,tag3"
     const tagsArray = tags.split(',').map(tag => tag.trim());
     return this.tasksService.getTasksByTags(tagsArray, user.id);

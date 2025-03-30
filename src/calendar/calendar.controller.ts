@@ -12,7 +12,7 @@ import { GetUser } from "../users/decorators/get-user.decorator";
 import { User } from "../users/entities/user.entity";
 import mongoose from "mongoose";
 import { ParseMongoIdPipe } from "src/common/pipes/parse-mongo-id.pipe";
-import { Calendar } from "./entities/calendar.entity";
+import { Calendar, CalendarDocument } from "./entities/calendar.entity";
 
 @ApiTags("Calendar")
 @Controller("calendar")
@@ -26,7 +26,7 @@ export class CalendarController {
   @ApiOperation({ summary: "Create a new Calendar" })
   @ApiResponse({ status: 201, description: "Calendar successfully created" })
   @ApiResponse({ status: 400, description: "Invalid request" })
-  async createCalendar(@GetUser() user: User): Promise<Calendar>{
+  async createCalendar(@GetUser() user: User): Promise<CalendarDocument>{
     return this.calendarService.createCalendar(user.id);
   }
 
@@ -35,7 +35,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: "Calendar retrieved" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async getCalendar(@GetUser() user: User): Promise<Calendar> {
+  async getCalendar(@GetUser() user: User): Promise<CalendarDocument> {
     return this.calendarService.getCalendar(user.id);
   }
 
@@ -45,7 +45,7 @@ export class CalendarController {
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async addTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async addTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.addTask(user.id, taskId);
   }
 
@@ -55,7 +55,7 @@ export class CalendarController {
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async addEvent( @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async addEvent( @GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.addEvent(user.id, eventId);
   }
 
@@ -66,7 +66,7 @@ export class CalendarController {
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
   async addReminder(
-     @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
+     @GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.addReminder(user.id, reminderId);
   }
 
@@ -76,7 +76,7 @@ export class CalendarController {
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async removeTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async removeTask(@GetUser() user: User, @Param('taskId', ParseMongoIdPipe) taskId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.removeTask( user.id, taskId);
   }
 
@@ -86,7 +86,7 @@ export class CalendarController {
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async removeEvent(@GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async removeEvent(@GetUser() user: User, @Param('eventId', ParseMongoIdPipe) eventId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.removeEvent(user.id, eventId);
   }
 
@@ -96,7 +96,7 @@ export class CalendarController {
   @ApiResponse({ status: 400, description: "Invalid request" })
   @ApiResponse({ status: 404, description: "Calendar not found" })
   @ApiResponse({ status: 401, description: "Unauthorized access" })
-  async removeReminder(@GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async removeReminder(@GetUser() user: User, @Param('reminderId', ParseMongoIdPipe) reminderId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     return this.calendarService.removeReminder(user.id, reminderId);
   }
 
@@ -114,7 +114,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: 'Tasks retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findTasks(@GetUser() user: User): Promise<Calendar> {
+  async findTasks(@GetUser() user: User): Promise<CalendarDocument> {
     return this.calendarService.findTasks(user.id);
   }
 
@@ -123,7 +123,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: 'Events retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findEvents( @GetUser() user: User): Promise<Calendar> {
+  async findEvents( @GetUser() user: User): Promise<CalendarDocument> {
     return this.calendarService.findEvents(user.id);
   }
 
@@ -132,7 +132,7 @@ export class CalendarController {
   @ApiResponse({ status: 200, description: 'Reminders retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findReminders( @GetUser() user: User): Promise<Calendar> {
+  async findReminders( @GetUser() user: User): Promise<CalendarDocument> {
     return this.calendarService.findReminders(user.id);
   }
 

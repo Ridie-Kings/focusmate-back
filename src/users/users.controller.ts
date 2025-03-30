@@ -26,7 +26,7 @@ import {
 } from "@nestjs/swagger";
 // import { UpdateProfileDto } from "./dto/updateProfileDto";
 import mongoose from "mongoose";
-import { User } from "./entities/user.entity";
+import { User, UserDocument } from "./entities/user.entity";
 import { GetUser } from "./decorators/get-user.decorator";
 
 @ApiTags("Users")
@@ -39,7 +39,7 @@ export class UsersController {
   @ApiResponse({ status: 201, description: "User successfully created" })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  async create(@Body() createUserDto: CreateUserDto): Promise<User>{
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserDocument>{
     return this.usersService.create(createUserDto);
   }
 
@@ -49,7 +49,7 @@ export class UsersController {
     status: 200,
     description: "List of users successfully retrieved",
   })
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserDocument[]> {
     return this.usersService.findAll();
   }
 
@@ -59,7 +59,7 @@ export class UsersController {
   // @ApiResponse({ status: 404, description: "User not found" })
   // @ApiBearerAuth()
   // @UseGuards(JwtAuthGuard)
-  // async findMe(@Req() req: RequestWithUser): Promise<User> {
+  // async findMe(@Req() req: RequestWithUser): Promise<UserDocument> {
   //   const token = req.headers.authorization.split(" ")[1];
 
   //   return this.usersService.findMe(req.user._id);
@@ -71,7 +71,7 @@ export class UsersController {
   @ApiOperation({ summary: "Find a user by ID, email, or username" })
   @ApiResponse({ status: 200, description: "User found successfully" })
   @ApiResponse({ status: 404, description: "User not found" })
-  async findOne(@Param("term") term: string): Promise<User> {
+  async findOne(@Param("term") term: string): Promise<UserDocument> {
     return this.usersService.findOne(term);
   }
 
@@ -115,7 +115,7 @@ export class UsersController {
   async update(
     @Param("id", ParseMongoIdPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<User> {
+  ): Promise<UserDocument> {
     return this.usersService.update(id, updateUserDto);
   }
 
@@ -137,7 +137,7 @@ export class UsersController {
   @ApiOperation({ summary: "Delete a user by ID" })
   @ApiResponse({ status: 200, description: "User deleted successfully" })
   @ApiResponse({ status: 404, description: "User not found" })
-  async remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<User> {
+  async remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<UserDocument> {
     return this.usersService.remove(id);
   }
 }

@@ -1,7 +1,7 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
-import mongoose, { Document } from "mongoose";
-import { getDefaultAutoSelectFamily } from "net";
+import mongoose, { Document, mongo } from "mongoose";
 
+export type TimerDocument = Timer & Document;
 @Schema({ timestamps: true,
   versionKey: false,
 })
@@ -10,16 +10,19 @@ export class Timer extends Document {
   user: mongoose.Types.ObjectId;
 
   @Prop({ type: String, required: true })
-  task: string;
+  title: string
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, required: false })
+  task?: mongoose.Types.ObjectId;
 
   @Prop({ type: Number, default: 0 })
   elapsedTime: number;
 
   @Prop({ type: Boolean, default: false })
   isRunning: boolean;
-
-  @Prop({ type: Date})
-  startedAt?: Date;
+  
+  @Prop({ type: Date })
+  endTime?: Date;
 }
 
 export const TimerSchema = SchemaFactory.createForClass(Timer);

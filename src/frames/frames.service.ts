@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Frame } from './entities/frame.entity'; // Add this line to import Frame
+import { Frame, FrameDocument } from './entities/frame.entity'; // Add this line to import Frame
 import mongoose, { Model, Mongoose } from 'mongoose';
 
 @Injectable()
@@ -8,14 +8,14 @@ export class FramesService {
 
   constructor(
     @InjectModel(Frame.name)
-    private readonly frameModel: Model<Frame>
+    private readonly frameModel: Model<FrameDocument>
   ) {}
 
-  async findAll(): Promise<Frame[]> {
+  async findAll(): Promise<FrameDocument[]> {
     return this.frameModel.find();
   }
 
-  async findOne(id: mongoose.Types.ObjectId): Promise<Frame>{
+  async findOne(id: mongoose.Types.ObjectId): Promise<FrameDocument>{
     try {
       const frame = await this.frameModel.findById(id);
       if (!frame) {

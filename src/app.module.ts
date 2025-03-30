@@ -29,6 +29,11 @@ import { QuestsModule } from './quests/quests.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { EventsCalendarModule } from './events-calendar/events-calendar.module';
 import { ChecklistsModule } from './checklists/checklists.module';
+import { UserLogsModule } from './user-logs/user-logs.module';
+import { EventEmitterModule } from "@nestjs/event-emitter";
+import { SectionsModule } from './sections/sections.module';
+import { NotesModule } from './notes/notes.module';
+import { PomodoroModule } from './pomodoro/pomodoro.module';
 
 @Module({
   imports: [
@@ -47,6 +52,10 @@ import { ChecklistsModule } from './checklists/checklists.module';
       "mongodb+srv://matisargo:OWHtedoTp8gCz5PI@cluster0.ay2g7.mongodb.net/sherpapp",
     ),
     ConfigModule.forRoot({ isGlobal: true }),
+
+    EventEmitterModule.forRoot(
+      {wildcard: false, }
+    ),
 
     UsersModule,
 
@@ -89,6 +98,14 @@ import { ChecklistsModule } from './checklists/checklists.module';
     EventsCalendarModule,
     
     ChecklistsModule,
+    
+    UserLogsModule,
+    
+    SectionsModule,
+    
+    NotesModule,
+    
+    PomodoroModule,
   ],
   controllers: [],
   providers: [

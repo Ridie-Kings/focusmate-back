@@ -19,11 +19,17 @@ export class Habit extends Document{
   @Prop({ type: [Date], default: [] })
   completedDates: Date[];
 
-  @Prop({default: 0})
+  @Prop({ type: Date, default: null, required: false })
+  lastCompletedDate?: Date;
+  
+  @Prop({ type: Number, default: false, required: false })
+  bestStreak: number;
+
+  @Prop({default: 0, required: false})
   streak: number;
 
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Task' })
-  taskId: mongoose.Types.ObjectId;
+  taskId?: mongoose.Types.ObjectId;
 
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   userId: mongoose.Types.ObjectId;

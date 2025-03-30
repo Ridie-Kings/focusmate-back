@@ -4,7 +4,7 @@ import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import mongoose from 'mongoose';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import {Quest} from './entities/quest.entity';
+import {Quest, QuestDocument} from './entities/quest.entity';
 
 @ApiTags('Quests')
 @ApiBearerAuth()
@@ -17,7 +17,7 @@ export class QuestsController {
   @Get()
   @ApiOperation({summary: 'Retrieve all quests' })
   @ApiResponse({ status: 200, description: 'List of quests retrieved' })
-  async findAll(): Promise<Quest[]> {
+  async findAll(): Promise<QuestDocument[]> {
     return this.questsService.findAll();
   }
 
@@ -25,7 +25,7 @@ export class QuestsController {
   @ApiOperation({ summary: 'Retrieve a quest by its ID' })
   @ApiResponse({ status: 200, description: 'Quest retrieved' })
   @ApiResponse({ status: 404, description: 'Quest not found' })
-  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<Quest> {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<QuestDocument> {
     return this.questsService.findOne(id);
   }
 
@@ -35,7 +35,7 @@ export class QuestsController {
   @ApiResponse({ status: 402, description: 'Invalid category' })
   @ApiResponse({ status: 404, description: 'Quests not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  async findQuestsByCategory(@Param('category') category: string): Promise<Quest[]> {
+  async findQuestsByCategory(@Param('category') category: string): Promise<QuestDocument[]> {
     return this.questsService.findQuestsByCategory(category);
   }
 
@@ -44,7 +44,7 @@ export class QuestsController {
   @ApiResponse({ status: 200, description: 'Quest retrieved' })
   @ApiResponse({ status: 404, description: 'Quest not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  async searchQuest(@Param('title') title: string): Promise<Quest> {
+  async searchQuest(@Param('title') title: string): Promise<QuestDocument> {
     return this.questsService.searchQuest(title);
   }
 
@@ -54,7 +54,7 @@ export class QuestsController {
   @ApiResponse({ status: 402, description: 'Invalid level' })
   @ApiResponse({ status: 404, description: 'Quests not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access'  })
-  async findQuestsByLevel(@Param('level') level: number): Promise<Quest[]>  {
+  async findQuestsByLevel(@Param('level') level: number): Promise<QuestDocument[]>  {
     return this.questsService.findQuestsByLevel(level);
   }
 
