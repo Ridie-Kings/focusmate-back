@@ -5,9 +5,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { GamificationProfile, GamificationProfileSchema } from './entities/gamification-profile.entity';
 import { GamificationProfileGateway } from './gamification-profile.gateway';
 import { AuthModule } from 'src/auth/auth.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: GamificationProfile.name, schema: GamificationProfileSchema }]), AuthModule],
+  imports: [MongooseModule.forFeature([{ name: GamificationProfile.name, schema: GamificationProfileSchema }]), AuthModule, UsersModule],
   controllers: [GamificationProfileController],
   providers: [GamificationProfileService, GamificationProfileGateway],
   exports: [GamificationProfileService],

@@ -16,7 +16,7 @@ export class UserLog {
   reminderCounts: number;
   @Prop({ type: Number, required: false, default: 0 })
   badgeCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
+  // @Prop({ type: Number, required: false, default: 0 })
   
 
 
