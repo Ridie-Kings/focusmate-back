@@ -3,7 +3,7 @@ import { CreateGamificationProfileDto } from './create-gamification-profile.dto'
 import { OmitType } from '@nestjs/mapped-types';
 import { ArrayUnique, IsArray, IsMongoId, IsNumber, IsOptional, IsString } from 'class-validator';
 
-export class UpdateGamificationProfileDto extends OmitType(CreateGamificationProfileDto, ['user'] as const) {
+export class UpdateGamificationProfileDto extends PartialType(CreateGamificationProfileDto){
 
   // La XP se puede dejar opcional y asignar un valor por defecto en el esquema (0)
   @IsOptional()

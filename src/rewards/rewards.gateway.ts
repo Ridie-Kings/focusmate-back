@@ -9,7 +9,6 @@ import { Server, Socket } from 'socket.io';
 import { RewardsService } from './rewards.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from 'src/auth/guards/ws-jwt-auth.guard';
-import { CreateRewardDto } from './dto/create-reward.dto';
 import mongoose from 'mongoose';
 
 @WebSocketGateway({ namespace: '/rewards' })
@@ -51,14 +50,14 @@ export class RewardsGateway {
    * Ejemplo de método para crear una reward mediante WebSocket.
    * Esto es opcional, si deseas permitir crear rewards vía WS.
    */
-  @SubscribeMessage('createReward')
-  async handleCreateReward(
-    @MessageBody() createRewardDto: CreateRewardDto,
-    @ConnectedSocket() client: Socket,
-  ) {
-    // Este método podría estar restringido a administradores, por ejemplo.
-    const reward = await this.rewardsService.create(createRewardDto);
-    client.emit('rewardCreated', reward);
-    return reward;
-  }
+  // @SubscribeMessage('createReward')
+  // async handleCreateReward(
+  //   @MessageBody() createRewardDto: CreateRewardDto,
+  //   @ConnectedSocket() client: Socket,
+  // ) {
+  //   // Este método podría estar restringido a administradores, por ejemplo.
+  //   const reward = await this.rewardsService.create(createRewardDto);
+  //   client.emit('rewardCreated', reward);
+  //   return reward;
+  // }
 }
