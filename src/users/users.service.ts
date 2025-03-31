@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   HttpStatus,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -12,6 +13,8 @@ import { User, UserDocument } from "./entities/user.entity";
 import { InjectModel } from "@nestjs/mongoose";
 import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
+import { CalendarService } from "src/calendar/calendar.service";
+import { GamificationProfileService } from "src/gamification-profile/gamification-profile.service";
 // import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
@@ -19,6 +22,8 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @Inject(CalendarService) private readonly calendarService: CalendarService,
+    @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
   ) {}
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
@@ -31,6 +36,10 @@ export class UsersService {
       createUserDto.password = await argon2.hash(createUserDto.password);
 
       const user = await this.userModel.create(createUserDto);
+      this.calendarService.createCalendar(user.id);
+      // this.gamificationProfileService.create(
+      //   { userId: user.id },
+      // );
       return user;
     } catch (error) {
       console.error("❌ ERROR en create():", error);
