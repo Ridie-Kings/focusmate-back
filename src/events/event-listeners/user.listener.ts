@@ -1,0 +1,34 @@
+// src/events/user.listener.ts
+import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
+
+@Injectable()
+export class UserListener {
+  // Escuchar evento cuando un usuario se registre
+  @OnEvent('user.registered')
+  handleUserRegistered(payload: any) {
+    console.log('Usuario registrado:', payload);
+    // Aquí puedes realizar acciones adicionales como enviar un correo de bienvenida
+  }
+
+  // Escuchar evento cuando un usuario inicie sesión
+  @OnEvent('user.loggedIn')
+  handleUserLoggedIn(payload: any) {
+    console.log('Usuario logueado:', payload);
+    // Aquí puedes registrar la hora de inicio de sesión, estadísticas, etc.
+  }
+
+  // Escuchar evento cuando un usuario actualice su perfil
+  @OnEvent('user.updated')
+  handleUserUpdated(payload: any) {
+    console.log('Usuario actualizado:', payload);
+    // Aquí podrías registrar qué se ha cambiado en el perfil del usuario
+  }
+
+  // Escuchar evento cuando un usuario elimine su cuenta
+  @OnEvent('user.deleted')
+  handleUserDeleted(payload: any) {
+    console.log('Usuario eliminado:', payload);
+    // Aquí puedes realizar limpieza de datos o registros asociados al usuario eliminado
+  }
+}

@@ -1,34 +1,33 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
-import { UserLogsService } from './user-logs.service';
-import { CreateUserLogDto } from './dto/create-user-log.dto';
-import { UpdateUserLogDto } from './dto/update-user-log.dto';
+// import { WebSocketGateway, SubscribeMessage, MessageBody } from '@nestjs/websockets';
+// import { UserLogsService } from './user-logs.service';
 
-@WebSocketGateway()
-export class UserLogsGateway {
-  constructor(private readonly userLogsService: UserLogsService) {}
 
-  @SubscribeMessage('createUserLog')
-  create(@MessageBody() createUserLogDto: CreateUserLogDto) {
-    return this.userLogsService.create(createUserLogDto);
-  }
+// @WebSocketGateway()
+// export class UserLogsGateway {
+//   constructor(private readonly userLogsService: UserLogsService) {}
 
-  @SubscribeMessage('findAllUserLogs')
-  findAll() {
-    return this.userLogsService.findAll();
-  }
+//   @SubscribeMessage('createUserLog')
+//   create(@MessageBody() createUserLogDto: CreateUserLogDto) {
+//     return this.userLogsService.create(createUserLogDto);
+//   }
 
-  @SubscribeMessage('findOneUserLog')
-  findOne(@MessageBody() id: number) {
-    return this.userLogsService.findOne(id);
-  }
+//   @SubscribeMessage('findAllUserLogs')
+//   findAll() {
+//     return this.userLogsService.findAll();
+//   }
 
-  @SubscribeMessage('updateUserLog')
-  update(@MessageBody() updateUserLogDto: UpdateUserLogDto) {
-    return this.userLogsService.update(updateUserLogDto.id, updateUserLogDto);
-  }
+//   @SubscribeMessage('findOneUserLog')
+//   findOne(@MessageBody() id: number) {
+//     return this.userLogsService.findOne(id);
+//   }
 
-  @SubscribeMessage('removeUserLog')
-  remove(@MessageBody() id: number) {
-    return this.userLogsService.remove(id);
-  }
-}
+//   @SubscribeMessage('updateUserLog')
+//   update(@MessageBody() updateUserLogDto: UpdateUserLogDto) {
+//     return this.userLogsService.update(updateUserLogDto.id, updateUserLogDto);
+//   }
+
+//   @SubscribeMessage('removeUserLog')
+//   remove(@MessageBody() id: number) {
+//     return this.userLogsService.remove(id);
+//   }
+// }

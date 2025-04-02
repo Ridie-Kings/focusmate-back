@@ -41,10 +41,7 @@ export class UsersService {
       const user = await this.userModel.create(createUserDto);
       this.calendarService.createCalendar(user.id);
       this.userLogService.create(user.id);
-      // this.gamificationProfileService.create(
-      //   { userId: user.id },
-      // ); 
-      //TODO
+      this.gamificationProfileService.create({}, user.id);
       return user;
     } catch (error) {
       console.error("❌ ERROR en create():", error);
