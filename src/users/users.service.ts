@@ -17,6 +17,8 @@ import * as sanitizeHtml from "sanitize-html";
 import { CalendarService } from "src/calendar/calendar.service";
 import { GamificationProfileService } from "src/gamification-profile/gamification-profile.service";
 import { UserLogsService } from 'src/user-logs/user-logs.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventsList } from 'src/events/list.events';
 // import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
@@ -24,6 +26,7 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
     // @Inject(CalendarService) private readonly calendarService: CalendarService,
     // @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
     // @Inject(UserLog) private readonly userLogService: UserLogsService
@@ -39,6 +42,7 @@ export class UsersService {
       createUserDto.password = await argon2.hash(createUserDto.password);
 
       const user = await this.userModel.create(createUserDto);
+      this.eventEmitter.emit(EventsList.USER_REGISTERED, {userId: user.id}); // Emitir evento de usuario registrado
       // this.calendarService.createCalendar(user.id);
       // this.userLogService.create(user.id);
       // this.gamificationProfileService.create({}, user.id);

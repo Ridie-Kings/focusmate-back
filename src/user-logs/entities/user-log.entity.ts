@@ -42,6 +42,10 @@ export class UserLog extends Document {
   PromedioSessionDuration: number;
   @Prop({ type: Number, required: false })
   totalSessionDuration: number;
+  @Prop({ type: Number, required: false })
+  totalProfileUpdate: number;
+  @Prop({ type: Date, required: false })
+  lastProfileUpdate: Date;
 
 }
 
