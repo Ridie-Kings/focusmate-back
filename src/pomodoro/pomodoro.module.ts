@@ -4,6 +4,7 @@ import { PomodoroController } from './pomodoro.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from 'src/auth/auth.module';
 import { Pomodoro, PomodoroSchema } from './entities/pomodoro.entity';
+import { PomodoroGateway } from './pomodoro.gateway';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { Pomodoro, PomodoroSchema } from './entities/pomodoro.entity';
     AuthModule,
   ], // Aquí puedes importar otros módulos si es necesario
   controllers: [PomodoroController],
-  providers: [PomodoroService],
+  providers: [PomodoroService, PomodoroGateway], // Asegúrate de que PomodoroGateway esté importado y registrado aquí
   exports: [PomodoroService], // Exporta el servicio si lo necesitas en otros módulos
 })
 export class PomodoroModule {}
