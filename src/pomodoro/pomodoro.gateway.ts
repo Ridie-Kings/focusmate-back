@@ -27,7 +27,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
     const duration = 1500; // Default to 25 minutes if no preference
 
     const pomodoro = await this.pomodoroService.startPomodoro(userId, duration);
-    this.startTimer(userId, pomodoro._id, duration);
+    this.startTimer(userId, pomodoro.id, duration);
   }
 
   @SubscribeMessage('stopPomodoro')

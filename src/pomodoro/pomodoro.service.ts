@@ -2,11 +2,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Pomodoro, PomodoroModel } from './pomodoro.schema';
+import { Pomodoro, PomodoroDocument } from './entities/pomodoro.entity';
 
 @Injectable()
 export class PomodoroService {
-  constructor(@InjectModel(Pomodoro.name) private readonly pomodoroModel: Model<Pomodoro>) {}
+  constructor(@InjectModel(Pomodoro.name) private readonly pomodoroModel: Model<PomodoroDocument>) {}
 
   // Crear un nuevo Pomodoro
   async startPomodoro(userId: string, duration: number) {
