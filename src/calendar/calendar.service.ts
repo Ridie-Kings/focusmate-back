@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
-import { Calendar } from "./entities/calendar.entity";
+import { Calendar, CalendarDocument } from "./entities/calendar.entity";
 import { TasksService } from "src/tasks/tasks.service";
 import { EventsCalendarService } from "src/events-calendar/events-calendar.service";
 import { RemindersService } from "src/reminders/reminders.service";
@@ -9,7 +9,7 @@ import { RemindersService } from "src/reminders/reminders.service";
 @Injectable()
 export class CalendarService {
   constructor(
-    @InjectModel(Calendar.name) private calendarModel: Model<Calendar>,
+    @InjectModel(Calendar.name) private calendarModel: Model<CalendarDocument>,
     @Inject(TasksService) private readonly tasksService: TasksService,
     @Inject(EventsCalendarService) private readonly eventsService: EventsCalendarService,
     @Inject(RemindersService) private readonly remindersService: RemindersService,

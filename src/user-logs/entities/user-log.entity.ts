@@ -11,7 +11,7 @@ export class eventLog{
 
 export type UserLogDocument = UserLog & Document;
 @Schema({ timestamps: true, versionKey: false })
-export class UserLog {
+export class UserLog extends Document {
   @Prop({ type: mongoose.Schema.Types.ObjectId, required: true })
   userId: mongoose.Types.ObjectId;
   @Prop({ type: Number, required: false, default: 0 })

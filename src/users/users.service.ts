@@ -24,9 +24,9 @@ export class UsersService {
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
-    @Inject(CalendarService) private readonly calendarService: CalendarService,
-    @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
-    @Inject(UserLog) private readonly userLogService: UserLogsService
+    // @Inject(CalendarService) private readonly calendarService: CalendarService,
+    // @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
+    // @Inject(UserLog) private readonly userLogService: UserLogsService
   ) {}
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
@@ -39,9 +39,9 @@ export class UsersService {
       createUserDto.password = await argon2.hash(createUserDto.password);
 
       const user = await this.userModel.create(createUserDto);
-      this.calendarService.createCalendar(user.id);
-      this.userLogService.create(user.id);
-      this.gamificationProfileService.create({}, user.id);
+      // this.calendarService.createCalendar(user.id);
+      // this.userLogService.create(user.id);
+      // this.gamificationProfileService.create({}, user.id);
       return user;
     } catch (error) {
       console.error("❌ ERROR en create():", error);

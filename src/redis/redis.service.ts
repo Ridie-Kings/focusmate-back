@@ -14,7 +14,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     this.publisherClient = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: Number(process.env.REDIS_PORT) || 6379,
-      // password: process.env.REDIS_PASSWORD, // si es necesario
+      password: process.env.REDIS_PASSWORD, // si es necesario
     });
 
     // Duplicamos la conexión para suscripción (pub/sub)

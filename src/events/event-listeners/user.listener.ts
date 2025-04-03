@@ -1,9 +1,19 @@
 // src/events/user.listener.ts
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { CalendarService } from 'src/calendar/calendar.service';
+import { GamificationProfileService } from 'src/gamification-profile/gamification-profile.service';
+import { StatsService } from 'src/stats/stats.service';
+import { UserLogsService } from 'src/user-logs/user-logs.service';
 
 @Injectable()
 export class UserListener {
+  constructor(
+    @Inject(UserLogsService) private readonly userLogsService: UserLogsService, // Asegúrate de importar el servicio correcto
+    @Inject(CalendarService) private readonly calendarService: CalendarService, // Asegúrate de importar el servicio correcto
+    @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
+    @Inject(StatsService) private readonly statsService: StatsService// Asegúrate de importar el servicio correcto
+  ){}
   // Escuchar evento cuando un usuario se registre
   @OnEvent('user.registered')
   handleUserRegistered(payload: any) {

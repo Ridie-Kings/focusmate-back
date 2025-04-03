@@ -3,9 +3,8 @@ import { Document } from 'mongoose';
 
 // Define the interface for the Stat entity
 export type StatDocument = Stat & Document;
-
-@Schema({ timestamps: true }) // Adds createdAt and updatedAt fields
-export class Stat {
+@Schema({ timestamps: true, versionKey: false }) // Adds createdAt and updatedAt fields
+export class Stat extends Document {
   @Prop({ type: Number, default: 0 })
   usersOnline: number;
 
@@ -38,14 +37,19 @@ export class Stat {
 
   @Prop({ type: Number, default: 0 })
   totalTasks: number; // Total tasks created
+
   @Prop({ type: Number, default: 0 })
   totalTasksCompleted: number; // Total tasks completed
+
   @Prop({ type: Number, default: 0 })
   totalSyncCalendar: number; // Total users who synced their calendar
+
   @Prop({ type: Number, default: 0 })
   totalPaidUsers: number; // Total users who paid for the app
+
   @Prop({ type: Number, default: 0 })
   totalHabits: number; // Total habits created
+
   @Prop({ type: Number, default: 0 })
   totalHabitsCompleted: number; // Total habits completed
 
@@ -72,15 +76,12 @@ export class Stat {
 
   @Prop({ type: Number, default: 0 })
   PromedioRating: number; // Average rating of the app
+
   @Prop({ type: Number, default: 0 })
   totalRating: number; // number of people who rated the app
+  
   @Prop({ type: Number, default: 0 })
   totalReviews: number; // Total reviews of the app
-
-
-
-
-
 
   @Prop({ type: Date, default: Date.now })
   lastUpdated: Date;

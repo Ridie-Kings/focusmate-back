@@ -1,9 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePomodoroDto } from './dto/create-pomodoro.dto';
 import { UpdatePomodoroDto } from './dto/update-pomodoro.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Pomodoro, PomodoroDocument } from './entities/pomodoro.entity';
 
 @Injectable()
 export class PomodoroService {
+
+  constructor(
+    @InjectModel(Pomodoro.name)
+    private readonly pomodoroModel: Model<PomodoroDocument>,
+  ) {}
   create(createPomodoroDto: CreatePomodoroDto) {
     return 'This action adds a new pomodoro';
   }

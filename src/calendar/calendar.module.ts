@@ -15,9 +15,6 @@ import { EventsCalendarModule } from "src/events-calendar/events-calendar.module
   imports: [
     MongooseModule.forFeature([
       { name: Calendar.name, schema: CalendarSchema },
-      {name: Reminders.name, schema: RemindersSchema },
-      {name: Task.name, schema: TaskSchema },
-      {name: EventsCalendar.name, schema: EventsCalendarSchema },
     ]),
     AuthModule,
     TasksModule,
