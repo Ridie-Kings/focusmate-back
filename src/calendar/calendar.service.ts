@@ -375,7 +375,26 @@ export class CalendarService {
     return calendar;
   }
 
-  
+  async findAllCategories(userId: mongoose.Types.ObjectId): Promise<string[]> {
+    const calendar = await this.calendarModel.aggregate([
+      {
+        $match: { user: userId },
+      },
+      {
+        $project: {
+          categories: {
+            $setUnion: [
+              { $map: { input: "$tasks", as: "task", in: "$$task.category" } },
+              { $map: { input: "$events", as: "event", in: "$$event.category" } },
+              { $map: { input: "$reminders", as: "reminder", in: "$$reminder.category" } },
+            ],
+          },
+        },
+      },
+    ]);
+
+    return calendar.length > 0 ? calendar[0].categories : [];
+  }
 
 
   
