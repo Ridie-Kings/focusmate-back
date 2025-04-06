@@ -22,8 +22,8 @@ export class GamificationProfileController {
   @ApiOperation({ summary: 'Create a new gamification profile' })
   @ApiResponse({ status: 201, description: 'Gamification profile successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid data provided for gamification profile creation' })
-  async create(@Body() createGamificationProfileDto: CreateGamificationProfileDto, @GetUser() user: User) {
-    return this.gamificationProfileService.create(createGamificationProfileDto, user.id);
+  async create(@GetUser() user: User) {
+    return this.gamificationProfileService.create(user.id);
   }
 /*
   @Get()

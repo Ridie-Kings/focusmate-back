@@ -21,7 +21,7 @@ export class UserListener {
   async handleUserRegistered(payload: {userId: mongoose.Types.ObjectId}) {
     await this.userLogsService.create(payload.userId); // Crear logs de usuario
     await this.calendarService.createCalendar(payload.userId); // Crear calendario de usuario
-    await this.gamificationProfileService.create({}, payload.userId); // Crear perfil de gamificación
+    await this.gamificationProfileService.create(payload.userId); // Crear perfil de gamificación
     // Aquí puedes realizar acciones adicionales como enviar un correo de bienvenida
   }
 

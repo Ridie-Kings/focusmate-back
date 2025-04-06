@@ -13,14 +13,15 @@ export class GamificationProfileService {
     @Inject(UsersService) private readonly usersService: UsersService,
   ){}
 
-  async create(createGamificationProfileDto: CreateGamificationProfileDto, userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument>  {
+  async create(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument>  {
     try{
       const profile = await this.gamificationProfileModel.findOne({userId: userId});
       if(profile){
         throw new ForbiddenException('User profile already exists');
       }
       return await this.gamificationProfileModel.create({
-        ...createGamificationProfileDto,
+        xp: 0,
+        level: 0,
         userId: userId,
       })
     }catch(error){
