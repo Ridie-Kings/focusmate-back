@@ -1,10 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserLogDto } from './dto/create-user-log.dto';
-import { UpdateUserLogDto } from './dto/update-user-log.dto';
+import mongoose, { Model } from 'mongoose';
+import { UserLog, UserLogDocument } from './entities/user-log.entity';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class UserLogsService {
-  create(createUserLogDto: CreateUserLogDto) {
+
+  constructor(
+    @InjectModel(UserLog.name)
+    private readonly userLogModel: Model<UserLogDocument>,
+  ){}
+  create(userId: mongoose.Types.ObjectId) {
     return 'This action adds a new userLog';
   }
 
@@ -16,7 +22,7 @@ export class UserLogsService {
     return `This action returns a #${id} userLog`;
   }
 
-  update(id: number, updateUserLogDto: UpdateUserLogDto) {
+  update(id: number) {
     return `This action updates a #${id} userLog`;
   }
 
