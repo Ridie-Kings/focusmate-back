@@ -14,6 +14,11 @@ async function sherpmain() {
   console.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
+  app.use((req, res, next) => {
+	  req.app.set('trust proxy', 1);
+	  next();
+  });
+
   app.setGlobalPrefix("api/");
 
   // Middleware de seguridad HTTP
