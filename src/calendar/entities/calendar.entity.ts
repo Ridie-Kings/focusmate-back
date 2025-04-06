@@ -3,7 +3,7 @@ import mongoose, { Document } from "mongoose";
 
 
 export type CalendarDocument = Calendar & Document;
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class Calendar extends Document {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true })
   user: mongoose.Types.ObjectId;

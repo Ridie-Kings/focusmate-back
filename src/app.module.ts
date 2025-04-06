@@ -34,6 +34,8 @@ import { EventEmitterModule } from "@nestjs/event-emitter";
 import { SectionsModule } from './sections/sections.module';
 import { NotesModule } from './notes/notes.module';
 import { PomodoroModule } from './pomodoro/pomodoro.module';
+import { EventsModule } from './events/events.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -106,6 +108,10 @@ import { PomodoroModule } from './pomodoro/pomodoro.module';
     NotesModule,
     
     PomodoroModule,
+    
+    EventsModule,
+    
+    StatsModule,
   ],
   controllers: [],
   providers: [
