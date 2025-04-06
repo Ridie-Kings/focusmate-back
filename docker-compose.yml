@@ -13,6 +13,7 @@ services:
     networks:
       - internal_network
     # Exponemos el puerto solo en localhost para mayor seguridad.
+    command: --bind_ip 127.0.0.1
     ports:
       - "127.0.0.1:27017:27017"
 
@@ -20,7 +21,7 @@ services:
     image: redis:6-alpine
     restart: always
     container_name: sherpapp-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ${REDIS_PASSWORD} --bind 127.0.0.1
     volumes:
       - ./redis_data:/data
     networks:
