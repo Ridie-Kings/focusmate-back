@@ -19,7 +19,7 @@ async function sherpmain() {
 	  next();
   });
 
-  app.setGlobalPrefix("api/");
+  app.setGlobalPrefix("api/v0");
 
   // Middleware de seguridad HTTP
   app.use(helmet());
