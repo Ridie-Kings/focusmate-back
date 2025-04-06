@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 
 export class CreateGamificationProfileDto {
-
+  
   @ApiProperty({
     description: 'Banner del perfil de gamificación',
     example: 'https://example.com/banner.jpg',
