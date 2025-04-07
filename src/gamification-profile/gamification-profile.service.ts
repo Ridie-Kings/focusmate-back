@@ -19,12 +19,10 @@ export class GamificationProfileService {
       if(profile){
         throw new ForbiddenException('User profile already exists');
       }
-      return await this.gamificationProfileModel.create({
-        xp: 0,
-        level: 0,
-        userId: userId,
-      })
+      const profile_new = await this.gamificationProfileModel.create({user: userId});
+      return profile_new;
     }catch(error){
+      console.error('Error creating profile:', error);
       throw new InternalServerErrorException('Error Creating Profile');
     }
   }
@@ -37,7 +35,9 @@ export class GamificationProfileService {
 
   async findMe(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument> {
     try{
-      return await this.gamificationProfileModel.findOne({ userId: userId });
+      const profile = await this.gamificationProfileModel.findOne({ user: userId });
+      console.log('profile', profile);
+      return await profile.populate('user');
     }catch (error){
       throw new InternalServerErrorException('Error getting my profile');
     }

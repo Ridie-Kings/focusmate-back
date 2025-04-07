@@ -1,6 +1,20 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose, { Document } from "mongoose";
 
+
+export enum TaskStatus {
+  COMPLETED = "completed",
+  PENDING = "pending",
+  PROGRESS = "progress",
+  DROPPED = "dropped",
+  REVISION = "revision",
+}
+export enum TaskPriority {
+  LOW = "low",
+  MEDIUM = "medium",
+  HIGH = "high",
+}
+
 export type TaskDocument = Task & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class Task extends Document{
@@ -35,7 +49,7 @@ export class Task extends Document{
   @Prop({ required: false, enum: ["low", "medium", "high"] })
   priority?: string;
 
-  @Prop({type: String, required: true, default: ''})
+  @Prop({type: String, required: false, default: ''})
   category: string;
 
   @Prop({type: [mongoose.Schema.Types.ObjectId], ref: "Task", default: []  })
