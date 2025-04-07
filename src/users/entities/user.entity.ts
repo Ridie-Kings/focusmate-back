@@ -1,15 +1,27 @@
 import { Schema, Prop, SchemaFactory } from "@nestjs/mongoose";
-import { Document } from "mongoose";
+import mongoose, { Document } from "mongoose";
+// import { Profile, ProfileSchema } from "./profile.entity";
 
+// export class Profile {
+//   @Prop({ default: "" })
+//   bio: string;
+//   @Prop({ default: "" })
+//   avatar: string;
+//   //settings: Record<string, any>;
+// }
+
+export type UserDocument = User & Document;
 @Schema({ timestamps: true })
 export class User extends Document {
-  @Prop({})
-  name: string;
+  @Prop({
+    required: true,
+    minlength: 3,
+  })
+  fullname: string;
 
   @Prop({
-    require: true,
+    required: true,
     unique: true,
-    match: /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/,
   })
   email: string;
 
@@ -17,27 +29,28 @@ export class User extends Document {
     required: true,
     unique: true,
     minlength: 3,
-    maxlength: 20,
-    match: /^[a-zA-Z0-9_]+$/,
+    maxlength: 128, // Revisar
   })
   username: string;
 
   @Prop({
-    require: true,
+    required: true,
     minlength: 8,
-    maxlength: 20,
-    match: /^[a-zA-Z0-9_]+$/,
   })
   password: string;
 
-  @Prop({ default: 0 })
-  xp: number;
+  // @Prop({ default: 0 })
+  // xp: number;
 
-  @Prop({ default: 1 })
-  level: number;
+  // @Prop({ default: 1 })
+  // level: number;
 
-  @Prop({ type: Object, default: {} })
-  profile: Record<string, any>;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
+  profile: mongoose.Types.ObjectId;
+
+  @Prop({ default: null })
+  refreshToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+//UserSchema.index({ _id: 1 });
