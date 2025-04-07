@@ -8,6 +8,11 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Debug SSH Config
+        run: |
+          echo "SSH_HOST: ${{ secrets.SSH_HOST }}"
+          echo "SSH_USER: ${{ secrets.SSH_USER }}"
+          echo "SSH_PORT: ${{ secrets.SSH_PORT }}"
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -25,3 +30,4 @@ jobs:
       - name: Deploy with SSH
         run: |
           ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "/home/${{ secrets.SSH_USER }}/deploy-sherpapp.sh"
+      
