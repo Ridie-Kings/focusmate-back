@@ -27,12 +27,4 @@ export class Calendar extends Document {
   reminders: mongoose.Types.ObjectId[];
 }
 export const CalendarSchema = SchemaFactory.createForClass(Calendar);
-CalendarSchema.index({ userId: 1 });
-CalendarSchema.index({ startDate: 1 });
-CalendarSchema.index({ endDate: 1 });
-CalendarSchema.index({ userId: 1, startDate: 1 });
-CalendarSchema.index({ userId: 1, endDate: 1 });
-CalendarSchema.index({ tasks: 1 });
-CalendarSchema.index({ events: 1 });
-CalendarSchema.index({ reminders: 1 });
-CalendarSchema.index({ tasks: 1, events: 1, reminders: 1 });
+CalendarSchema.index({ userId: 1 }, { unique: true });

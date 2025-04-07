@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { UserLog, UserLogDocument } from './entities/user-log.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -10,12 +10,21 @@ export class UserLogsService {
     @InjectModel(UserLog.name)
     private readonly userLogModel: Model<UserLogDocument>,
   ){}
-  create(userId: mongoose.Types.ObjectId) {
-    const userLog = new this.userLogModel({ userId });
-    return userLog;
+  async create(userId: mongoose.Types.ObjectId) {
+    try {
+      const userLog = new this.userLogModel({
+        userId: userId,
+        registerTime: new Date(),
+        lastLogin: new Date(),
+      });
+      return userLog;
+    } catch (error) {
+      console.error('Error creating user log:', error);
+      throw new InternalServerErrorException('Error creating user log');
+    }
   }
 
-  findAll() {
+  async findAll() {
     return `This action returns all userLogs`;
   }
 

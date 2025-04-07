@@ -24,6 +24,7 @@ export class UserListener {
     await this.calendarService.createCalendar(payload.userId); // Crear calendario de usuario
     await this.gamificationProfileService.create(payload.userId); // Crear perfil de gamificación
     // Aquí puedes realizar acciones adicionales como enviar un correo de bienvenida
+    await this.statsService.updateUsersCount(); // Crear estadísticas de usuario
   }
 
   // Escuchar evento cuando un usuario inicie sesión
