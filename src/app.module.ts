@@ -6,7 +6,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule } from "@nestjs/config";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 
-import { AppController } from "./app.controller";
+import { AppController, AdminController } from "./app.controller";
 import { AppService } from "./app.service";
 
 // Importa los módulos de tu aplicación
@@ -86,7 +86,7 @@ import { StatsModule } from './stats/stats.module';
     EventsModule,
     StatsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, AdminController],
   providers: [
     {
       provide: APP_GUARD,
