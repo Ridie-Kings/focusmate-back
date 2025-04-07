@@ -21,7 +21,7 @@ export class CalendarService {
 
   async createCalendar(userId: mongoose.Types.ObjectId): Promise<Calendar> {
     try {
-      const calendar = await this.calendarModel.create({ userId, tasks: [], reminders: [], events: []});
+      const calendar = await this.calendarModel.create({ user: userId, tasks: [], reminders: [], events: []});
       return calendar;
     } catch (error) {
       throw new InternalServerErrorException("Error creating calendar");
@@ -29,7 +29,7 @@ export class CalendarService {
   }
 
   async getCalendar(userId: string): Promise<Calendar> {
-    return await this.calendarModel.findOne({ user: userId }).populate("tasks events reminders");
+    return await this.calendarModel.findOne({ user: userId }).populate("tasks");
   }
 
   async addTask(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<Calendar> {

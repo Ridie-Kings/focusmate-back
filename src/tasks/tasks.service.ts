@@ -10,21 +10,24 @@ export class TasksService {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
   ) {}
+
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
     try {
+      console.log('createTaskDto', createTaskDto);
       const task = await this.taskModel.create({
         ...createTaskDto,
-        userId,
+        userId: userId,
       });
-      return await task.populate('userId');
+      return task;
     } catch (error) {
+      console.error('Error creating task:', error);
       throw new InternalServerErrorException('Error creating task');
     }
   }
 
   async findAll(userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
-      return await this.taskModel.find({userId: userId}).populate('userId');
+      return await this.taskModel.find({userId: userId});
     }catch (error) {
       throw new InternalServerErrorException('Error getting tasks');
     }
@@ -35,7 +38,7 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      return await task.populate('userId');
+      return await task;
     }catch (error) {
       throw new InternalServerErrorException('Error getting task');
     }
@@ -46,16 +49,21 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      await this.taskModel.findByIdAndUpdate(id ,
+      console.log('updateTaskDto', updateTaskDto);
+      if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
+        return await this.updateTags(id, updateTaskDto, userId);
+        updateTaskDto.addTags = null;
+        updateTaskDto.deleteTags = null;
+      }
+      console.log('updateTaskDto', updateTaskDto);
+      return await this.taskModel.findByIdAndUpdate(id ,
         {
-          $set: {title: updateTaskDto.title, description: updateTaskDto.description, startDate: updateTaskDto.startDate, endDate: updateTaskDto.endDate, dueDate: updateTaskDto.dueDate},
+          ...updateTaskDto,
         },
         {new: true});
-      if (updateTaskDto.addTags.length || updateTaskDto.deleteTags.length) {
-        return await this.updateTags(id, updateTaskDto, userId);
-      }
-      return (await this.findOne(id, userId)).populate('userId');
+
     } catch (error) {
+      console.error('Error updating task:', error);
       throw new InternalServerErrorException('Error updating task');
     }
   }

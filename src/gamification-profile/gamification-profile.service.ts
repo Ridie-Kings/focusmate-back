@@ -22,7 +22,7 @@ export class GamificationProfileService {
       return await this.gamificationProfileModel.create({
         xp: 0,
         level: 0,
-        userId: userId,
+        user: userId,
       })
     }catch(error){
       throw new InternalServerErrorException('Error Creating Profile');

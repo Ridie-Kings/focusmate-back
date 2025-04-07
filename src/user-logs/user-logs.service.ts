@@ -11,7 +11,8 @@ export class UserLogsService {
     private readonly userLogModel: Model<UserLogDocument>,
   ){}
   create(userId: mongoose.Types.ObjectId) {
-    return 'This action adds a new userLog';
+    const userLog = new this.userLogModel({ userId });
+    return userLog;
   }
 
   findAll() {
