@@ -90,4 +90,4 @@ export class Stat extends Document {
 // Create and export the schema
 export const StatSchema = SchemaFactory.createForClass(Stat);
 
-StatsSchema.index({}, { unique: true });
+StatSchema.index({}, { unique: true });
