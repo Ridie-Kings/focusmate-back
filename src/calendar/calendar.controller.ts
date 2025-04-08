@@ -237,59 +237,59 @@ export class CalendarController {
     return this.calendarService.findStatus( user.id, status);
   }
 
-  @Get(':startDate/tasks')
-  @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
-  @ApiResponse({ status: 200, description: 'Tasks retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findTasksDate( @Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
-    return this.calendarService.findTasksDate(user.id, startDate);
-  }
+  // @Get(':startDate/tasks')
+  // @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
+  // @ApiResponse({ status: 200, description: 'Tasks retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findTasksDate( @Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findTasksDate(user.id, startDate);
+  // }
 
-  @Get(':startDate/events')
-  @ApiOperation({ summary: 'Retrieve all events from a date range' })
-  @ApiResponse({ status: 200, description: 'Events retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findEventsDate( @Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
-    return this.calendarService.findEventsDate( user.id, startDate);
-  }
+  // @Get(':startDate/events')
+  // @ApiOperation({ summary: 'Retrieve all events from a date range' })
+  // @ApiResponse({ status: 200, description: 'Events retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findEventsDate( @Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findEventsDate( user.id, startDate);
+  // }
 
-  @Get(':startDate/reminders')
-  @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
-  @ApiResponse({ status: 200, description: 'Reminders retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findRemindersDate(@Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
-    return this.calendarService.findRemindersDate( user.id, startDate);
-  }
+  // @Get(':startDate/reminders')
+  // @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
+  // @ApiResponse({ status: 200, description: 'Reminders retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findRemindersDate(@Param('startDate', ParseDatePipe) startDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findRemindersDate( user.id, startDate);
+  // }
 
-  @Get(':startDate/:endDate/tasks')
-  @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
-  @ApiResponse({ status: 200, description: 'Tasks retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findTasksRange( @Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
-    return this.calendarService.findTasksRange(user.id, startDate, endDate);
-  }
+  // @Get(':startDate/:endDate/tasks')
+  // @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
+  // @ApiResponse({ status: 200, description: 'Tasks retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findTasksRange( @Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findTasksRange(user.id, startDate, endDate);
+  // }
 
-  @Get(':startDate/:endDate/events')
-  @ApiOperation({ summary: 'Retrieve all events from a date range' })
-  @ApiResponse({ status: 200, description: 'Events retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findEventsRange( @Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
-    return this.calendarService.findEventsRange( user.id, startDate, endDate);
-  }
+  // @Get(':startDate/:endDate/events')
+  // @ApiOperation({ summary: 'Retrieve all events from a date range' })
+  // @ApiResponse({ status: 200, description: 'Events retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findEventsRange( @Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findEventsRange( user.id, startDate, endDate);
+  // }
 
-  @Get(':startDate/:endDate/reminders')
-  @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
-  @ApiResponse({ status: 200, description: 'Reminders retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  @ApiResponse({ status: 404, description: 'Calendar not found' })
-  async findRemindersRange(@Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
-    return this.calendarService.findRemindersRange( user.id, startDate, endDate);
-  }
+  // @Get(':startDate/:endDate/reminders')
+  // @ApiOperation({ summary: 'Retrieve all reminders from a date range' })
+  // @ApiResponse({ status: 200, description: 'Reminders retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Calendar not found' })
+  // async findRemindersRange(@Param('startDate', ParseDatePipe) startDate: Date, @Param('endDate', ParseDatePipe) endDate: Date, @GetUser() user: User) {
+  //   return this.calendarService.findRemindersRange( user.id, startDate, endDate);
+  // }
 
 
 

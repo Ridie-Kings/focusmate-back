@@ -9,23 +9,23 @@ export class UpdateHabitDto extends PartialType(CreateHabitDto) {
   @ApiProperty({ description: 'TaskID', example: '289bnfsd01bas0123' })
   @IsOptional()
   @IsMongoId()
-  taskId: mongoose.Types.ObjectId;
+  taskId?: mongoose.Types.ObjectId;
 
   @ApiProperty({ description: 'Status', example: 'true' })
   @IsOptional()
   @Type(() => Boolean)
-  status: boolean;
+  status?: boolean;
 
   @ApiProperty({ description: 'new completed date', example: '2023-10-01' })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  completedDate: Date;
+  completedDate?: Date;
 
   @ApiProperty({ description: 'completed date to delete', example: '2023-10-01' })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  completedDateToDelete: Date;
+  completedDateToDelete?: Date;
 
 }

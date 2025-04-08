@@ -28,7 +28,7 @@ export class Task extends Document{
   @Prop({type: String, required: false, default: ""}) 
   description: string;
 
-  @Prop({ required: true, enum: ["completed", "pending", "progress", "dropped", "revision"] }) 
+  @Prop({ required: true, enum: ["completed", "pending", "progress", "dropped", "revision"], default: "pending"}) 
   status: string;
 
   @Prop({ type: Date, required: false })
