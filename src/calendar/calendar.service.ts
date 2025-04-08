@@ -154,22 +154,45 @@ export class CalendarService {
   } 
 
   async findByDate(userId: mongoose.Types.ObjectId, date: Date){
-    const start = date;
-    console.log('start', start);
-    const end = new Date(date.getTime() + 24 * 60 * 60 * 1000 - 1); // Set end to the end of the day
-    console.log('end', end);
+    // Create proper start and end dates for a single day
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0); // Set to beginning of day
+    
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999); // Set to end of day
+    
     const calendar = await this.calendarModel.aggregate([
       {
         $match: { user: userId },
       },
       {
+        $lookup: {
+          from: 'tasks',
+          localField: 'tasks',
+          foreignField: '_id',
+          as: 'populatedTasks'
+        }
+      },
+      {
         $project: {
-          tasks: { $filter: { input: "$tasks", as: "task", cond: { $and: [{ $gte: ["$$task.dueDate", start] }, { $lte: ["$$task.dueDate", end] }] } } },
+          tasks: { 
+            $filter: { 
+              input: "$populatedTasks", 
+              as: "task", 
+              cond: { 
+                $and: [
+                  { $gte: [{ $ifNull: ["$$task.dueDate", new Date()] }, start] }, 
+                  { $lte: [{ $ifNull: ["$$task.dueDate", new Date()] }, end] }
+                ] 
+              } 
+            } 
+          },
           //events: { $filter: { input: "$events", as: "event", cond: { $and: [{ $gte: ["$$event.dueDate", start] }, { $lte: ["$$event.dueDate", end] }] } } },
           //reminders: { $filter: { input: "$reminders", as: "reminder", cond: { $and: [{ $gte: ["$$reminder.dueDate", start] }, { $lte: ["$$reminder.dueDate", end] }] } } },
         },
       },
     ]);
+    
     return calendar;
   }
 

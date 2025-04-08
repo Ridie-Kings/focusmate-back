@@ -77,4 +77,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   refreshToken?: string;
+
+  @ApiProperty({
+    example: "cus_123456789",
+    description: "Stripe customer ID (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  stripeCustomerId?: string;
 }

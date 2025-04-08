@@ -55,6 +55,7 @@
     "rxjs": "^7.8.2",
     "sanitize-html": "^2.15.0",
     "socket.io": "^4.8.1",
+    "stripe": "^18.0.0",
     "superagent": "^10.2.0",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0"
