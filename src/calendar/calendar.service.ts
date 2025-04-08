@@ -19,7 +19,7 @@ export class CalendarService {
     return dateString ? new Date(dateString) : undefined;
   }
 
-  async createCalendar(userId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async createCalendar(userId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     try {
       const calendar = await this.calendarModel.create({ user: userId, tasks: [], reminders: [], events: []});
       return calendar;
@@ -28,17 +28,17 @@ export class CalendarService {
     }
   }
 
-  async getCalendar(userId: string): Promise<Calendar> {
+  async getCalendar(userId: string): Promise<CalendarDocument> {
     return await this.calendarModel.findOne({ user: userId }).populate("tasks");
   }
 
-  async addTask(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<Calendar> {
+  async addTask(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     const calendar = await this.calendarModel.findOne({ user: userId });
     const task = await this.tasksService.findOne(taskId, userId);
     if (!calendar) {
       throw new NotFoundException("Calendar not found");
     }
-    if (!calendar.user.equals(userId)) {
+    if (!calendar.user.equals(userId) && !task.userId.equals(userId)) {
       throw new ForbiddenException("Forbidden access");
     }
     if (!task) {
@@ -154,8 +154,10 @@ export class CalendarService {
   } 
 
   async findByDate(userId: mongoose.Types.ObjectId, date: Date){
-    const start = date.setHours(0, 0, 0, 0);
-    const end = date.setHours(23, 59, 59, 999);
+    const start = date;
+    console.log('start', start);
+    const end = new Date(date.getTime() + 24 * 60 * 60 * 1000 - 1); // Set end to the end of the day
+    console.log('end', end);
     const calendar = await this.calendarModel.aggregate([
       {
         $match: { user: userId },
@@ -163,8 +165,8 @@ export class CalendarService {
       {
         $project: {
           tasks: { $filter: { input: "$tasks", as: "task", cond: { $and: [{ $gte: ["$$task.dueDate", start] }, { $lte: ["$$task.dueDate", end] }] } } },
-          events: { $filter: { input: "$events", as: "event", cond: { $and: [{ $gte: ["$$event.dueDate", start] }, { $lte: ["$$event.dueDate", end] }] } } },
-          reminders: { $filter: { input: "$reminders", as: "reminder", cond: { $and: [{ $gte: ["$$reminder.dueDate", start] }, { $lte: ["$$reminder.dueDate", end] }] } } },
+          //events: { $filter: { input: "$events", as: "event", cond: { $and: [{ $gte: ["$$event.dueDate", start] }, { $lte: ["$$event.dueDate", end] }] } } },
+          //reminders: { $filter: { input: "$reminders", as: "reminder", cond: { $and: [{ $gte: ["$$reminder.dueDate", start] }, { $lte: ["$$reminder.dueDate", end] }] } } },
         },
       },
     ]);

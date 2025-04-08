@@ -16,4 +16,8 @@ export class CreateHabitDto {
   @IsString()
   @IsEnum(['daily', 'weekly', 'monthly'])
   readonly frequency: string;
+
+  @ApiProperty({ description: 'Type', example: 'Type' })
+  @IsString()
+  type: string;
 }

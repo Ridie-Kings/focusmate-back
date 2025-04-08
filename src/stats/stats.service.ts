@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Stat } from './stat.entity';
+import { Stat } from './entities/stats.entity';
 import { StatDocument } from './entities/stats.entity';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class StatsService {
   constructor(@InjectModel(Stat.name) private statsModel: Model<StatDocument>) {}
 
   // Verifica si el documento de estadísticas existe, si no lo crea
-  async initializeStats(): Promise<Stats> {
+  async initializeStats(): Promise<StatDocument> {
     let stats = await this.statsModel.findOne();  // Busca el único documento de Stats
 
     if (!stats) {
@@ -28,18 +28,18 @@ export class StatsService {
   }
 
   // Obtiene las estadísticas globales
-  async getStats(): Promise<Stats> {
-    let stats = await this.statsModel.findOne();  // Obtiene el único documento de Stats
+  async getStats(): Promise<StatDocument> {
+    const stats = await this.statsModel.findOne();  // Obtiene el único documento de Stats
 
     if (!stats) {
-      stats = await this.initializeStats();  // Inicializa si no existe
+      return await this.initializeStats();  // Inicializa si no existe
     }
 
     return stats;
   }
 
   // Actualiza las estadísticas
-  async updateStats(updateData: Partial<Stats>): Promise<Stats> {
+  async updateStats(updateData: Partial<StatDocument>): Promise<StatDocument> {
     const stats = await this.statsModel.findOne();  // Busca el documento de Stats
 
     if (!stats) {
