@@ -1,109 +1,322 @@
 // src/pomodoro/pomodoro.gateway.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PomodoroService } from './pomodoro.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from '../auth/guards/ws-jwt-auth.guard';
 
+interface StartPomodoroPayload {
+  userId: string;
+  duration?: number;  // Optional duration in seconds
+  breakDuration?: number;  // Optional break duration in seconds
+}
+
+interface StopPomodoroPayload {
+  pomodoroId: string;
+}
+
+interface PausePomodoroPayload {
+  pomodoroId: string;
+}
+
+interface GetStatusPayload {
+  userId: string;
+}
+
+interface PomodoroStatus {
+  userId: string;
+  pomodoroId: string;
+  active: boolean;
+  remainingTime: number;
+  isBreak?: boolean;
+  isPaused?: boolean;
+}
+
 @UseGuards(WsJwtAuthGuard)
-@WebSocketGateway({ namespace: 'pomodoro', cors: { origin: ['https://sherpapp.com'] } })
+@WebSocketGateway({ 
+  namespace: 'pomodoro', 
+  cors: { 
+    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    credentials: true 
+  } 
+})
 @Injectable()
 export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  private readonly logger = new Logger(PomodoroGateway.name);
+  private activeTimers: Map<string, NodeJS.Timeout> = new Map();
+
   @WebSocketServer() server: Server;
 
   constructor(private pomodoroService: PomodoroService) {}
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
+    // Clean up any active timers for this client
+    this.cleanupTimers(client.id);
+  }
+
+  private cleanupTimers(clientId: string) {
+    const timer = this.activeTimers.get(clientId);
+    if (timer) {
+      clearInterval(timer);
+      this.activeTimers.delete(clientId);
+    }
   }
 
   @SubscribeMessage('startPomodoro')
-  async startPomodoro(client: Socket, payload: { userId: string }) {
-    const { userId } = payload;
+  async startPomodoro(client: Socket, payload: StartPomodoroPayload) {
+    try {
+      const { userId, duration = 1500, breakDuration = 300 } = payload;
+      if (!userId) {
+        throw new Error('userId is required');
+      }
 
-    // Obtener la duración personalizada del usuario desde su configuración
-    const duration = 1500; // Default to 25 minutes if no preference
-
-    const pomodoro = await this.pomodoroService.startPomodoro(userId, duration);
-    this.startTimer(userId, pomodoro.id, duration);
+      const pomodoro = await this.pomodoroService.startPomodoro(userId, duration);
+      
+      // Clean up any existing timer for this user
+      this.cleanupTimers(userId);
+      
+      // Start the pomodoro cycle with custom durations
+      this.startPomodoroCycle(userId, pomodoro.id, duration, breakDuration);
+      
+      return { success: true, pomodoroId: pomodoro.id };
+    } catch (error) {
+      this.logger.error(`Error starting pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
   }
 
   @SubscribeMessage('stopPomodoro')
-  async stopPomodoro(client: Socket, payload: { pomodoroId: string }) {
-    const pomodoro = await this.pomodoroService.stopPomodoro(payload.pomodoroId);
+  async stopPomodoro(client: Socket, payload: StopPomodoroPayload) {
+    try {
+      const { pomodoroId } = payload;
+      if (!pomodoroId) {
+        throw new Error('pomodoroId is required');
+      }
 
-    // Emitir el estado actualizado del Pomodoro detenido
-    this.server.emit('pomodoroStatus', { userId: pomodoro.userId, active: false, remainingTime: 0 });
+      const pomodoro = await this.pomodoroService.stopPomodoro(pomodoroId);
+      
+      // Clean up the timer
+      this.cleanupTimers(pomodoro.userId.toString());
+
+      const status: PomodoroStatus = {
+        userId: pomodoro.userId.toString(),
+        pomodoroId: pomodoro.id,
+        active: false,
+        remainingTime: 0
+      };
+      
+      this.server.emit('pomodoroStatus', status);
+      return { success: true, status };
+    } catch (error) {
+      this.logger.error(`Error stopping pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
   }
 
   @SubscribeMessage('getPomodoroStatus')
-  async getPomodoroStatus(client: Socket, payload: { userId: string }) {
-    const pomodoro = await this.pomodoroService.getPomodoroStatus(payload.userId);
-    client.emit('pomodoroStatus', pomodoro);
+  async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
+    try {
+      const { userId } = payload;
+      if (!userId) {
+        throw new Error('userId is required');
+      }
+
+      const pomodoro = await this.pomodoroService.getPomodoroStatus(userId);
+      if (pomodoro) {
+        const status: PomodoroStatus = {
+          userId: pomodoro.userId.toString(),
+          pomodoroId: pomodoro.id,
+          active: pomodoro.active,
+          remainingTime: pomodoro.remainingTime,
+          isBreak: pomodoro.type !== 'pomodoro',
+          isPaused: false
+        };
+        client.emit('pomodoroStatus', status);
+        return { success: true, status };
+      }
+      return { success: true, status: null };
+    } catch (error) {
+      this.logger.error(`Error getting pomodoro status: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
   }
 
-  private async startTimer(userId: string, pomodoroId: string, duration: number) {
-    let remainingTime = duration;
-    
-    // Actualizar el temporizador y emitir actualizaciones cada segundo
-    const interval = setInterval(async () => {
-      if (remainingTime <= 0) {
-        clearInterval(interval);
-        this.server.emit('pomodoroStatus', { userId, active: false, remainingTime: 0 });
+  @SubscribeMessage('pausePomodoro')
+  async pausePomodoro(client: Socket, payload: PausePomodoroPayload) {
+    try {
+      const { pomodoroId } = payload;
+      if (!pomodoroId) {
+        throw new Error('pomodoroId is required');
+      }
 
-        // Detener el Pomodoro en la base de datos
-        await this.pomodoroService.stopPomodoro(pomodoroId);
-      } else {
-        remainingTime--;
-        this.server.emit('pomodoroStatus', { userId, active: true, remainingTime });
+      const pomodoro = await this.pomodoroService.getPomodoroById(pomodoroId);
+      if (!pomodoro) {
+        throw new Error('Pomodoro not found');
       }
-    }, 1000);
+
+      // Get the current timer for this user
+      const timer = this.activeTimers.get(pomodoro.userId.toString());
+      if (!timer) {
+        throw new Error('No active timer found');
+      }
+
+      // Get the current remaining time from the timer
+      const currentRemainingTime = (timer as any)._idleStart ? 
+        Math.ceil((timer as any)._idleStart / 1000) : 
+        pomodoro.remainingTime;
+
+      // Update the remaining time in the database
+      await this.pomodoroService.updateRemainingTime(pomodoroId, currentRemainingTime);
+
+      // Clean up the timer
+      this.cleanupTimers(pomodoro.userId.toString());
+
+      const status: PomodoroStatus = {
+        userId: pomodoro.userId.toString(),
+        pomodoroId: pomodoro.id,
+        active: true,
+        remainingTime: currentRemainingTime,
+        isPaused: true
+      };
+      
+      this.server.emit('pomodoroStatus', status);
+      return { success: true, status };
+    } catch (error) {
+      this.logger.error(`Error pausing pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
   }
-  private async startPomodoroCycle(userId: string, duration: number) {
+
+  @SubscribeMessage('resumePomodoro')
+  async resumePomodoro(client: Socket, payload: PausePomodoroPayload) {
+    try {
+      const { pomodoroId } = payload;
+      if (!pomodoroId) {
+        throw new Error('pomodoroId is required');
+      }
+
+      const pomodoro = await this.pomodoroService.getPomodoroById(pomodoroId);
+      if (!pomodoro) {
+        throw new Error('Pomodoro not found');
+      }
+
+      // Start the pomodoro cycle with the remaining time
+      this.startPomodoroCycle(
+        pomodoro.userId.toString(),
+        pomodoroId,
+        pomodoro.remainingTime,
+        pomodoro.type === 'pomodoro' ? 300 : 1500 // Default break durations
+      );
+
+      const status: PomodoroStatus = {
+        userId: pomodoro.userId.toString(),
+        pomodoroId: pomodoro.id,
+        active: true,
+        remainingTime: pomodoro.remainingTime,
+        isPaused: false
+      };
+      
+      this.server.emit('pomodoroStatus', status);
+      return { success: true, status };
+    } catch (error) {
+      this.logger.error(`Error resuming pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
+  }
+
+  private async startPomodoroCycle(userId: string, pomodoroId: string, duration: number, breakDuration: number = 300) {
     let remainingTime = duration;
     
-    // Iniciar el Pomodoro
     const interval = setInterval(async () => {
-      if (remainingTime <= 0) {
+      try {
+        if (remainingTime <= 0) {
+          clearInterval(interval);
+          this.activeTimers.delete(userId);
+
+          // Stop the pomodoro in the database
+          await this.pomodoroService.stopPomodoro(pomodoroId);
+
+          // Emit completion status
+          this.server.emit('pomodoroStatus', {
+            userId,
+            pomodoroId,
+            active: false,
+            remainingTime: 0,
+            isBreak: false,
+            isPaused: false
+          });
+
+          // Start break with custom duration
+          this.startBreak(userId, breakDuration);
+        } else {
+          remainingTime--;
+          this.server.emit('pomodoroStatus', {
+            userId,
+            pomodoroId,
+            active: true,
+            remainingTime,
+            isBreak: false,
+            isPaused: false
+          });
+        }
+      } catch (error) {
+        this.logger.error(`Error in pomodoro cycle: ${error.message}`);
         clearInterval(interval);
-  
-        // Emitir estado del Pomodoro terminado
-        this.server.emit('pomodoroStatus', { userId, active: false, remainingTime: 0 });
-  
-        // Guardar el estado del Pomodoro en la base de datos
-        await this.pomodoroService.stopPomodoro(userId);
-  
-        // Iniciar el descanso (5 minutos)
-        this.startBreak(userId, 300);  // 5 minutos
-      } else {
-        remainingTime--;
-        this.server.emit('pomodoroStatus', { userId, active: true, remainingTime });
+        this.activeTimers.delete(userId);
+        this.server.emit('error', { userId, message: error.message });
       }
     }, 1000);
+
+    this.activeTimers.set(userId, interval);
   }
-  
-  private async startBreak(userId: string, breakDuration: number) {
+
+  private async startBreak(userId: string, breakDuration: number = 300) {
     let breakTime = breakDuration;
     
-    // Iniciar descanso
     const breakInterval = setInterval(async () => {
-      if (breakTime <= 0) {
+      try {
+        if (breakTime <= 0) {
+          clearInterval(breakInterval);
+          this.activeTimers.delete(userId);
+
+          this.server.emit('pomodoroStatus', {
+            userId,
+            pomodoroId: null,
+            active: false,
+            remainingTime: 0,
+            isBreak: false,
+            isPaused: false
+          });
+        } else {
+          breakTime--;
+          this.server.emit('pomodoroStatus', {
+            userId,
+            pomodoroId: null,
+            active: true,
+            remainingTime: breakTime,
+            isBreak: true,
+            isPaused: false
+          });
+        }
+      } catch (error) {
+        this.logger.error(`Error in break cycle: ${error.message}`);
         clearInterval(breakInterval);
-  
-        // Emitir estado de descanso terminado
-        this.server.emit('pomodoroStatus', { userId, active: false, remainingTime: 0 });
-  
-        // Permitir al usuario empezar un nuevo Pomodoro
-      } else {
-        breakTime--;
-        this.server.emit('pomodoroStatus', { userId, active: false, remainingTime: breakTime });
+        this.activeTimers.delete(userId);
+        this.server.emit('error', { userId, message: error.message });
       }
     }, 1000);
+
+    this.activeTimers.set(userId, breakInterval);
   }
-  
 }
