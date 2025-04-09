@@ -37,6 +37,7 @@ import { NotesModule } from './notes/notes.module';
 import { PomodoroModule } from './pomodoro/pomodoro.module';
 import { EventsModule } from './events/events.module';
 import { StatsModule } from './stats/stats.module';
+//import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -85,6 +86,7 @@ import { StatsModule } from './stats/stats.module';
     PomodoroModule,
     EventsModule,
     StatsModule,
+    //SubscriptionsModule,
   ],
   controllers: [AppController, AdminController],
   providers: [

@@ -23,13 +23,14 @@ export class UserListener {
     this.userLogsService.create(payload.userId); // Crear logs de usuario
     await this.calendarService.createCalendar(payload.userId); // Crear calendario de usuario
     await this.gamificationProfileService.create(payload.userId); // Crear perfil de gamificación
-    // Aquí puedes realizar acciones adicionales como enviar un correo de bienvenida
+    //await this.statsService.updateUsersCount(); // Crear estadísticas de usuario
   }
 
   // Escuchar evento cuando un usuario inicie sesión
   @OnEvent('user.loggedIn')
   handleUserLoggedIn(payload: any) {
     console.log('Usuario logueado:', payload);
+   // await this.userLogsService.updateLogin(payload.userId, new Date()); // Crear logs de usuario
     // Aquí puedes registrar la hora de inicio de sesión, estadísticas, etc.
   }
 

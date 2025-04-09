@@ -46,7 +46,9 @@ export class UserLog extends Document {
   totalProfileUpdate: number;
   @Prop({ type: Date, required: false })
   lastProfileUpdate: Date;
+  registerTime: Date;
 
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);
+UserLogSchema.index({ userId: 1 }, { unique: true });

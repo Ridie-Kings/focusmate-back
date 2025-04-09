@@ -49,20 +49,14 @@ export class HabitsService {
     const currentDate = new Date(completedDate);
 
     if (frequency === 'daily') {
-      const diffTime = Math.abs(currentDate.getTime() - lastDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Difference in days
+      const diffDays = currentDate.getDay() - lastCompletedDate.getDay()
       return diffDays === 1;
     } else if (frequency === 'weekly') {
-      const lastWeek = this.getWeekNumber(lastDate);
-      const currentWeek = this.getWeekNumber(currentDate);
-      return currentWeek === lastWeek + 1 && lastDate.getFullYear() === currentDate.getFullYear();
+      const diffWeeks = currentDate.getDay() - lastCompletedDate.getDay()
+      return (diffWeeks > 7  && diffWeeks < 14);
     } else if (frequency === 'monthly') {
-      const lastMonth = lastDate.getMonth();
-      const currentMonth = currentDate.getMonth();
-      const lastYear = lastDate.getFullYear();
-      const currentYear = currentDate.getFullYear();
-      return (currentMonth === lastMonth + 1 && currentYear === lastYear) || 
-             (currentMonth === 0 && lastMonth === 11 && currentYear === lastYear + 1);
+      const diffMonths = currentDate.getMonth() - lastCompletedDate.getMonth()
+      return diffMonths === 1;
     }
     return false;
   }

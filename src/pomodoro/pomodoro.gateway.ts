@@ -3,8 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PomodoroService } from './pomodoro.service';
+import { UseGuards } from '@nestjs/common';
+import { WsJwtAuthGuard } from '../auth/guards/ws-jwt-auth.guard';
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@UseGuards(WsJwtAuthGuard)
+@WebSocketGateway({ namespace: 'pomodoro', cors: { origin: ['https://sherpapp.com'] } })
 @Injectable()
 export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;

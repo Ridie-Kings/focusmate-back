@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module} from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
 import { CalendarController } from "./calendar.controller";
 import { CalendarService } from "./calendar.service";
@@ -14,7 +14,7 @@ import { EventsCalendarModule } from "src/events-calendar/events-calendar.module
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Calendar.name, schema: CalendarSchema },
+      { name: Calendar.name, schema: CalendarSchema }
     ]),
     AuthModule,
     TasksModule,
