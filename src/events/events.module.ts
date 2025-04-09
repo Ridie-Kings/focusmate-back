@@ -11,6 +11,7 @@ import { GamificationProfileModule } from 'src/gamification-profile/gamification
 import { CalendarModule } from 'src/calendar/calendar.module';
 import { UserLogsModule } from 'src/user-logs/user-logs.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { HabitsModule } from 'src/habits/habits.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     StatsModule, 
     GamificationProfileModule, 
     UserLogsModule,
+    HabitsModule,
 
   ], // Aquí puedes importar otros módulos si es necesario
   providers: [EventsService, CalendarListener, HabitListener, PomodoroListener, TaskListener, UserListener], // Asegúrate de agregar el listener si lo tienes
