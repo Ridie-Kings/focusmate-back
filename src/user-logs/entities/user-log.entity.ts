@@ -46,6 +46,7 @@ export class UserLog extends Document {
   totalProfileUpdate: number;
   @Prop({ type: Date, required: false })
   lastProfileUpdate: Date;
+  @Prop({ type: Date, required: false })
   registerTime: Date;
 
 }

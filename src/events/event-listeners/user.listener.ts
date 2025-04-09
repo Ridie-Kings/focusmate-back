@@ -7,6 +7,7 @@ import { StatsService } from 'src/stats/stats.service';
 import { UserLogsService } from 'src/user-logs/user-logs.service';
 import { EventsList } from '../list.events';
 import mongoose from 'mongoose';
+import { HabitsService } from 'src/habits/habits.service';
 
 @Injectable()
 export class UserListener {
@@ -14,8 +15,10 @@ export class UserListener {
     @Inject(UserLogsService) private readonly userLogsService: UserLogsService, // Asegúrate de importar el servicio correcto
     @Inject(CalendarService) private readonly calendarService: CalendarService, // Asegúrate de importar el servicio correcto
     @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
-    @Inject(StatsService) private readonly statsService: StatsService// Asegúrate de importar el servicio correcto
-  ){}
+    @Inject(StatsService) private readonly statsService: StatsService,
+    @Inject(HabitsService) private readonly habitsService: HabitsService,
+    // Asegúrate de importar el servicio correcto
+  ) {}
   // Escuchar evento cuando un usuario se registre
   @OnEvent(EventsList.USER_REGISTERED)
   async handleUserRegistered(payload: {userId: mongoose.Types.ObjectId}) {
@@ -28,9 +31,10 @@ export class UserListener {
 
   // Escuchar evento cuando un usuario inicie sesión
   @OnEvent('user.loggedIn')
-  handleUserLoggedIn(payload: any) {
+  async handleUserLoggedIn(payload: {userId: mongoose.Types.ObjectId}) {
     console.log('Usuario logueado:', payload);
-   // await this.userLogsService.updateLogin(payload.userId, new Date()); // Crear logs de usuario
+    await this.userLogsService.updateLogin(payload.userId, new Date());
+    await this.habitsService.checkHabits(payload.userId); // Crear logs de usuario
     // Aquí puedes registrar la hora de inicio de sesión, estadísticas, etc.
   }
 

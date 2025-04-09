@@ -16,6 +16,7 @@ export class UserLogsService {
         userId: userId,
         registerTime: new Date(),
         lastLogin: new Date(),
+        loginCount: 1,
       });
       return userLog;
     } catch (error) {
@@ -23,6 +24,21 @@ export class UserLogsService {
       throw new InternalServerErrorException('Error creating user log');
     }
   }
+
+  async updateLogin(userId: mongoose.Types.ObjectId, loginTime: Date) {
+    try {
+      const userLog = await this.userLogModel.findOneAndUpdate(
+        { userId },
+        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 } } },
+        { new: true }
+      );
+      return userLog;
+    } catch (error) {
+      console.error('Error updating login time:', error);
+      throw new InternalServerErrorException('Error updating login time');
+    }
+  }
+  
 
   async findAll() {
     return `This action returns all userLogs`;
