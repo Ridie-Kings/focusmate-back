@@ -17,6 +17,9 @@ export class UserLogsService {
         registerTime: new Date(),
         lastLogin: new Date(),
         loginCount: 1,
+        taskCount: 0,
+        logs: [],
+        lastUpdate: new Date(),
       });
       return userLog;
     } catch (error) {
@@ -29,7 +32,7 @@ export class UserLogsService {
     try {
       const userLog = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 } } },
+        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 }, lastUpdate: new Date()} },
         { new: true }
       );
       return userLog;
@@ -44,7 +47,7 @@ export class UserLogsService {
       const log = {type: 'task-created', object: taskId, date: new Date()};
       const userLog = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $inc: { taskCount: 1 }, $push: { logs: log } },
+        { $inc: { taskCount: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
         { new: true }
       );
       return userLog;

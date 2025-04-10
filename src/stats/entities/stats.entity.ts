@@ -53,35 +53,35 @@ export class Stat extends Document {
   @Prop({ type: Number, default: 0 })
   totalHabitsCompleted: number; // Total habits completed
 
-  @Prop({ type: Number, default: 0 })
-  totalUsersNotUsingPomodoro: number; // Total users who have not used the pomodoro feature
+  // @Prop({ type: Number, default: 0 })
+  // totalUsersNotUsingPomodoro: number; // Total users who have not used the pomodoro feature
 
-  @Prop({ type: Number, default: 0 })
-  totalUsersNotUsingTasks: number; // Total users who have not used the tasks feature
+  // @Prop({ type: Number, default: 0 })
+  // totalUsersNotUsingTasks: number; // Total users who have not used the tasks feature
 
-  @Prop({ type: Number, default: 0 })
-  totalUsersNotUsingCalendar: number; // Total users who have not used the calendar feature
+  // @Prop({ type: Number, default: 0 })
+  // totalUsersNotUsingCalendar: number; // Total users who have not used the calendar feature
 
-  @Prop({ type: Number, default: 0 })
-  totalUsersNotUsingHabits: number; // Total users who have not used the habits feature
+  // @Prop({ type: Number, default: 0 })
+  // totalUsersNotUsingHabits: number; // Total users who have not used the habits feature
 
   @Prop({ type: Number, default: 0 })
   totalAbandonedUsers: number; // Total users who have not used the app in the last 7 days
 
-  @Prop({ type: Number, default: 0 })
-  totalTickestCreated: number; // Total tickets created
+  // @Prop({ type: Number, default: 0 })
+  // totalTickestCreated: number; // Total tickets created
 
-  @Prop({ type: Number, default: 0 })
-  totalTickestSolved: number; // Total tickets solved
+  // @Prop({ type: Number, default: 0 })
+  // totalTickestSolved: number; // Total tickets solved
 
-  @Prop({ type: Number, default: 0 })
-  PromedioRating: number; // Average rating of the app
+  // @Prop({ type: Number, default: 0 })
+  // PromedioRating: number; // Average rating of the app
 
-  @Prop({ type: Number, default: 0 })
-  totalRating: number; // number of people who rated the app
+  // @Prop({ type: Number, default: 0 })
+  // totalRating: number; // number of people who rated the app
   
-  @Prop({ type: Number, default: 0 })
-  totalReviews: number; // Total reviews of the app
+  // @Prop({ type: Number, default: 0 })
+  // totalReviews: number; // Total reviews of the app
 
   @Prop({ type: Date, default: Date.now })
   lastUpdated: Date;

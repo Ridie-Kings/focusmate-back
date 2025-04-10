@@ -23,10 +23,10 @@ export class UserListener {
   @OnEvent(EventsList.USER_REGISTERED)
   async handleUserRegistered(payload: {userId: mongoose.Types.ObjectId}) {
     console.log('Usuario registrado:', payload);
-    this.userLogsService.create(payload.userId); // Crear logs de usuario
+    await this.userLogsService.create(payload.userId); // Crear logs de usuario
     await this.calendarService.createCalendar(payload.userId); // Crear calendario de usuario
     await this.gamificationProfileService.create(payload.userId); // Crear perfil de gamificación
-    //await this.statsService.updateUsersCount(); // Crear estadísticas de usuario
+    await this.statsService.updateUsersCount(); // Crear estadísticas de usuario
   }
 
   // Escuchar evento cuando un usuario inicie sesión
