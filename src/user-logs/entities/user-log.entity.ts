@@ -18,12 +18,12 @@ export class UserLog extends Document {
   habitCounts: number;
   @Prop({ type: Number, required: false, default: 0 })
   taskCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  questCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  reminderCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  badgeCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // questCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // reminderCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // badgeCounts: number;
   @Prop({ type: [eventLog], required: true, default: []})
   logs: eventLog[];
   @Prop({ type: Date, required: false })
@@ -38,8 +38,8 @@ export class UserLog extends Document {
   loginCount: number;
   @Prop({ type: Number, required: false })
   lastSessionDuration: number;
-  @Prop({ type: Number, required: false })
-  PromedioSessionDuration: number;
+  // @Prop({ type: Number, required: false })
+  // PromedioSessionDuration: number;
   @Prop({ type: Number, required: false })
   totalSessionDuration: number;
   @Prop({ type: Number, required: false })

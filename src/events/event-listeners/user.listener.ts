@@ -30,13 +30,20 @@ export class UserListener {
   }
 
   // Escuchar evento cuando un usuario inicie sesión
-  @OnEvent('user.loggedIn')
+  @OnEvent(EventsList.USER_LOGGED_IN)
   async handleUserLoggedIn(payload: {userId: mongoose.Types.ObjectId}) {
     console.log('Usuario logueado:', payload);
     await this.userLogsService.updateLogin(payload.userId, new Date());
     await this.habitsService.checkHabits(payload.userId); // Crear logs de usuario
     // Aquí puedes registrar la hora de inicio de sesión, estadísticas, etc.
   }
+
+  @OnEvent(EventsList.USER_PROFILE_UPDATED)
+  async handleUserProfileUpdated(payload: {userId: mongoose.Types.ObjectId}) {
+    console.log('Usuario actualizado:', payload);
+    await this.userLogsService.updateProfile(payload.userId, new Date());
+  }
+
 
   // Escuchar evento cuando un usuario actualice su perfil
   @OnEvent('user.updated')

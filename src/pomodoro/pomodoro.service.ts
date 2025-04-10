@@ -45,7 +45,7 @@ export class PomodoroService {
   async startPomodoro(userId: string, duration: number = 1500) {
     try {
       // Check if user already has an active pomodoro
-      const activePomodoro = await this.getPomodoroStatus(userId);
+      const activePomodoro = await this.getActivePomodoro(userId);
       if (activePomodoro) {
         throw new Error('User already has an active pomodoro session');
       }
@@ -123,12 +123,12 @@ export class PomodoroService {
     }
   }
 
-  // Get the status of a Pomodoro session for a user
-  async getPomodoroStatus(userId: string) {
+  // Get the active Pomodoro session for a user
+  async getActivePomodoro(userId: string) {
     try {
       return await this.pomodoroModel.findOne({ userId, active: true }).sort({ startTime: -1 });
     } catch (error) {
-      this.logger.error(`Error getting pomodoro status: ${error.message}`);
+      this.logger.error(`Error getting active pomodoro: ${error.message}`);
       throw error;
     }
   }

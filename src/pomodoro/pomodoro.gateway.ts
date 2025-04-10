@@ -24,6 +24,10 @@ interface GetStatusPayload {
   userId: string;
 }
 
+interface ResumePomodoroPayload {
+  userId: string;
+}
+
 interface PomodoroStatus {
   userId: string;
   pomodoroId: string;
@@ -129,7 +133,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         throw new Error('userId is required');
       }
 
-      const pomodoro = await this.pomodoroService.getPomodoroStatus(userId);
+      const pomodoro = await this.pomodoroService.getActivePomodoro(userId);
       if (pomodoro) {
         const status: PomodoroStatus = {
           userId: pomodoro.userId.toString(),
@@ -197,33 +201,64 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
-  @SubscribeMessage('resumePomodoro')
-  async resumePomodoro(client: Socket, payload: PausePomodoroPayload) {
+  @SubscribeMessage('getActivePomodoro')
+  async getActivePomodoro(client: Socket, payload: GetStatusPayload) {
     try {
-      const { pomodoroId } = payload;
-      if (!pomodoroId) {
-        throw new Error('pomodoroId is required');
+      const { userId } = payload;
+      if (!userId) {
+        throw new Error('userId is required');
       }
 
-      const pomodoro = await this.pomodoroService.getPomodoroById(pomodoroId);
-      if (!pomodoro) {
-        throw new Error('Pomodoro not found');
+      const activePomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      if (!activePomodoro) {
+        return { success: true, pomodoro: null };
+      }
+
+      return {
+        success: true,
+        pomodoro: {
+          id: activePomodoro.id,
+          userId: activePomodoro.userId.toString(),
+          remainingTime: activePomodoro.remainingTime,
+          type: activePomodoro.type,
+          active: activePomodoro.active
+        }
+      };
+    } catch (error) {
+      this.logger.error(`Error getting active pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
+  }
+
+  @SubscribeMessage('resumePomodoro')
+  async resumePomodoro(client: Socket, payload: ResumePomodoroPayload) {
+    try {
+      const { userId } = payload;
+      if (!userId) {
+        throw new Error('userId is required');
+      }
+
+      const activePomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      if (!activePomodoro) {
+        throw new Error('No active pomodoro found');
       }
 
       // Start the pomodoro cycle with the remaining time
       this.startPomodoroCycle(
-        pomodoro.userId.toString(),
-        pomodoroId,
-        pomodoro.remainingTime,
-        pomodoro.type === 'pomodoro' ? 300 : 1500 // Default break durations
+        userId,
+        activePomodoro.id,
+        activePomodoro.remainingTime,
+        activePomodoro.type === 'pomodoro' ? 300 : 1500 // Default break durations
       );
 
       const status: PomodoroStatus = {
-        userId: pomodoro.userId.toString(),
-        pomodoroId: pomodoro.id,
+        userId: activePomodoro.userId.toString(),
+        pomodoroId: activePomodoro.id,
         active: true,
-        remainingTime: pomodoro.remainingTime,
-        isPaused: false
+        remainingTime: activePomodoro.remainingTime,
+        isPaused: false,
+        isBreak: activePomodoro.type !== 'pomodoro'
       };
       
       this.server.emit('pomodoroStatus', status);
@@ -235,7 +270,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
-  private async startPomodoroCycle(userId: string, pomodoroId: string, duration: number, breakDuration: number = 300) {
+  private async startPomodoroCycle(userId: string, pomodoroId: string, duration: number, breakDuration: number) {
     let remainingTime = duration;
     
     const interval = setInterval(async () => {

@@ -15,6 +15,6 @@ import { PomodoroGateway } from "./pomodoro.gateway";
   ], // Aquí puedes importar otros módulos si es necesario
   // controllers: [PomodoroController],
   providers: [PomodoroService, PomodoroGateway], // Asegúrate de que PomodoroGateway esté importado y registrado aquí
-  exports: [PomodoroService], // Exporta el servicio si lo necesitas en otros módulos
+  exports: [PomodoroService, MongooseModule], // Exporta el servicio si lo necesitas en otros módulos
 })
 export class PomodoroModule {}
