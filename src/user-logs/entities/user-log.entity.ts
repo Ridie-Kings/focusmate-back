@@ -6,7 +6,7 @@ export class eventLog{
   type: string;
   dateLog: Date;
   object?: mongoose.Types.ObjectId;
-  value: number;
+  value?: number;
 }
 
 export type UserLogDocument = UserLog & Document;

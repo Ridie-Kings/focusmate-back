@@ -4,11 +4,13 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskDocument } from './entities/task.entity';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-
+import { EventsList } from 'src/events/list.events';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class TasksService {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
@@ -18,6 +20,7 @@ export class TasksService {
         ...createTaskDto,
         userId: userId,
       });
+      this.eventEmitter.emit(EventsList.TASK_CREATED, {userId: userId, taskId: task._id});
       return task;
     } catch (error) {
       console.error('Error creating task:', error);

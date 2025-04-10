@@ -38,6 +38,21 @@ export class UserLogsService {
       throw new InternalServerErrorException('Error updating login time');
     }
   }
+
+  async taskCreated(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId) {
+    try {
+      const log = {type: 'task-created', object: taskId, date: new Date()};
+      const userLog = await this.userLogModel.findOneAndUpdate(
+        { userId },
+        { $inc: { taskCount: 1 }, $push: { logs: log } },
+        { new: true }
+      );
+      return userLog;
+    } catch (error) {
+      console.error('Error updating task count:', error);
+      throw new InternalServerErrorException('Error updating task count');
+    }
+  }
   
 
   async findAll() {

@@ -1,13 +1,20 @@
 // src/events/task.listener.ts
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import mongoose from 'mongoose';
+import { UserLogsService } from 'src/user-logs/user-logs.service';
 
 @Injectable()
 export class TaskListener {
+  constructor(
+    @Inject(UserLogsService) private readonly userLogsService: UserLogsService,
+  ) {}
   // Escuchar evento cuando se crea una tarea
   @OnEvent('task.created')
-  handleTaskCreated(payload: any) {
+  handleTaskCreated(payload: {userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId}) {
     console.log('Tarea creada:', payload);
+    this.userLogsService.taskCreated(payload.userId, payload.taskId);
+    
   }
 
   // Escuchar evento cuando se actualiza una tarea
