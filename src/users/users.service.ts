@@ -82,17 +82,28 @@ export class UsersService {
     return user;
   }
   async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ refreshToken });
-
-    return user ? user : null;
+    try {
+      // Find user with the exact refresh token (now unhashed)
+      const user = await this.userModel.findOne({ refreshToken });
+      return user;
+    } catch (error) {
+      console.error("Error finding user by refresh token:", error);
+      return null;
+    }
   }
 
-  // 🔹 Verificar refresh token
+  // Validate refresh token
   async validateRefreshToken(userId: mongoose.Types.ObjectId, token: string): Promise<boolean> {
-    const user = await this.userModel.findById(userId);
-    if (!user || !user.refreshToken) return false;
+    try {
+      const user = await this.userModel.findById(userId);
+      if (!user || !user.refreshToken) return false;
 
-    return await argon2.verify(user.refreshToken, token);
+      // Now we're comparing the exact tokens since we're storing unhashed tokens
+      return user.refreshToken === token;
+    } catch (error) {
+      console.error("Error validating refresh token:", error);
+      return false;
+    }
   }
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {//REVISA ESTO
     if (updateUserDto.updatedPassword) {
