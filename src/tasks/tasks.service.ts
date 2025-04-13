@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskDocument } from './entities/task.entity';
@@ -8,12 +8,15 @@ import { EventsList } from 'src/events/list.events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
     private eventEmitter: EventEmitter2,
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
+    this.logger.debug('Creating task with DTO:', createTaskDto);
     try {
       console.log('createTaskDto', createTaskDto);
       const task = await this.taskModel.create({
@@ -52,6 +55,7 @@ export class TasksService {
   }
 
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
+    this.logger.debug('Updating task with DTO:', updateTaskDto);
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');

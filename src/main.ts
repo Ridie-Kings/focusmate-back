@@ -6,12 +6,14 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cookieParser from "cookie-parser";
+import { Logger } from '@nestjs/common';
 
 // Carga las variables de entorno
 config();
 
 async function sherpmain() {
-  console.log("Starting the application");
+  const logger = new Logger('Bootstrap');
+  logger.log("Starting the application");
 
   const app = await NestFactory.create(AppModule);
   app.use((req, res, next) => {
@@ -26,8 +28,8 @@ async function sherpmain() {
 
   // Middleware de seguridad CORS
   app.enableCors({
-    origin: ["http://localhost:4000"], // Dominio o lista de dominios permitidos
-    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
+    origin: ["http://localhost:3000", "http://localhost:4000"], // Dominio o lista de dominios permitidos
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Métodos permitidos
     credentials: true, // Permitir enviar cookies
   });
 
@@ -65,7 +67,7 @@ async function sherpmain() {
   const PORT = process.env.PORT ?? 4000;
   await app.listen(PORT);
 
-  console.log(`Application running on port ${PORT}`);
+  logger.log(`Application running on port ${PORT}`);
 }
 
 sherpmain();
