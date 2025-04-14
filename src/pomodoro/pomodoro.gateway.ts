@@ -47,8 +47,14 @@ interface PomodoroStatus {
 @WebSocketGateway({ 
   namespace: 'pomodoro', 
   cors: { 
-    origin: '*',
-    credentials: true 
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:4000",
+      "https://sherp-app.com",
+      "http://sherp-app.com"
+    ],
+    credentials: true,
+    allowedHeaders: ['content-type', 'authorization']
   },
   transports: ['websocket']  // Only use websocket transport
 })

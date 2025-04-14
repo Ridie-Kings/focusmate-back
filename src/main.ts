@@ -28,9 +28,17 @@ async function sherpmain() {
 
   // Middleware de seguridad CORS
   app.enableCors({
-    origin: ["http://localhost:3000", "http://localhost:4000"], // Dominio o lista de dominios permitidos
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], // Métodos permitidos
-    credentials: true, // Permitir enviar cookies
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:4000",
+      "https://sherp-app.com",
+      "http://sherp-app.com",
+      "wss://sherp-app.com:4323",
+      "ws://sherp-app.com:4323"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ['content-type', 'authorization', 'access-control-allow-origin'],
   });
 
   app.use(cookieParser());
