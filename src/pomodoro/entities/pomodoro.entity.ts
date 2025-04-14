@@ -26,6 +26,15 @@ export class Pomodoro extends Document {
   @Prop({ type: Boolean, default: false })
   isPaused: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  isShared: boolean;
+
+  @Prop({ type: String })
+  shareCode: string;
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }] })
+  sharedWith: mongoose.Types.ObjectId[];
+
   @Prop({ type: Number, required: true })
   remainingTime: number;
   
