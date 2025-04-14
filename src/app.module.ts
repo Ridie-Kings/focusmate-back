@@ -40,7 +40,7 @@ import { PomodoroModule } from './pomodoro/pomodoro.module';
 import { EventsModule } from './events/events.module';
 import { StatsModule } from './stats/stats.module';
 import { StatsService } from './stats/stats.service';
-//import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -90,7 +90,7 @@ import { StatsService } from './stats/stats.service';
     PomodoroModule,
     EventsModule,
     StatsModule,
-    //SubscriptionsModule,
+    SubscriptionsModule,
   ],
   controllers: [AppController, AdminController],
   providers: [

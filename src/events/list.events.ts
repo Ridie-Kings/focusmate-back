@@ -25,6 +25,11 @@ export const EventsList = {
   TICKET_SOLVED: 'ticket.solved',
   RATING_SUBMITTED: 'rating.submitted',
   REVIEW_SUBMITTED: 'review.submitted',
-
+  SUBSCRIPTION_CREATED: 'subscription.created',
+  SUBSCRIPTION_CANCELED: 'subscription.canceled',
+  SUBSCRIPTION_EXPIRED: 'subscription.expired',
+  SUBSCRIPTION_PAYMENT_METHOD_CHANGED: 'subscription.paymentMethodChanged',
+  SUBSCRIPTION_PAYMENT_METHOD_EXPIRED: 'subscription.paymentMethodExpired',
+  
   // Agrega más eventos según las acciones
 };

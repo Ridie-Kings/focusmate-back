@@ -8,6 +8,7 @@ import { UserLogsService } from 'src/user-logs/user-logs.service';
 import { EventsList } from '../list.events';
 import mongoose from 'mongoose';
 import { HabitsService } from 'src/habits/habits.service';
+import { SubscriptionsService } from 'src/subscriptions/subscriptions.service';
 
 @Injectable()
 export class UserListener {
@@ -19,6 +20,7 @@ export class UserListener {
     @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
     @Inject(StatsService) private readonly statsService: StatsService,
     @Inject(HabitsService) private readonly habitsService: HabitsService,
+    @Inject(SubscriptionsService) private readonly subscriptionsService: SubscriptionsService,
     // Asegúrate de importar el servicio correcto
   ) {}
   // Escuchar evento cuando un usuario se registre
@@ -28,7 +30,8 @@ export class UserListener {
     await this.userLogsService.create(payload.userId); // Crear logs de usuario
     await this.calendarService.createCalendar(payload.userId); // Crear calendario de usuario
     await this.gamificationProfileService.create(payload.userId); // Crear perfil de gamificación
-    await this.statsService.updateUsersCount(); // Crear estadísticas de usuario
+    await this.statsService.updateUsersCount();// Crear estadísticas de usuario
+    await this.subscriptionsService.createFreeSubscription(payload.userId); // Crear suscripción gratuita
   }
 
   // Escuchar evento cuando un usuario inicie sesión

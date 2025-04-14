@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 import { Calendar, CalendarDocument } from "./entities/calendar.entity";
@@ -8,6 +8,8 @@ import { RemindersService } from "src/reminders/reminders.service";
 
 @Injectable()
 export class CalendarService {
+  private readonly logger = new Logger(CalendarService.name);
+
   constructor(
     @InjectModel(Calendar.name) private calendarModel: Model<CalendarDocument>,
     @Inject(TasksService) private readonly tasksService: TasksService,
@@ -377,24 +379,28 @@ export class CalendarService {
   }
 
   async findAllCategories(userId: mongoose.Types.ObjectId): Promise<string[]> {
-    const calendar = await this.calendarModel.aggregate([
-      {
-        $match: { user: userId },
-      },
-      {
-        $project: {
-          categories: {
-            $setUnion: [
-              { $map: { input: "$tasks", as: "task", in: "$$task.category" } },
-              { $map: { input: "$events", as: "event", in: "$$event.category" } },
-              { $map: { input: "$reminders", as: "reminder", in: "$$reminder.category" } },
-            ],
-          },
-        },
-      },
-    ]);
+    try {
+      this.logger.log(`Finding all categories for user: ${userId}`);
+      
+      // First get the calendar with populated tasks
+      const calendar = await this.calendarModel.findOne({ user: userId }).populate('tasks');
+      
+      if (!calendar) {
+        return [];
+      }
 
-    return calendar.length > 0 ? calendar[0].categories : [];
+      // Extract unique categories from tasks
+      const categories = new Set(
+        calendar.tasks
+          .map(task => task['category'])
+          .filter(category => category != null && category !== '')
+      );
+
+      return Array.from(categories);
+    } catch (error) {
+      this.logger.error(`Error finding all categories: ${error.message}`);
+      throw new InternalServerErrorException("Error finding all categories");
+    }
   }
 
 
