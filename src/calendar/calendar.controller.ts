@@ -237,6 +237,15 @@ export class CalendarController {
     return this.calendarService.findStatus( user.id, status);
   }
 
+  @Get('categories')
+  @ApiOperation({ summary: 'Retrieve all categories from a calendar' })
+  @ApiResponse({ status: 200, description: 'Categories retrieved' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Calendar not found' })
+  async findCategories( @GetUser() user: User) {
+    return this.calendarService.findAllCategories( user.id);
+  }
+
   // @Get(':startDate/tasks')
   // @ApiOperation({ summary: 'Retrieve all tasks from a date range' })
   // @ApiResponse({ status: 200, description: 'Tasks retrieved' })

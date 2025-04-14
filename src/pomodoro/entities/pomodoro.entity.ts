@@ -23,6 +23,9 @@ export class Pomodoro extends Document {
   @Prop({ type: Boolean, default: true })
   active: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  isPaused: boolean;
+
   @Prop({ type: Number, required: true })
   remainingTime: number;
   

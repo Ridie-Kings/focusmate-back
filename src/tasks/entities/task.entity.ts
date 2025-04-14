@@ -55,6 +55,9 @@ export class Task extends Document{
   @Prop({type: [mongoose.Schema.Types.ObjectId], ref: "Task", default: []  })
   subTasks: mongoose.Schema.Types.ObjectId[];
 
+  @Prop({type: String, required: false, default: ''})
+  colour: string
+
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);

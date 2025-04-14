@@ -91,22 +91,12 @@ export class PomodoroService {
   }
 
   // Update remaining time for a pomodoro
-  async updateRemainingTime(pomodoroId: string, remainingTime: number) {
-    try {
-      const pomodoro = await this.pomodoroModel.findById(pomodoroId);
-      if (!pomodoro) {
-        throw new Error('Pomodoro not found');
-      }
-
-      pomodoro.remainingTime = remainingTime;
-      await pomodoro.save();
-      
-      this.logger.log(`Updated remaining time for pomodoro ${pomodoroId} to ${remainingTime}`);
-      return pomodoro;
-    } catch (error) {
-      this.logger.error(`Error updating remaining time: ${error.message}`);
-      throw error;
-    }
+  async updateRemainingTime(pomodoroId: string, remainingTime: number): Promise<Pomodoro> {
+    return this.pomodoroModel.findByIdAndUpdate(
+      pomodoroId,
+      { remainingTime },
+      { new: true }
+    );
   }
 
   // Get a specific pomodoro by ID
@@ -144,6 +134,14 @@ export class PomodoroService {
   
   getLongBreakDuration(): number {
     return this.configService.get('POMODORO_LONG_BREAK', 900);
+  }
+
+  async updatePomodoroStatus(pomodoroId: string, status: { isPaused?: boolean }): Promise<Pomodoro> {
+    return this.pomodoroModel.findByIdAndUpdate(
+      pomodoroId,
+      { $set: status },
+      { new: true }
+    );
   }
 }
 

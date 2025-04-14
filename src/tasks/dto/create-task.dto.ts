@@ -62,4 +62,10 @@ export class CreateTaskDto{
   @IsArray()
   @IsMongoId({ each: true })
   readonly subTasks?: mongoose.Types.ObjectId[];
+
+  @ApiProperty({ description: 'Colour of the task', example: '#000000' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly colour?: string;
 }

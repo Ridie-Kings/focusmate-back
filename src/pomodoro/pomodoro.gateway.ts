@@ -17,7 +17,7 @@ interface StopPomodoroPayload {
 }
 
 interface PausePomodoroPayload {
-  pomodoroId: string;
+  userId: string;
 }
 
 interface GetStatusPayload {
@@ -41,9 +41,10 @@ interface PomodoroStatus {
 @WebSocketGateway({ 
   namespace: 'pomodoro', 
   cors: { 
-    origin: ['http://localhost:3000', 'http://localhost:4000'],
+    origin: '*',
     credentials: true 
-  } 
+  },
+  transports: ['websocket']  // Only use websocket transport
 })
 @Injectable()
 export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -56,15 +57,86 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
+    // Send a welcome message to confirm connection
+    client.emit('connected', { message: 'Connected to Pomodoro WebSocket' });
+    
+    // Log socket handshake data for debugging
+    this.logger.debug(`Client handshake: ${JSON.stringify(client.handshake)}`);
   }
 
   handleDisconnect(client: Socket) {
     this.logger.log(`Client disconnected: ${client.id}`);
+    
+    // Get the user ID from the socket handshake
+    const userId = client.handshake.query.userId as string;
+    if (userId) {
+      this.pauseActivePomodoroOnDisconnect(userId);
+    }
+    
     // Clean up any active timers for this client
     this.cleanupTimers(client.id);
   }
 
-  private cleanupTimers(clientId: string) {
+  private async pauseActivePomodoroOnDisconnect(userId: string) {
+    try {
+      const activePomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      if (activePomodoro && activePomodoro.active && !activePomodoro.isPaused) {
+        this.logger.log(`Auto-pausing pomodoro for user ${userId} on disconnect`);
+        
+        // Get the current timer for this user
+        const timer = this.activeTimers.get(userId);
+        if (timer) {
+          // Get the current remaining time from the timer
+          const currentRemainingTime = (timer as any)._idleStart ? 
+            Math.ceil((timer as any)._idleStart / 1000) : 
+            activePomodoro.remainingTime;
+
+          // Update the remaining time in the database and mark as paused
+          await this.pomodoroService.updateRemainingTime(activePomodoro.id, currentRemainingTime);
+          await this.pomodoroService.updatePomodoroStatus(activePomodoro.id, { isPaused: true });
+
+          // Clean up the timer
+          this.cleanupTimers(userId);
+
+          // Emit status update
+          const status: PomodoroStatus = {
+            userId: activePomodoro.userId.toString(),
+            pomodoroId: activePomodoro.id,
+            active: true,
+            remainingTime: currentRemainingTime,
+            isPaused: true
+          };
+          
+          this.server.emit('pomodoroStatus', status);
+        }
+      }
+    } catch (error) {
+      this.logger.error(`Error auto-pausing pomodoro on disconnect: ${error.message}`);
+    }
+  }
+
+  private async checkAndResumePausedPomodoro(client: Socket) {
+    try {
+      // Get the user ID from the socket handshake
+      const userId = client.handshake.query.userId as string;
+      if (!userId) {
+        this.logger.warn('No userId found in handshake query');
+        return;
+      }
+
+      // Get active pomodoro for the user
+      const activePomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      if (activePomodoro && activePomodoro.isPaused) {
+        this.logger.log(`Resuming paused pomodoro for user ${userId}`);
+        // Resume the pomodoro
+        await this.resumePomodoro(client, { userId });
+      }
+    } catch (error) {
+      this.logger.error(`Error checking paused pomodoro: ${error.message}`);
+    }
+  }
+
+  private async cleanupTimers(clientId: string) {
     const timer = this.activeTimers.get(clientId);
     if (timer) {
       clearInterval(timer);
@@ -74,12 +146,16 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   @SubscribeMessage('startPomodoro')
   async startPomodoro(client: Socket, payload: StartPomodoroPayload) {
+    this.logger.debug(`Received startPomodoro event with payload: ${JSON.stringify(payload)}`);
     try {
       const { userId, duration = 1500, breakDuration = 300 } = payload;
       if (!userId) {
-        throw new Error('userId is required');
+        this.logger.error('userId is required');
+        client.emit('error', { message: 'userId is required' });
+        return { success: false, error: 'userId is required' };
       }
 
+      this.logger.debug(`Starting pomodoro for user ${userId}`);
       const pomodoro = await this.pomodoroService.startPomodoro(userId, duration);
       
       // Clean up any existing timer for this user
@@ -88,7 +164,10 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Start the pomodoro cycle with custom durations
       this.startPomodoroCycle(userId, pomodoro.id, duration, breakDuration);
       
-      return { success: true, pomodoroId: pomodoro.id };
+      const response = { success: true, pomodoroId: pomodoro.id };
+      this.logger.debug(`Pomodoro started successfully: ${JSON.stringify(response)}`);
+      client.emit('pomodoroStarted', response);
+      return response;
     } catch (error) {
       this.logger.error(`Error starting pomodoro: ${error.message}`);
       client.emit('error', { message: error.message });
@@ -157,18 +236,18 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('pausePomodoro')
   async pausePomodoro(client: Socket, payload: PausePomodoroPayload) {
     try {
-      const { pomodoroId } = payload;
-      if (!pomodoroId) {
-        throw new Error('pomodoroId is required');
+      const { userId } = payload;
+      if (!userId) {
+        throw new Error('userId is required');
       }
 
-      const pomodoro = await this.pomodoroService.getPomodoroById(pomodoroId);
-      if (!pomodoro) {
-        throw new Error('Pomodoro not found');
+      const activePomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      if (!activePomodoro) {
+        throw new Error('No active pomodoro found');
       }
 
       // Get the current timer for this user
-      const timer = this.activeTimers.get(pomodoro.userId.toString());
+      const timer = this.activeTimers.get(userId);
       if (!timer) {
         throw new Error('No active timer found');
       }
@@ -176,17 +255,18 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Get the current remaining time from the timer
       const currentRemainingTime = (timer as any)._idleStart ? 
         Math.ceil((timer as any)._idleStart / 1000) : 
-        pomodoro.remainingTime;
+        activePomodoro.remainingTime;
 
-      // Update the remaining time in the database
-      await this.pomodoroService.updateRemainingTime(pomodoroId, currentRemainingTime);
+      // Update the remaining time in the database and mark as paused
+      await this.pomodoroService.updateRemainingTime(activePomodoro.id, currentRemainingTime);
+      await this.pomodoroService.updatePomodoroStatus(activePomodoro.id, { isPaused: true });
 
       // Clean up the timer
-      this.cleanupTimers(pomodoro.userId.toString());
+      this.cleanupTimers(userId);
 
       const status: PomodoroStatus = {
-        userId: pomodoro.userId.toString(),
-        pomodoroId: pomodoro.id,
+        userId: activePomodoro.userId.toString(),
+        pomodoroId: activePomodoro.id,
         active: true,
         remainingTime: currentRemainingTime,
         isPaused: true
@@ -243,6 +323,9 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       if (!activePomodoro) {
         throw new Error('No active pomodoro found');
       }
+
+      // Update pomodoro status to not paused
+      await this.pomodoroService.updatePomodoroStatus(activePomodoro.id, { isPaused: false });
 
       // Start the pomodoro cycle with the remaining time
       this.startPomodoroCycle(
