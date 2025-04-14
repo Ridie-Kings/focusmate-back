@@ -56,7 +56,7 @@ export class Task extends Document{
   subTasks: mongoose.Schema.Types.ObjectId[];
 
   @Prop({type: String, required: false, default: ''})
-  colour: string
+  color: string
 
 }
 

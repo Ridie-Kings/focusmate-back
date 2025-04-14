@@ -67,5 +67,5 @@ export class CreateTaskDto{
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  readonly colour?: string;
+  readonly color?: string;
 }
