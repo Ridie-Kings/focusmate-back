@@ -38,13 +38,33 @@ export class UserLogsService {
     try {
       const userLog = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 }, lastUpdate: new Date()} },
+        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 }, lastUpdate: new Date()}},
         { new: true }
       );
+      if (userLog.lastLogin.getDay() !== loginTime.getDay()) {
+        userLog.loginDates.push(loginTime);
+        this.checkStreak(userId, loginTime, userLog);
+      }
       return userLog;
     } catch (error) {
       console.error('Error updating login time:', error);
       throw new InternalServerErrorException('Error updating login time');
+    }
+  }
+  async checkStreak(userId: mongoose.Types.ObjectId, loginTime: Date, userLog: UserLogDocument) {
+    if (userLog.lastLogin.getDay() - loginTime.getDay() > 1) {
+      await this.userLogModel.findOneAndUpdate( 
+        { userId },
+        { $set: { streak: 0 } },
+        { new: true }
+      );
+    }
+    else {
+      await this.userLogModel.findOneAndUpdate(
+        { userId },
+        { $set: { streak: { $inc: 1 } } },
+        { new: true }
+      );
     }
   }
 
@@ -145,6 +165,11 @@ export class UserLogsService {
     if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
 
     return parts.join(' ');
+  }
+
+  async getStreak(userId: mongoose.Types.ObjectId) {
+    const userLog = await this.userLogModel.findOne({ userId });
+    return userLog.streak;
   }
 
   async findAll() {
