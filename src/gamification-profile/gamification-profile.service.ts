@@ -8,6 +8,9 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class GamificationProfileService {
+  // Default avatar path for new profiles
+  private readonly DEFAULT_AVATAR = '/assets/avatars/default-mountain.png';
+
   constructor(
     @InjectModel(GamificationProfile.name) private gamificationProfileModel: Model<GamificationProfileDocument>,
     @Inject(UsersService) private readonly usersService: UsersService,
@@ -15,11 +18,18 @@ export class GamificationProfileService {
 
   async create(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument>  {
     try{
-      const profile = await this.gamificationProfileModel.findOne({userId: userId});
+      const profile = await this.gamificationProfileModel.findOne({user: userId});
       if(profile){
         throw new ForbiddenException('User profile already exists');
       }
-      const profile_new = await this.gamificationProfileModel.create({user: userId});
+      const profile_new = await this.gamificationProfileModel.create({
+        user: userId,
+        avatar: this.DEFAULT_AVATAR, // Set default avatar
+        level: 1,
+        xp: 0,
+        coins: 0,
+        title: 'Novice'
+      });
       return profile_new;
     }catch(error){
       console.error('Error creating profile:', error);
