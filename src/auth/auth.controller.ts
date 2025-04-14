@@ -71,7 +71,9 @@ export class AuthController {
 
       return { 
         success: true,
-        message: "Login successful" 
+        message: "Login successful",
+        access_token,
+        refresh_token
       };
     } catch (error) {
       this.logger.error(`Login failed: ${error.message}`);
