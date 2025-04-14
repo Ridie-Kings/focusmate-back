@@ -9,7 +9,7 @@ import { UsersService } from 'src/users/users.service';
 @Injectable()
 export class GamificationProfileService {
   // Default avatar path for new profiles
-  private readonly DEFAULT_AVATAR = '/assets/avatars/default-mountain.png';
+  private readonly DEFAULT_AVATAR = '../public/assets/avatars/profile-pic-default.png';
 
   constructor(
     @InjectModel(GamificationProfile.name) private gamificationProfileModel: Model<GamificationProfileDocument>,
