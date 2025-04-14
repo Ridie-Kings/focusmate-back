@@ -48,6 +48,8 @@ export class UserLog extends Document {
   lastProfileUpdate: Date;
   @Prop({ type: Date, required: false })
   registerTime: Date;
+  @Prop({ type: Number, required: false })
+  streak: number;
 
 }
 
