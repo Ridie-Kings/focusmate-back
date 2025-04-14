@@ -26,31 +26,31 @@ export class UserLog extends Document {
   // badgeCounts: number;
   @Prop({ type: [eventLog], required: true, default: []})
   logs: eventLog[];
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastLogin: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: []})
   loginDates: Date[]
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastUpdate: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastPasswordChange: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastEmailChange: Date;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   loginCount: number;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   lastSessionDuration: number;
-  // @Prop({ type: Number, required: false })
+  // @Prop({ type: Number, required: false, default: 0})
   // PromedioSessionDuration: number;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   totalSessionDuration: number;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   totalProfileUpdate: number;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastProfileUpdate: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   registerTime: Date;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   streak: number;
 
 }
