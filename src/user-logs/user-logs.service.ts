@@ -27,9 +27,9 @@ export class UserLogsService {
         logs: [],
         lastUpdate: new Date(),
       });
-      return userLog;
+      return await userLog.save();
     } catch (error) {
-      console.error('Error creating user log:', error);
+      this.logger.error('Error creating user log:', error);
       throw new InternalServerErrorException('Error creating user log');
     }
   }

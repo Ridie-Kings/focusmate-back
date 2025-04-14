@@ -39,6 +39,9 @@ export class User extends Document {
   })
   password: string;
 
+  @Prop({ required: false, default: null, type: Date })
+  birthDate: Date;
+
   // @Prop({ default: 0 })
   // xp: number;
 

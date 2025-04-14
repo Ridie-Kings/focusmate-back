@@ -28,7 +28,7 @@ export class UserLog extends Document {
   logs: eventLog[];
   @Prop({ type: Date, required: false, default: new Date()})
   lastLogin: Date;
-  @Prop({ type: Date, required: false, default: []})
+  @Prop({ type: [Date], required: false, default: []})
   loginDates: Date[]
   @Prop({ type: Date, required: false, default: new Date()})
   lastUpdate: Date;
