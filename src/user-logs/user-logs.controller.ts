@@ -42,6 +42,20 @@ export class UserLogsController {
     return await this.userLogsService.getPomodoroTime(user.id);
   }
 
+  @Get('streak')
+  @ApiOperation({ summary: 'Get streak'})
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the streak'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found'
+  })
+  async getStreak(@GetUser() user: User) {
+    return await this.userLogsService.getStreak(user.id);
+  }
+
   // @Get(':userId/activity')
   // @ApiOperation({ summary: 'Get user activity logs with filtering' })
   // @ApiResponse({ 

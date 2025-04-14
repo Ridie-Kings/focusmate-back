@@ -29,6 +29,8 @@ export class UserLog extends Document {
   @Prop({ type: Date, required: false })
   lastLogin: Date;
   @Prop({ type: Date, required: false })
+  loginDates: Date[]
+  @Prop({ type: Date, required: false })
   lastUpdate: Date;
   @Prop({ type: Date, required: false })
   lastPasswordChange: Date;
