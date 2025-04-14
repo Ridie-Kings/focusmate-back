@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, ConflictException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 import { Calendar, CalendarDocument } from "./entities/calendar.entity";
@@ -23,9 +23,28 @@ export class CalendarService {
 
   async createCalendar(userId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
     try {
-      const calendar = await this.calendarModel.create({ user: userId, tasks: [], reminders: [], events: []});
+      if (!userId) {
+        throw new BadRequestException('User ID is required');
+      }
+
+      // Check if calendar already exists
+      const existingCalendar = await this.calendarModel.findOne({ user: userId });
+      if (existingCalendar) {
+        return existingCalendar;
+      }
+
+      const calendar = await this.calendarModel.create({ 
+        user: userId, 
+        tasks: [], 
+        reminders: [], 
+        events: []
+      });
       return calendar;
     } catch (error) {
+      this.logger.error(`Error creating calendar: ${error.message}`);
+      if (error.code === 11000) {
+        throw new ConflictException('Calendar already exists for this user');
+      }
       throw new InternalServerErrorException("Error creating calendar");
     }
   }

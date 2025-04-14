@@ -36,35 +36,54 @@ export class UserLogsService {
 
   async updateLogin(userId: mongoose.Types.ObjectId, loginTime: Date) {
     try {
-      const userLog = await this.userLogModel.findOneAndUpdate(
+      const result = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $set: { lastLogin: loginTime, loginCount: { $inc: 1 }, lastUpdate: new Date()}},
-        { new: true }
+        { 
+          $set: { 
+            lastLogin: loginTime, 
+            lastUpdate: new Date()
+          },
+          $inc: { loginCount: 1 }
+        },
+        { new: true, upsert: true }
       );
-      if (userLog.lastLogin.getDay() !== loginTime.getDay()) {
-        userLog.loginDates.push(loginTime);
-        this.checkStreak(userId, loginTime, userLog);
-      }
-      return userLog;
+      return result;
     } catch (error) {
-      console.error('Error updating login time:', error);
-      throw new InternalServerErrorException('Error updating login time');
+      this.logger.error(`Error updating login for user ${userId}: ${error.message}`);
+      throw new InternalServerErrorException('Error updating login');
     }
   }
-  async checkStreak(userId: mongoose.Types.ObjectId, loginTime: Date, userLog: UserLogDocument) {
-    if (userLog.lastLogin.getDay() - loginTime.getDay() > 1) {
-      await this.userLogModel.findOneAndUpdate( 
-        { userId },
-        { $set: { streak: 0 } },
-        { new: true }
-      );
-    }
-    else {
-      await this.userLogModel.findOneAndUpdate(
-        { userId },
-        { $set: { streak: { $inc: 1 } } },
-        { new: true }
-      );
+
+  async checkStreak(userId: mongoose.Types.ObjectId, currentDate: Date) {
+    try {
+      const userLog = await this.userLogModel.findOne({ userId });
+      if (!userLog) {
+        return;
+      }
+
+      const lastLogin = userLog.lastLogin;
+      if (!lastLogin) {
+        return;
+      }
+
+      const lastLoginDate = new Date(lastLogin);
+      const yesterday = new Date(currentDate);
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      if (lastLoginDate.toDateString() === yesterday.toDateString()) {
+        await this.userLogModel.updateOne(
+          { userId },
+          { $inc: { streak: 1 } }
+        );
+      } else if (lastLoginDate.toDateString() !== currentDate.toDateString()) {
+        await this.userLogModel.updateOne(
+          { userId },
+          { $set: { streak: 0 } }
+        );
+      }
+    } catch (error) {
+      this.logger.error(`Error checking streak for user ${userId}: ${error.message}`);
+      throw new InternalServerErrorException('Error checking streak');
     }
   }
 
