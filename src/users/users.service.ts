@@ -6,6 +6,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -23,6 +24,8 @@ import { EventsList } from 'src/events/list.events';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
@@ -152,5 +155,22 @@ export class UsersService {
     }
     await this.userModel.findByIdAndDelete(id);
     return user;
+  }
+
+  async updatePassword(email: string, hashedPassword: string) {
+    try {
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      user.password = hashedPassword;
+      await user.save();
+      
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      this.logger.error(`Failed to update password: ${error.message}`);
+      throw error;
+    }
   }
 }

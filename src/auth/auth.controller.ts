@@ -14,6 +14,8 @@ import { CreateUserDto } from "src/users/dto/create-user.dto";
 import { LoginUserDto } from "src/users/dto/login-user.dto";
 import { Request, Response } from "express";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -136,5 +138,26 @@ export class AuthController {
         ? error 
         : new InternalServerErrorException("Error during logout");
     }
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset code' })
+  @ApiResponse({ status: 200, description: 'Reset code sent successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async requestPasswordReset(@Body() dto: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(dto);
+  }
+
+  @Public()
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using code' })
+  @ApiResponse({ status: 200, description: 'Password reset successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired reset code' })
+  async resetPassword(
+    @Body('email') email: string,
+    @Body() dto: ResetPasswordDto
+  ) {
+    return this.authService.resetPassword(email, dto);
   }
 }
