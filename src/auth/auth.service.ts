@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
@@ -8,19 +8,28 @@ import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
 import { TokenBlacklistService } from "../token-black-list/token-black-list.service";
 import { Logger } from "@nestjs/common";
+import { EmailService } from "../email/email.service";
+import { RequestPasswordResetDto } from "./dto/request-password-reset.dto";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  private resetCodes = new Map<string, { code: string; expires: Date }>();
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
+    private readonly emailService: EmailService,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    const user = await this.usersService.create(createUserDto);
+    await this.emailService.sendWelcomeEmail(user.email, user.fullname);
+    return user;
   }
 
   async login(loginUserDto: LoginUserDto) {
@@ -132,6 +141,65 @@ export class AuthService {
       throw error instanceof UnauthorizedException 
         ? error 
         : new InternalServerErrorException('Error during logout');
+    }
+  }
+
+  async requestPasswordReset(dto: RequestPasswordResetDto) {
+    try {
+      const user = await this.usersService.findOne(dto.email);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      // Generate a random 6-digit code
+      const resetCode = crypto.randomInt(100000, 999999).toString();
+      
+      // Store the code with 15-minute expiration
+      this.resetCodes.set(dto.email, {
+        code: resetCode,
+        expires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      });
+
+      // Send the code via email
+      await this.emailService.sendPasswordResetCode(dto.email, resetCode);
+
+      return { message: 'Password reset code sent to your email' };
+    } catch (error) {
+      this.logger.error(`Password reset request failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async resetPassword(email: string, dto: ResetPasswordDto) {
+    try {
+      const resetData = this.resetCodes.get(email);
+      
+      if (!resetData) {
+        throw new UnauthorizedException('No reset code found');
+      }
+
+      if (new Date() > resetData.expires) {
+        this.resetCodes.delete(email);
+        throw new UnauthorizedException('Reset code has expired');
+      }
+
+      if (resetData.code !== dto.resetCode) {
+        throw new UnauthorizedException('Invalid reset code');
+      }
+
+      // Hash the new password
+      const hashedPassword = await argon2.hash(dto.newPassword);
+      
+      // Update the password
+      await this.usersService.updatePassword(email, hashedPassword);
+      
+      // Clear the reset code
+      this.resetCodes.delete(email);
+
+      return { message: 'Password has been reset successfully' };
+    } catch (error) {
+      this.logger.error(`Password reset failed: ${error.message}`);
+      throw error;
     }
   }
 }
