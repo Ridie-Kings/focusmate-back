@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException, Inject } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
@@ -12,6 +12,8 @@ import { EmailService } from "../email/email.service";
 import { RequestPasswordResetDto } from "./dto/request-password-reset.dto";
 import { ResetPasswordDto } from "./dto/reset-password.dto";
 import * as crypto from 'crypto';
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { EventsList } from "src/events/list.events";
 
 @Injectable()
 export class AuthService {
@@ -24,6 +26,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly emailService: EmailService,
+    @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
@@ -61,7 +64,7 @@ export class AuthService {
       });
 
       this.logger.debug(`Login successful for user: ${email}`);
-
+      this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user.id});
       return {
         access_token: accessToken,
         refresh_token: refreshToken,
