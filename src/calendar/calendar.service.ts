@@ -30,7 +30,6 @@ export class CalendarService {
       // Check if calendar already exists
       const existingCalendar = await this.calendarModel.findOne({ user: userId });
       if (existingCalendar) {
-        this.logger.log(`Calendar already exists for user ${userId}, returning existing calendar`);
         return existingCalendar;
       }
 
