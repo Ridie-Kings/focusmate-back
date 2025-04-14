@@ -18,15 +18,29 @@ export class StatsService {
         completedTasks: 0,
         pendingTasks: 0,
         totalDuration: 0,
-        totalUsers: 0,
+        usersOnline: 0,
+        usersRegistered: 0,
+        activeUsers: 0,
+        DAU: 0,
+        WAU: 0,
+        MAU: 0,
+        maxCurrentOnline: 0,
+        totalTasks: 0,
+        totalHabits: 0,
+        totalProfileUpdates: 0,
+        MaxCurrentOnlineDate: new Date(),
       });
-
       await stats.save();  // Guarda el documento en la base de datos
     }
 
     return stats;
   }
 
+  async updateUsersCount() {
+    const stats = await this.statsModel.findOne();  // Obtiene el único documento de Stats
+    stats.usersRegistered++;
+    await stats.save();  // Guarda los cambios
+  }
   // Obtiene las estadísticas globales
   async getStats(): Promise<StatDocument> {
     const stats = await this.statsModel.findOne();  // Obtiene el único documento de Stats

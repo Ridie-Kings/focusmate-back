@@ -4,6 +4,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from "@nestjs/common";
 import { CreateReminderDto } from "./dto/create-reminder.dto";
 import { UpdateReminderDto } from "./dto/update-reminder.dto";
@@ -13,6 +14,8 @@ import mongoose, { Model, isValidObjectId } from "mongoose";
 
 @Injectable()
 export class RemindersService {
+  private readonly logger = new Logger(RemindersService.name);
+
   constructor(
     @InjectModel(Reminders.name) private reminderModel: Model<RemindersDocument>,
   ) {}
@@ -21,9 +24,9 @@ export class RemindersService {
     createReminderDto: CreateReminderDto,
     userId: mongoose.Types.ObjectId,
   ): Promise<RemindersDocument> {
+    this.logger.debug('Creating reminder with DTO:', createReminderDto);
+    this.logger.debug('User ID:', userId);
     try {
-      console.log(createReminderDto);
-      console.log(userId);
       const reminder = new this.reminderModel({
         ...createReminderDto,
         user: userId,

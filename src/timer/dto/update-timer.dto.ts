@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional, PartialType } from "@nestjs/swagger";
 import { StartTimerDto } from "./start-timer.dto";
-import { IsBoolean, IsMongoId, IsNumber, IsOptional, Min } from "class-validator";
+import { IsBoolean, IsEnum, IsMongoId, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import mongoose from "mongoose";
 
 export class UpdateTimerDto extends PartialType(StartTimerDto) {
   @ApiPropertyOptional({
@@ -21,17 +22,27 @@ export class UpdateTimerDto extends PartialType(StartTimerDto) {
   elapsedTime?: number;
 
   @ApiPropertyOptional({
-    example: "605f3a6e9b0f4c001f9d2c5b",
-    description: "Task ID",
-  })
-  @IsOptional()
-  @IsMongoId()
-  task?: string;
-
-  @ApiPropertyOptional({
     example: "2021-03-28T17:00:00.000Z",
     description: "End time of the timer",
   })
   @IsOptional()
   endTime?: Date;
+
+  @ApiPropertyOptional({
+    example: "completed",
+    description: "Status of the timer",
+    enum: ["pending", "completed", "cancelled"],
+  })
+  @IsOptional()
+  @IsEnum(["pending", "completed", "cancelled"])
+  status?: "pending" | "completed" | "cancelled";
+
+  @ApiPropertyOptional({
+    example: "Finished the calculus problems",
+    description: "Notes about the timer session",
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
 }

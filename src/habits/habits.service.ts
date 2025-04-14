@@ -73,14 +73,22 @@ export class HabitsService {
       let streak = 0;
       if (!habit) throw new NotFoundException('Habit not found');
       if (!habit.userId.equals(userId)) throw new UnauthorizedException('Unauthorized access');
-      if (this.checkStreak(habit.frequency, habit.lastCompletedDate, updateHabitDto.completedDate)) {
+      if (this.checkStreak(habit.frequency, habit.lastCompletedDate, new Date()) && habit.status === true) {
         streak = habit.streak + 1;
+        await this.habitModel.findByIdAndUpdate(id ,{
+          $set: {name: updateHabitDto.name, description: updateHabitDto.description, status: updateHabitDto.status, frequency: updateHabitDto.frequency, streak: streak, lastCompletedDate: new Date(), bestStreak: Math.max(streak, habit.bestStreak)},
+          $addToSet: {completedDates: new Date()},
+        },
+        {new: true});
       }
-      await this.habitModel.findByIdAndUpdate(id ,{
-        $set: {name: updateHabitDto.name, description: updateHabitDto.description, status: updateHabitDto.status, frequency: updateHabitDto.frequency, streak: streak, lastCompletedDate: updateHabitDto.completedDate, bestStreak: Math.max(streak, habit.bestStreak)},
-        $push: {completedDates: updateHabitDto.completedDate},
-      },
-      {new: true});
+      if (updateHabitDto.status === false && habit.status === true) {
+        streak = habit.streak - 1;
+        await this.habitModel.findByIdAndUpdate(id ,{
+          $set: {streak: streak, name: updateHabitDto.name, description: updateHabitDto.description, status: updateHabitDto.status, frequency: updateHabitDto.frequency, bestStreak: Math.min(streak, habit.bestStreak)},
+          $pull: {completedDates: new Date()},
+        },
+        {new: true});
+      }
       return (await this.findOne(id, userId)).populate('userId');
     } catch (error) {
       throw new InternalServerErrorException('Error updating habit');
@@ -107,6 +115,54 @@ export class HabitsService {
       return await this.habitModel.findByIdAndDelete(id);
     } catch (error) {
       throw new InternalServerErrorException('Error deleting habit');
+    }
+  }
+  async checkHabits(userId: mongoose.Types.ObjectId) {
+    try {
+      const habits = await this.habitModel.find({ userId });
+      const today = new Date();
+      
+      for (const habit of habits) {
+        // Get last completed date or creation date if never completed
+        const lastDate = habit.lastCompletedDate
+        
+        // Skip if habit was completed today
+        if (lastDate && lastDate.toDateString() === today.toDateString()) {
+          continue;
+        }
+
+        // Check frequency and reset if needed
+        switch (habit.frequency) {
+          case 'daily':
+            // Reset if not completed today
+            await this.habitModel.findByIdAndUpdate(habit._id, {
+              $set: { status: false }
+            });
+            break;
+
+          case 'weekly':
+            // Reset if last completion was in a different week
+            if (this.getWeekNumber(lastDate) !== this.getWeekNumber(today)) {
+              await this.habitModel.findByIdAndUpdate(habit._id, {
+                $set: { status: false }
+              });
+            }
+            break;
+
+          case 'monthly':
+            // Reset if last completion was in a different month
+            if (lastDate.getMonth() !== today.getMonth() || 
+                lastDate.getFullYear() !== today.getFullYear()) {
+              await this.habitModel.findByIdAndUpdate(habit._id, {
+                $set: { status: false }
+              });
+            }
+            break;
+        }
+      }
+      return habits;
+    } catch (error) {
+      throw new InternalServerErrorException('Error checking habits');
     }
   }
 }

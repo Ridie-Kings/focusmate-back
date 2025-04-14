@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Logger } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -17,6 +17,8 @@ import mongoose from 'mongoose';
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
+  private readonly logger = new Logger(TasksController.name);
+
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
@@ -79,7 +81,7 @@ export class TasksController {
     @GetUser() user: User
   ): Promise<TaskDocument> 
   {
-    console.log('updateTaskDto1', updateTaskDto);
+    this.logger.debug('Updating task with DTO:', updateTaskDto);
     return this.tasksService.update(id, updateTaskDto, user.id);
   }
 

@@ -157,10 +157,9 @@ export class CalendarService {
     try {
       const calendar = await this.calendarModel.findOne({ user: userId }).populate("tasks");
       const start = new Date(date);
-      start.setHours(0, 0, 0, 0); // Set to beginning of day
+      //start.setHours(0, 0, 0, 0);// Set to beginning of day
       const end = new Date(date);
-      end.setHours(23, 59, 59, 999); // Set to end of day
-      console.log(start, end);
+      end.setHours(24, 59, 59, 999);
       const tasks = calendar.tasks.filter((task) => {
         const taskDate = new Date(task["dueDate"]);
         return taskDate >= start && taskDate <= end;

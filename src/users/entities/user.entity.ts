@@ -45,14 +45,15 @@ export class User extends Document {
   // @Prop({ default: 1 })
   // level: number;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
-  profile: mongoose.Types.ObjectId;
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
+  // profile: mongoose.Types.ObjectId;
 
   @Prop({ default: null })
   refreshToken: string;
 
   @Prop({ default: null })
   stripeCustomerId: string;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

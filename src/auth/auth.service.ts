@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, UnauthorizedException, InternalServerErrorException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
@@ -7,9 +7,12 @@ import { Response } from "express";
 import * as argon2 from "argon2";
 import * as sanitizeHtml from "sanitize-html";
 import { TokenBlacklistService } from "../token-black-list/token-black-list.service";
+import { Logger } from "@nestjs/common";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
@@ -21,34 +24,43 @@ export class AuthService {
   }
 
   async login(loginUserDto: LoginUserDto) {
-    loginUserDto.email = sanitizeHtml(loginUserDto.email);
-    const { email, password } = loginUserDto;
-    const user = await this.usersService.findOne(email);
+    try {
+      this.logger.debug('Login attempt');
+      
+      loginUserDto.email = sanitizeHtml(loginUserDto.email);
+      const { email, password } = loginUserDto;
+      const user = await this.usersService.findOne(email);
 
-    if (!user) {
-      throw new UnauthorizedException("Invalid credentials");
+      if (!user) {
+        this.logger.warn(`Login failed: User not found - ${email}`);
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      const isValid = await argon2.verify(user.password, password);
+      if (!isValid) {
+        this.logger.warn(`Login failed: Invalid password for user - ${email}`);
+        throw new UnauthorizedException("Invalid credentials");
+      }
+
+      const payload = { id: user._id, email: user.email };
+      const accessToken = this.jwtService.sign(payload, { expiresIn: "15m" });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+
+      // Store the unhashed refresh token in the database
+      await this.usersService.update(user._id.toString(), {
+        refreshToken: refreshToken,
+      });
+
+      this.logger.debug(`Login successful for user: ${email}`);
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      this.logger.error(`Login error: ${error.message}`);
+      throw error;
     }
-
-    const isValid = await argon2.verify(user.password, password);
-    if (!isValid) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const payload = { id: user._id, email: user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: "15m" });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
-
-    // ✅ Hashear el Refresh Token antes de guardarlo
-    const hashedRefreshToken = await argon2.hash(refreshToken);
-
-    await this.usersService.update(user._id.toString(), {
-      refreshToken: hashedRefreshToken,
-    });
-
-    return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
   }
 
   async refreshToken(refreshToken: string) {
@@ -74,38 +86,52 @@ export class AuthService {
   }
 
   async logout(refreshToken: string, res: Response): Promise<void> {
-    console.log("📌 Recibido refreshToken en logout:", refreshToken);
+    try {
+      this.logger.debug(`Logout attempt with refresh token: ${refreshToken.substring(0, 10)}...`);
 
-    const user = await this.usersService.findOneByRefreshToken(refreshToken);
+      if (!refreshToken) {
+        this.logger.warn('Logout attempted without refresh token');
+        throw new UnauthorizedException('Refresh token is required');
+      }
 
-    if (!user) {
-      console.log("❌ Refresh token not found or invalid");
-      throw new UnauthorizedException("Invalid refresh token");
+      const user = await this.usersService.findOneByRefreshToken(refreshToken);
+
+      if (!user) {
+        this.logger.warn('Invalid refresh token used for logout');
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      this.logger.debug(`User ${user.email} logging out`);
+
+      // Add the refreshToken to the blacklist
+      await this.tokenBlacklistService.addToBlacklist(refreshToken);
+      this.logger.debug('Refresh token added to blacklist');
+
+      // Remove the refreshToken from the database
+      await this.usersService.update(user._id.toString(), { refreshToken: null });
+      this.logger.debug('Refresh token removed from user record');
+
+      // Clear cookies
+      res.clearCookie('access_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+      
+      res.clearCookie('refresh_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+      });
+
+      this.logger.debug('Cookies cleared successfully');
+    } catch (error) {
+      this.logger.error(`Logout failed: ${error.message}`);
+      throw error instanceof UnauthorizedException 
+        ? error 
+        : new InternalServerErrorException('Error during logout');
     }
-
-    console.log("✅ Usuario encontrado:", user.email);
-
-    // 🔹 Agregar el refreshToken a la blacklist
-    await this.tokenBlacklistService.addToBlacklist(refreshToken);
-    console.log("✅ Refresh token agregado a la blacklist.");
-
-    // 🔹 Eliminar el refreshToken de la base de datos
-    await this.usersService.update(user._id.toString(), { refreshToken: null });
-
-    console.log("✅ Refresh token eliminado correctamente.");
-
-    // 🔹 **Eliminar las cookies en el cliente**
-    res.clearCookie("access_token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
-    res.clearCookie("refresh_token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
-
-    console.log("✅ Cookies eliminadas correctamente.");
   }
 }

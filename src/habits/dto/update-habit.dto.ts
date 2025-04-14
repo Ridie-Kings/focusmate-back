@@ -16,16 +16,16 @@ export class UpdateHabitDto extends PartialType(CreateHabitDto) {
   @Type(() => Boolean)
   status?: boolean;
 
-  @ApiProperty({ description: 'new completed date', example: '2023-10-01' })
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  completedDate?: Date;
+  // @ApiProperty({ description: 'new completed date', example: '2023-10-01' })
+  // @IsOptional()
+  // @Type(() => Date)
+  // @IsDate()
+  // completedDate?: Date;
 
-  @ApiProperty({ description: 'completed date to delete', example: '2023-10-01' })
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  completedDateToDelete?: Date;
+  // @ApiProperty({ description: 'completed date to delete', example: '2023-10-01' })
+  // @IsOptional()
+  // @Type(() => Date)
+  // @IsDate()
+  // completedDateToDelete?: Date;
 
 }

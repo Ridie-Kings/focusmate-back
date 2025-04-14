@@ -5,6 +5,8 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  InternalServerErrorException,
+  Logger,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
@@ -16,7 +18,11 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 @ApiTags("Authentication")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  private readonly logger = new Logger(AuthController.name);
+
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   @ApiOperation({ summary: "Register a new user" })
   @ApiResponse({ status: 201, description: "User registered successfully" })
@@ -36,24 +42,41 @@ export class AuthController {
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const { access_token, refresh_token } =
-      await this.authService.login(loginUserDto);
+    try {
+      this.logger.debug('Login attempt for user');
+      
+      const { access_token, refresh_token } =
+        await this.authService.login(loginUserDto);
 
-    res.cookie("access_token", access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 12 * 60 * 60 * 1000, //12 hs
-    });
+      this.logger.debug('Setting cookies for login response');
 
-    res.cookie("refresh_token", refresh_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
-    });
+      // Set cookies with proper configuration
+      res.cookie("access_token", access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      });
 
-    return { message: "Login successful", access_token, refresh_token };
+      res.cookie("refresh_token", refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      this.logger.debug('Login successful, cookies set');
+
+      return { 
+        success: true,
+        message: "Login successful" 
+      };
+    } catch (error) {
+      this.logger.error(`Login failed: ${error.message}`);
+      throw error;
+    }
   }
 
   @Public()
@@ -79,16 +102,37 @@ export class AuthController {
 
   @Public()
   @Post("logout")
+  @ApiOperation({ summary: "Logout user" })
+  @ApiResponse({ status: 200, description: "User logged out successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized - Invalid or missing refresh token" })
+  @ApiResponse({ status: 500, description: "Internal server error" })
   async logout(
-    @Req() req: Request & { cookies: any },
+    @Req() req: Request & { cookies: { refresh_token?: string } },
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refresh_token;
-    if (!refreshToken)
-      throw new UnauthorizedException("No refresh token found");
+    try {
+      this.logger.debug('Logout request received');
+      this.logger.debug(`Cookies present: ${JSON.stringify(req.cookies)}`);
 
-    await this.authService.logout(refreshToken, res);
+      const refreshToken = req.cookies?.refresh_token;
+      if (!refreshToken) {
+        this.logger.warn('Logout attempted without refresh token in cookies');
+        throw new UnauthorizedException("No refresh token found");
+      }
 
-    return { message: "Logged out successfully" };
+      this.logger.debug(`Refresh token found: ${refreshToken.substring(0, 10)}...`);
+      await this.authService.logout(refreshToken, res);
+      this.logger.debug('Logout completed successfully');
+
+      return { 
+        success: true,
+        message: "Logged out successfully" 
+      };
+    } catch (error) {
+      this.logger.error(`Logout failed: ${error.message}`);
+      throw error instanceof UnauthorizedException 
+        ? error 
+        : new InternalServerErrorException("Error during logout");
+    }
   }
 }
