@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { Pomodoro, PomodoroDocument } from './entities/pomodoro.entity';
 import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
+import * as mongoose from 'mongoose';
 
 // Create DTOs for validation
 export class StartPomodoroDto {
@@ -142,6 +143,63 @@ export class PomodoroService {
       { $set: status },
       { new: true }
     );
+  }
+
+  async sharePomodoro(pomodoroId: string, userId: string): Promise<{ shareCode: string }> {
+    const pomodoro = await this.pomodoroModel.findById(pomodoroId);
+    if (!pomodoro) {
+      throw new Error('Pomodoro not found');
+    }
+
+    // Check if the user is the owner of the pomodoro
+    if (pomodoro.userId.toString() !== userId) {
+      throw new Error('You can only share your own pomodoros');
+    }
+
+    // Generate a unique share code
+    const shareCode = Math.random().toString(36).substring(2, 10);
+    
+    // Update the pomodoro with sharing information
+    await this.pomodoroModel.findByIdAndUpdate(
+      pomodoroId,
+      { 
+        isShared: true,
+        shareCode,
+        sharedWith: [new mongoose.Types.ObjectId(userId)] // Initialize with the owner
+      },
+      { new: true }
+    );
+
+    return { shareCode };
+  }
+
+  async joinSharedPomodoro(shareCode: string, userId: mongoose.Types.ObjectId): Promise<Pomodoro> {
+    const pomodoro = await this.pomodoroModel.findOne({ shareCode, isShared: true });
+    if (!pomodoro) {
+      throw new Error('Shared pomodoro not found');
+    }
+
+    // Check if the user is already in the shared list
+    if (pomodoro.sharedWith.includes(userId)) {
+      return pomodoro;
+    }
+
+    // Add the user to the shared list
+    return this.pomodoroModel.findByIdAndUpdate(
+      pomodoro._id,
+      { $addToSet: { sharedWith: userId } },
+      { new: true }
+    );
+  }
+
+  async getSharedPomodoros(userId: string): Promise<Pomodoro[]> {
+    return this.pomodoroModel.find({
+      $or: [
+        { userId },
+        { sharedWith: userId }
+      ],
+      isShared: true
+    });
   }
 }
 

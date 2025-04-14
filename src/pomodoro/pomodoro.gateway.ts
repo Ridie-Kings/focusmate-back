@@ -5,6 +5,7 @@ import { Server, Socket } from 'socket.io';
 import { PomodoroService } from './pomodoro.service';
 import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from '../auth/guards/ws-jwt-auth.guard';
+import mongoose from 'mongoose';
 
 interface StartPomodoroPayload {
   userId: string;
@@ -25,6 +26,11 @@ interface GetStatusPayload {
 }
 
 interface ResumePomodoroPayload {
+  userId: string;
+}
+
+interface JoinSharedPomodoroPayload {
+  shareCode: string;
   userId: string;
 }
 
@@ -353,6 +359,45 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
+  @SubscribeMessage('joinSharedPomodoro')
+  async joinSharedPomodoro(client: Socket, payload: JoinSharedPomodoroPayload) {
+    try {
+      const { shareCode, userId } = payload;
+      if (!shareCode || !userId) {
+        throw new Error('shareCode and userId are required');
+      }
+
+      const pomodoro = await this.pomodoroService.joinSharedPomodoro(shareCode, new mongoose.Types.ObjectId(userId));
+      
+      // Join the room for this shared pomodoro
+      client.join(`pomodoro:${pomodoro.id}`);
+      
+      // Send the current status to the joining user
+      const status: PomodoroStatus = {
+        userId: pomodoro.userId.toString(),
+        pomodoroId: pomodoro.id,
+        active: pomodoro.active,
+        remainingTime: pomodoro.remainingTime,
+        isPaused: pomodoro.isPaused,
+        isBreak: pomodoro.type !== 'pomodoro'
+      };
+      
+      client.emit('pomodoroStatus', status);
+      
+      // Notify other users in the room
+      client.to(`pomodoro:${pomodoro.id}`).emit('userJoined', {
+        userId,
+        pomodoroId: pomodoro.id
+      });
+      
+      return { success: true, pomodoro };
+    } catch (error) {
+      this.logger.error(`Error joining shared pomodoro: ${error.message}`);
+      client.emit('error', { message: error.message });
+      return { success: false, error: error.message };
+    }
+  }
+
   private async startPomodoroCycle(userId: string, pomodoroId: string, duration: number, breakDuration: number) {
     let remainingTime = duration;
     
@@ -365,8 +410,8 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
           // Stop the pomodoro in the database
           await this.pomodoroService.stopPomodoro(pomodoroId);
 
-          // Emit completion status
-          this.server.emit('pomodoroStatus', {
+          // Emit completion status to all users in the room
+          this.server.to(`pomodoro:${pomodoroId}`).emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: false,
@@ -379,7 +424,8 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
           this.startBreak(userId, breakDuration);
         } else {
           remainingTime--;
-          this.server.emit('pomodoroStatus', {
+          // Emit status update to all users in the room
+          this.server.to(`pomodoro:${pomodoroId}`).emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: true,
@@ -392,7 +438,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         this.logger.error(`Error in pomodoro cycle: ${error.message}`);
         clearInterval(interval);
         this.activeTimers.delete(userId);
-        this.server.emit('error', { userId, message: error.message });
+        this.server.to(`pomodoro:${pomodoroId}`).emit('error', { userId, message: error.message });
       }
     }, 1000);
 
