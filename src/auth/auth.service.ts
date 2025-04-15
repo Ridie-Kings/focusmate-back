@@ -76,25 +76,52 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
-    // 🔍 Verificar si el token está en la blacklist antes de usarlo
-    const isBlacklisted =
-      await this.tokenBlacklistService.isBlacklisted(refreshToken);
-    if (isBlacklisted) {
-      throw new UnauthorizedException("Invalid refresh token");
+    try {
+      this.logger.debug('Refresh token attempt');
+
+      // Check if token is blacklisted
+      const isBlacklisted = await this.tokenBlacklistService.isBlacklisted(refreshToken);
+      if (isBlacklisted) {
+        this.logger.warn('Refresh token is blacklisted');
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+
+      // Verify the refresh token
+      let payload;
+      try {
+        payload = this.jwtService.verify(refreshToken);
+      } catch (error) {
+        this.logger.warn(`Invalid refresh token: ${error.message}`);
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+
+      // Find user by ID from token
+      const user = await this.usersService.findOne(payload.id);
+      if (!user) {
+        this.logger.warn(`User not found for refresh token: ${payload.id}`);
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+
+      // Verify the refresh token matches the one stored in the database
+      if (user.refreshToken !== refreshToken) {
+        this.logger.warn('Refresh token mismatch with stored token');
+        throw new UnauthorizedException("Invalid refresh token");
+      }
+
+      // Generate new access token
+      const newAccessToken = this.jwtService.sign(
+        { id: user._id, email: user.email },
+        { expiresIn: "15m" }
+      );
+
+      this.logger.debug(`New access token generated for user: ${user.email}`);
+      return { access_token: newAccessToken };
+    } catch (error) {
+      this.logger.error(`Refresh token error: ${error.message}`);
+      throw error instanceof UnauthorizedException 
+        ? error 
+        : new InternalServerErrorException('Error refreshing token');
     }
-
-    const user = await this.usersService.findOneByRefreshToken(refreshToken);
-    if (!user) {
-      throw new UnauthorizedException("Invalid refresh token");
-    }
-
-    // 🔹 Generar un nuevo access token
-    const newAccessToken = this.jwtService.sign(
-      { sub: user._id, email: user.email },
-      { expiresIn: "15m" },
-    );
-
-    return { access_token: newAccessToken };
   }
 
   async logout(refreshToken: string, res: Response): Promise<void> {
