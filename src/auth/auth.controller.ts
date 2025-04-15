@@ -89,19 +89,37 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.refresh_token;
-    if (!refreshToken) throw new UnauthorizedException("Refresh token missing");
+    try {
+      this.logger.debug('Refresh token request received');
+      
+      const refreshToken = req.cookies?.refresh_token;
+      if (!refreshToken) {
+        this.logger.warn('No refresh token found in cookies');
+        throw new UnauthorizedException("Refresh token missing");
+      }
 
-    const { access_token } = await this.authService.refreshToken(refreshToken);
+      const { access_token } = await this.authService.refreshToken(refreshToken);
 
-    res.cookie("access_token", access_token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 12 * 60 * 60 * 1000, //12 hs
-    });
+      // Set cookie with same settings as login
+      res.cookie("access_token", access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      });
 
-    return { message: "Token refreshed" };
+      this.logger.debug('Access token refreshed successfully');
+      return { 
+        success: true,
+        message: "Token refreshed successfully" 
+      };
+    } catch (error) {
+      this.logger.error(`Refresh token failed: ${error.message}`);
+      throw error instanceof UnauthorizedException 
+        ? error 
+        : new InternalServerErrorException('Error refreshing token');
+    }
   }
 
   @Public()
