@@ -17,6 +17,11 @@ export class PomodoroController {
     return this.pomodoroService.sharePomodoro(id, req.user.id);
   }
 
+  @Get('status')
+  getStatus() {
+    return { status: 'WebSocket server ready', timestamp: new Date().toISOString() };
+  }
+
   @Post('join/:shareCode')
   @ApiOperation({ summary: 'Join a shared pomodoro' })
   @ApiResponse({ status: 200, description: 'Joined shared pomodoro successfully' })
