@@ -39,8 +39,7 @@ export class UserListener {
   async handleUserLoggedIn(payload: {userId: mongoose.Types.ObjectId}) {
     this.logger.log('Usuario logueado:', payload);
     await this.userLogsService.updateLogin(payload.userId, new Date());
-    await this.habitsService.checkHabits(payload.userId); // Crear logs de usuario
-    // Aquí puedes registrar la hora de inicio de sesión, estadísticas, etc.
+    await this.habitsService.checkHabits(payload.userId); 
   }
 
   @OnEvent(EventsList.USER_PROFILE_UPDATED)
