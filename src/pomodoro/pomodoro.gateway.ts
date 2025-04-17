@@ -180,7 +180,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         userId,
         pomodoroId: pomodoro.id,
         active: pomodoro.active,
-        remainingTime: duration,
+        remainingTime: pomodoro.duration,
         isBreak: false,
         isPaused: false,
       } };
