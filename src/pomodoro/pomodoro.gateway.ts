@@ -435,8 +435,8 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           // Stop the pomodoro in the database
           await this.pomodoroService.stopPomodoro(pomodoroId);
 
-          // Emit completion status to all users in the room
-          this.server.to(`pomodoro:${pomodoroId}`).emit('pomodoroStatus', {
+          // Emit completion status to all clients
+          this.server.emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: false,
@@ -449,8 +449,14 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           this.startBreak(userId, breakDuration);
         } else {
           remainingTime--;
-          // Emit status update to all users in the room
-          this.server.to(`pomodoro:${pomodoroId}`).emit('pomodoroStatus', {
+          
+          // Update remaining time in the database periodically (every 15 seconds)
+          if (remainingTime % 15 === 0) {
+            await this.pomodoroService.updateRemainingTime(pomodoroId, remainingTime);
+          }
+          
+          // Emit status update to all clients
+          this.server.emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: true,
@@ -463,7 +469,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
         this.logger.error(`Error in pomodoro cycle: ${error.message}`);
         clearInterval(interval);
         this.activeTimers.delete(userId);
-        this.server.to(`pomodoro:${pomodoroId}`).emit('error', { userId, message: error.message });
+        this.server.emit('error', { userId, message: error.message });
       }
     }, 1000);
 
