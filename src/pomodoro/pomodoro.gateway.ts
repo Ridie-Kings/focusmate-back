@@ -45,7 +45,8 @@ interface PomodoroStatus {
 
 @UseGuards(WsJwtAuthGuard)
 @WebSocketGateway({ 
-  namespace: 'pomodoro', 
+  namespace: 'pomodoro',
+  path: '/api/v0',
   cors: { 
     origin: [
       "http://localhost:3000",
