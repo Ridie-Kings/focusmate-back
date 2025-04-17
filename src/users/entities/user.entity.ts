@@ -57,6 +57,9 @@ export class User extends Document {
   @Prop({ default: null })
   stripeCustomerId: string;
 
+  @Prop({ default: null })
+  resetCode: string;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

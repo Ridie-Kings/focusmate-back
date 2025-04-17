@@ -10,7 +10,7 @@ export class Habit extends Document{
   @Prop({ type: String})
   description?: string;
 
-  @Prop({ required: true, type: String })
+  @Prop({ required: true, type: String, enum: ['health', 'productivity', 'learning', 'lifestyle', 'other'] })
   type: string;
 
   @Prop({ required: true, type: Boolean, default: false })
@@ -25,7 +25,7 @@ export class Habit extends Document{
   @Prop({ type: Date, default: null, required: false })
   lastCompletedDate?: Date;
   
-  @Prop({ type: Number, default: false, required: false })
+  @Prop({ type: Number, default: 0, required: false })
   bestStreak: number;
 
   @Prop({default: 0, required: false})

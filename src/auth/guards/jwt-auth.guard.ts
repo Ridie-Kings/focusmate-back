@@ -10,27 +10,30 @@ import { JwtService } from "@nestjs/jwt";
 import { RequestWithUser } from "../interfaces/request-with-user.interface";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 import { JwtPayload } from "../interfaces/jwt-payload.interface";
-import { AuthGuard } from "@nestjs/passport";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard implements CanActivate {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
   constructor(
     private jwtService: JwtService,
     private reflector: Reflector,
-  ) {
-    super();
-  }
+  ) {}
 
-  private extractTokenFromHeader(request: any): string | undefined {
-    const tokenFromCookies = request.cookies?.access_token;
+  private extractTokenFromHeader(request: RequestWithUser): string | undefined {
+    // Try cookies first
+    if (request.cookies?.access_token) {
+      return request.cookies.access_token;
+    }
+
+    // Then try Authorization header
     const authHeader = request.headers.authorization;
-    const tokenFromHeader = authHeader?.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : null;
+    if (!authHeader) {
+      return undefined;
+    }
 
-    return tokenFromCookies || tokenFromHeader;
+    const [type, token] = authHeader.split(' ');
+    return type === 'Bearer' ? token : undefined;
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -46,16 +49,16 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     this.logger.debug("📌 JwtAuthGuard executing...");
 
-    try {
-      const request: RequestWithUser = context.switchToHttp().getRequest();
-      const token = this.extractTokenFromHeader(request);
-      
-      if (!token) {
-        this.logger.warn("❌ No token found in request");
-        return false;
-      }
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const token = this.extractTokenFromHeader(request);
+    
+    if (!token) {
+      this.logger.warn("❌ No token found in request");
+      return false;
+    }
 
-      const payload = this.jwtService.verify<JwtPayload>(token);
+    try {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       this.logger.debug("🔑 JWT Payload:", payload);
       request.user = payload;
       return true;
