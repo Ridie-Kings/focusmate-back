@@ -117,7 +117,11 @@ export class PomodoroService {
   // Get the active Pomodoro session for a user
   async getActivePomodoro(userId: string) {
     try {
-      return await this.pomodoroModel.findOne({ userId, active: true }).sort({ startTime: -1 });
+      const objectId = new mongoose.Types.ObjectId(userId);
+      return await this.pomodoroModel.findOne({ 
+        userId: objectId, 
+        active: true 
+      }).sort({ startTime: -1 });
     } catch (error) {
       this.logger.error(`Error getting active pomodoro: ${error.message}`);
       throw error;
