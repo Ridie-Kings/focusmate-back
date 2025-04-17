@@ -211,6 +211,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       return { success: true, status };
     } catch (error) {
       this.logger.error(`Error stopping pomodoro: ${error.message}`);
+      console.log(error.stack);
       client.emit('error', { message: error.message });
       return { success: false, error: error.message };
     }
