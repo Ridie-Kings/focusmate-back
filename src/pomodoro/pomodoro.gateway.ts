@@ -62,6 +62,7 @@ interface PomodoroStatus {
 export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private readonly logger = new Logger(PomodoroGateway.name);
   private activeTimers: Map<string, NodeJS.Timeout> = new Map();
+  private userRemainingTimes: Map<string, number> = new Map();
 
   @WebSocketServer() server: Server;
 
@@ -95,32 +96,26 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       if (activePomodoro && activePomodoro.active && !activePomodoro.isPaused) {
         this.logger.log(`Auto-pausing pomodoro for user ${userId} on disconnect`);
         
-        // Get the current timer for this user
-        const timer = this.activeTimers.get(userId);
-        if (timer) {
-          // Get the current remaining time from the timer
-          const currentRemainingTime = (timer as any)._idleStart ? 
-            Math.ceil((timer as any)._idleStart / 1000) : 
-            activePomodoro.remainingTime;
-
-          // Update the remaining time in the database and mark as paused
-          await this.pomodoroService.updateRemainingTime(activePomodoro.id, currentRemainingTime);
-          await this.pomodoroService.updatePomodoroStatus(activePomodoro.id, { isPaused: true });
-
-          // Clean up the timer
-          this.cleanupTimers(userId);
-
-          // Emit status update
-          const status: PomodoroStatus = {
-            userId: activePomodoro.userId.toString(),
-            pomodoroId: activePomodoro.id,
-            active: true,
-            remainingTime: currentRemainingTime,
-            isPaused: true
-          };
-          
-          this.server.emit('pomodoroStatus', status);
-        }
+        // Usar el tiempo restante que hemos estado rastreando
+        const currentRemainingTime = this.userRemainingTimes.get(userId) || activePomodoro.remainingTime;
+  
+        // Actualizar la base de datos y marcar como pausado
+        await this.pomodoroService.updateRemainingTime(activePomodoro.id, currentRemainingTime);
+        await this.pomodoroService.updatePomodoroStatus(activePomodoro.id, { isPaused: true });
+  
+        // Limpiar el temporizador
+        this.cleanupTimers(userId);
+  
+        // Emitir actualización de estado
+        const status: PomodoroStatus = {
+          userId: activePomodoro.userId.toString(),
+          pomodoroId: activePomodoro.id,
+          active: true,
+          remainingTime: currentRemainingTime,
+          isPaused: true
+        };
+        
+        this.server.emit('pomodoroStatus', status);
       }
     } catch (error) {
       this.logger.error(`Error auto-pausing pomodoro on disconnect: ${error.message}`);
@@ -153,6 +148,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (timer) {
       clearInterval(timer);
       this.activeTimers.delete(clientId);
+      this.userRemainingTimes.delete(clientId);
     }
   }
 
@@ -276,17 +272,9 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
       if (!activePomodoro) {
         throw new Error('No active pomodoro found');
       }
+      
 
-      // Get the current timer for this user
-      const timer = this.activeTimers.get(userId);
-      if (!timer) {
-        throw new Error('No active timer found');
-      }
-
-      // Get the current remaining time from the timer
-      const currentRemainingTime = (timer as any)._idleStart ? 
-        Math.ceil((timer as any)._idleStart / 1000) : 
-        activePomodoro.remainingTime;
+      const currentRemainingTime = this.userRemainingTimes.get(userId) || activePomodoro.remainingTime;
 
       // Update the remaining time in the database and mark as paused
       await this.pomodoroService.updateRemainingTime(activePomodoro.id, currentRemainingTime);
@@ -425,6 +413,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
 
   private async startPomodoroCycle(userId: string, pomodoroId: string, duration: number, breakDuration: number) {
     let remainingTime = duration;
+    this.userRemainingTimes.set(userId, remainingTime);
     
     const interval = setInterval(async () => {
       try {
@@ -449,7 +438,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           this.startBreak(userId, breakDuration);
         } else {
           remainingTime--;
-          
+          this.userRemainingTimes.set(userId, remainingTime);
           // Update remaining time in the database periodically (every 15 seconds)
           if (remainingTime % 15 === 0) {
             await this.pomodoroService.updateRemainingTime(pomodoroId, remainingTime);
