@@ -179,6 +179,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       const response = { success: true, pomodoroId: pomodoro.id };
       this.logger.debug(`Pomodoro started successfully: ${JSON.stringify(response)}`);
       client.emit('pomodoroStarted', response);
+      this.server.emit('pomodoroStarted', response);
       return response;
     } catch (error) {
       this.logger.error(`Error starting pomodoro: ${error.message}`);
