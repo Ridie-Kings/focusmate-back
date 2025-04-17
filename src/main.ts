@@ -15,7 +15,9 @@ async function sherpmain() {
   const logger = new Logger('Bootstrap');
   logger.log("Starting the application");
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   app.use((req, res, next) => {
 	  req.app.set('trust proxy', 1);
 	  next();

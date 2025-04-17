@@ -26,8 +26,7 @@ export class WsJwtAuthGuard implements CanActivate {
     // Intentamos obtener el token desde el handshake.
     // Dependiendo de la configuración del cliente, puede venir en los headers o en la query string.
     let token: string =
-      client.handshake.headers.authorization ||
-      client.handshake.query?.token;
+      client.handshake.headers.authorization || client.handshake.auth?.token || client.handshake.query?.token;
 
     if (!token) {
       throw new UnauthorizedException('Token not provided');
