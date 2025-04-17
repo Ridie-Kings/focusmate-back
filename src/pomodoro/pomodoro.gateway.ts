@@ -218,14 +218,19 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage('getPomodoroStatus')
-  async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
-    try {
-      const { userId } = payload;
-      if (!userId) {
-        throw new Error('userId is required');
-      }
+async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
+  try {
+    const { userId } = payload;
+    if (!userId) {
+      throw new Error('userId is required');
+    }
 
+    this.logger.log(`Attempting to get pomodoro status for user ${userId}`);
+    
+    try {
       const pomodoro = await this.pomodoroService.getActivePomodoro(userId);
+      this.logger.log(`Retrieved pomodoro status: ${JSON.stringify(pomodoro)}`);
+      
       if (pomodoro) {
         const status: PomodoroStatus = {
           userId: pomodoro.userId.toString(),
@@ -238,13 +243,19 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         client.emit('pomodoroStatus', status);
         return { success: true, status };
       }
+      
+      this.logger.log('No active pomodoro found');
       return { success: true, status: null };
-    } catch (error) {
-      this.logger.error(`Error getting pomodoro status: ${error.message}`);
-      client.emit('error', { message: error.message });
-      return { success: false, error: error.message };
+    } catch (dbError) {
+      this.logger.error(`Database error: ${dbError.message}`, dbError.stack);
+      throw new Error(`Database error: ${dbError.message}`);
     }
+  } catch (error) {
+    this.logger.error(`Error in getPomodoroStatus: ${error.message}`, error.stack);
+    client.emit('error', { message: error.message });
+    return { success: false, error: error.message };
   }
+}
 
   @SubscribeMessage('pausePomodoro')
   async pausePomodoro(client: Socket, payload: PausePomodoroPayload) {
