@@ -176,7 +176,14 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
       // Start the pomodoro cycle with custom durations
       this.startPomodoroCycle(userId, pomodoro.id, duration, breakDuration);
       
-      const response = { success: true, pomodoro };
+      const response = { success: true, pomodoro: {
+        userId,
+        pomodoroId: pomodoro.id,
+        active: pomodoro.active,
+        remainingTime: pomodoro.remainingTime,
+        isBreak: false,
+        isPaused: false,
+      } };
       this.logger.debug(`Pomodoro started successfully: ${JSON.stringify(response)}`);
       this.server.emit('pomodoroStarted', response);
       return response;
