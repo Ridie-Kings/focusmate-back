@@ -23,6 +23,8 @@ export class UserLogsService {
         registerTime: new Date(),
         lastLogin: new Date(),
         loginCount: 1,
+        streak: 1,
+        bestStreak: 1,
         taskCount: 0,
         logs: [],
         lastUpdate: new Date(),
@@ -34,20 +36,22 @@ export class UserLogsService {
     }
   }
 
-  async updateLogin(userId: mongoose.Types.ObjectId, loginTime: Date) {
+  async updateLogin(userId: mongoose.Types.ObjectId) {
     try {
+      await this.checkStreak(userId, new Date());
+      const log={type: 'login', date: new Date()};
       const result = await this.userLogModel.findOneAndUpdate(
         { userId },
         { 
           $set: { 
-            lastLogin: loginTime, 
+            lastLogin: new Date(), 
             lastUpdate: new Date()
           },
-          $inc: { loginCount: 1 }
+          $inc: { loginCount: 1 },
+          $push: { logs: log }
         },
         { new: true, upsert: true }
       );
-      await this.checkStreak(userId, loginTime);
       return result;
     } catch (error) {
       this.logger.error(`Error updating login for user ${userId}: ${error.message}`);
