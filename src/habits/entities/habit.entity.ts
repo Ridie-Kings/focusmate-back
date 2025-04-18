@@ -10,7 +10,7 @@ export class Habit extends Document{
   @Prop({ type: String})
   description?: string;
 
-  @Prop({ required: true, type: String, enum: ['health', 'productivity', 'learning', 'lifestyle', 'other'] })
+  @Prop({ required: true, type: String })
   type: string;
 
   @Prop({ required: true, type: Boolean, default: false })
