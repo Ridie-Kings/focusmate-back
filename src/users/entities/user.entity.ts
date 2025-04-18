@@ -11,7 +11,7 @@ import mongoose, { Document } from "mongoose";
 // }
 
 export type UserDocument = User & Document;
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
   @Prop({
     required: true,
@@ -56,6 +56,9 @@ export class User extends Document {
 
   @Prop({ default: null })
   stripeCustomerId: string;
+
+  @Prop({ default: null })
+  resetCode: string;
 
 }
 

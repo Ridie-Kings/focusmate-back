@@ -54,7 +54,8 @@ export class AuthService {
         throw new UnauthorizedException("Invalid credentials");
       }
 
-      const payload = { id: user._id, email: user.email };
+      // Use consistent payload structure
+      const payload = { id: user._id.toString(), email: user.email };
       const accessToken = this.jwtService.sign(payload, { expiresIn: "15m" });
       const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
@@ -64,7 +65,7 @@ export class AuthService {
       });
 
       this.logger.debug(`Login successful for user: ${email}`);
-      this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user.id});
+      this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
       return {
         access_token: accessToken,
         refresh_token: refreshToken,
@@ -95,10 +96,10 @@ export class AuthService {
         throw new UnauthorizedException("Invalid refresh token");
       }
 
-      // Find user by ID from token
-      const user = await this.usersService.findOne(payload.id);
+      // Find user by email from token
+      const user = await this.usersService.findOne(payload.email);
       if (!user) {
-        this.logger.warn(`User not found for refresh token: ${payload.id}`);
+        this.logger.warn(`User not found for refresh token: ${payload.email}`);
         throw new UnauthorizedException("Invalid refresh token");
       }
 
@@ -108,7 +109,7 @@ export class AuthService {
         throw new UnauthorizedException("Invalid refresh token");
       }
 
-      // Generate new access token
+      // Generate new access token with consistent payload structure
       const newAccessToken = this.jwtService.sign(
         { id: user._id, email: user.email },
         { expiresIn: "15m" }
@@ -150,19 +151,21 @@ export class AuthService {
       await this.usersService.update(user._id.toString(), { refreshToken: null });
       this.logger.debug('Refresh token removed from user record');
 
-      // Clear cookies
+      // Clear cookies with matching settings
       res.clearCookie('access_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/'
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000 // 12 hours
       });
       
       res.clearCookie('refresh_token', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
-        path: '/'
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
       });
 
       this.logger.debug('Cookies cleared successfully');

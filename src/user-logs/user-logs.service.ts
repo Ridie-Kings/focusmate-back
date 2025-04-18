@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { UserLog, UserLogDocument } from './entities/user-log.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -47,6 +47,7 @@ export class UserLogsService {
         },
         { new: true, upsert: true }
       );
+      await this.checkStreak(userId, loginTime);
       return result;
     } catch (error) {
       this.logger.error(`Error updating login for user ${userId}: ${error.message}`);
@@ -56,31 +57,81 @@ export class UserLogsService {
 
   async checkStreak(userId: mongoose.Types.ObjectId, currentDate: Date) {
     try {
-      const userLog = await this.userLogModel.findOne({ userId });
+      // Find the user log
+      let userLog = await this.userLogModel.findOne({ userId });
+      
       if (!userLog) {
-        return;
+        throw new NotFoundException('User log not found');
       }
 
       const lastLogin = userLog.lastLogin;
       if (!lastLogin) {
-        return;
+        // First login ever, initialize streak
+        await this.userLogModel.updateOne(
+          { userId },
+          { 
+            $set: { 
+              lastLogin: currentDate,
+              streak: 1,
+              bestStreak: 1
+            }
+          }
+        );
+        return 1;
       }
 
+      // Normalize dates to midnight for comparison
       const lastLoginDate = new Date(lastLogin);
-      const yesterday = new Date(currentDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      if (lastLoginDate.toDateString() === yesterday.toDateString()) {
-        await this.userLogModel.updateOne(
-          { userId },
-          { $inc: { streak: 1 } }
-        );
-      } else if (lastLoginDate.toDateString() !== currentDate.toDateString()) {
-        await this.userLogModel.updateOne(
-          { userId },
-          { $set: { streak: 0 } }
-        );
+      const normalizedLastLogin = new Date(
+        lastLoginDate.getFullYear(), 
+        lastLoginDate.getMonth(), 
+        lastLoginDate.getDate()
+      );
+      
+      const normalizedCurrentDate = new Date(
+        currentDate.getFullYear(), 
+        currentDate.getMonth(), 
+        currentDate.getDate()
+      );
+      // If already logged in today, don't change anything
+      if (normalizedLastLogin.getTime() === normalizedCurrentDate.getTime()) {
+        this.logger.log("already logged in today, returning streak", userLog.streak);
+        return userLog.streak;
       }
+
+      // Check if last login was yesterday
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      const daysDifference = Math.round(
+        (normalizedCurrentDate.getTime() - normalizedLastLogin.getTime()) / oneDayInMs
+      );
+
+      let newStreak = userLog.streak;
+      let bestStreak = userLog.bestStreak || 0;
+
+      if (daysDifference === 1) {
+        // User logged in yesterday, increment streak
+        newStreak += 1;
+        // Update best streak if current streak is higher
+        if (newStreak > bestStreak) {
+          bestStreak = newStreak;
+        }
+      } else {
+        // User didn't log in yesterday, reset streak
+        newStreak = 1; // Set to 1 because they're logging in today
+      }
+      // Update the user log
+      await this.userLogModel.updateOne(
+        { userId },
+        { 
+          $set: { 
+            streak: newStreak,
+            bestStreak: bestStreak,
+            lastLogin: currentDate
+          }
+        }
+      );
+      
+      return newStreak;
     } catch (error) {
       this.logger.error(`Error checking streak for user ${userId}: ${error.message}`);
       throw new InternalServerErrorException('Error checking streak');
