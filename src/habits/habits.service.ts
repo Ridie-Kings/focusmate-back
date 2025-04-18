@@ -20,6 +20,7 @@ export class HabitsService {
       });
       return await habit.populate('userId');
     } catch (error) {
+      console.log(error)
       throw new Error('Error creating habit');
     }
   }
