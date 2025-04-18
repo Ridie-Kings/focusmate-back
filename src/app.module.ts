@@ -1,12 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_FILTER } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { MongooseModule } from "@nestjs/mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { Logger } from "@nestjs/common";
 import { Stat, StatSchema } from './stats/entities/stats.entity';
+import { JwtExceptionFilter } from './auth/filters/jwt-exception.filter';
 
 import { AppController, AdminController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -107,6 +108,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: JwtExceptionFilter,
     },
     AppService
   ],

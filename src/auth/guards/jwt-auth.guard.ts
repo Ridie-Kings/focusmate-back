@@ -10,6 +10,7 @@ import { JwtService } from "@nestjs/jwt";
 import { RequestWithUser } from "../interfaces/request-with-user.interface";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 import { JwtPayload } from "../interfaces/jwt-payload.interface";
+import { TokenExpiredException } from "../exceptions/token-expired.exception";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -54,7 +55,7 @@ export class JwtAuthGuard implements CanActivate {
     
     if (!token) {
       this.logger.warn("❌ No token found in request");
-      return false;
+      throw new UnauthorizedException("No token provided");
     }
 
     try {
@@ -64,7 +65,12 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     } catch (error) {
       this.logger.error(`❌ Token verification error (${error.message})`);
-      return false;
+      
+      if (error.name === 'TokenExpiredError') {
+        throw new TokenExpiredException();
+      }
+      
+      throw new UnauthorizedException("Invalid token");
     }
   }
 }
