@@ -57,54 +57,75 @@ export class UserLogsService {
 
   async checkStreak(userId: mongoose.Types.ObjectId, currentDate: Date) {
     try {
-      // Find the user log or create it if it doesn't exist
+      // Find the user log
       let userLog = await this.userLogModel.findOne({ userId });
       
       if (!userLog) {
-        // Create a new user log if it doesn't exist
         throw new NotFoundException('User log not found');
       }
 
       const lastLogin = userLog.lastLogin;
       if (!lastLogin) {
-        // Initialize streak if lastLogin doesn't exist
+        // First login ever, initialize streak
         await this.userLogModel.updateOne(
           { userId },
           { 
             $set: { 
               lastLogin: currentDate,
-              streak: 1
+              streak: 1,
+              bestStreak: 1
             }
           }
         );
         return 1;
       }
 
+      // Normalize dates to midnight for comparison
       const lastLoginDate = new Date(lastLogin);
-      const yesterday = new Date(currentDate);
-      yesterday.setDate(yesterday.getDate() - 1);
+      const normalizedLastLogin = new Date(
+        lastLoginDate.getFullYear(), 
+        lastLoginDate.getMonth(), 
+        lastLoginDate.getDate()
+      );
       
-      // Normalize dates to midnight for comparison (to ignore time)
-      const normalizedLastLogin = new Date(lastLoginDate.getFullYear(), lastLoginDate.getMonth(), lastLoginDate.getDate());
-      const normalizedYesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-      const normalizedCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+      const normalizedCurrentDate = new Date(
+        currentDate.getFullYear(), 
+        currentDate.getMonth(), 
+        currentDate.getDate()
+      );
+      // If already logged in today, don't change anything
+      if (normalizedLastLogin.getTime() === normalizedCurrentDate.getTime()) {
+        this.logger.log("already logged in today, returning streak", userLog.streak);
+        return userLog.streak;
+      }
+
+      // Check if last login was yesterday
+      const oneDayInMs = 24 * 60 * 60 * 1000;
+      const daysDifference = Math.round(
+        (normalizedCurrentDate.getTime() - normalizedLastLogin.getTime()) / oneDayInMs
+      );
 
       let newStreak = userLog.streak;
-      
-      if (normalizedLastLogin.getTime() === normalizedYesterday.getTime()) {
+      let bestStreak = userLog.bestStreak || 0;
+
+      if (daysDifference === 1) {
         // User logged in yesterday, increment streak
         newStreak += 1;
-      } else if (normalizedLastLogin.getTime() !== normalizedCurrentDate.getTime()) {
-        // User didn't log in yesterday or today, reset streak
-        newStreak = 0;
+        // Update best streak if current streak is higher
+        if (newStreak > bestStreak) {
+          bestStreak = newStreak;
+        }
+      } else {
+        // User didn't log in yesterday, reset streak
+        newStreak = 1; // Set to 1 because they're logging in today
       }
-      
-      // Update the user log with the new streak and last login
+      // Update the user log
       await this.userLogModel.updateOne(
         { userId },
         { 
           $set: { 
             streak: newStreak,
+            bestStreak: bestStreak,
             lastLogin: currentDate
           }
         }

@@ -52,7 +52,8 @@ export class UserLog extends Document {
   registerTime: Date;
   @Prop({ type: Number, required: false, default: 0})
   streak: number;
-
+  @Prop({ type: Number, required: false, default: 0})
+  bestStreak: number;
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);
