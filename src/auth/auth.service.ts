@@ -56,7 +56,7 @@ export class AuthService {
 
       // Use consistent payload structure
       const payload = { id: user._id.toString(), email: user.email };
-      const accessToken = this.jwtService.sign(payload, { expiresIn: "15m" });
+      const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
       const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
       // Store the unhashed refresh token in the database
@@ -112,7 +112,7 @@ export class AuthService {
       // Generate new access token with consistent payload structure
       const newAccessToken = this.jwtService.sign(
         { id: user._id, email: user.email },
-        { expiresIn: "15m" }
+        { expiresIn: "12h" }
       );
 
       this.logger.debug(`New access token generated for user: ${user.email}`);
