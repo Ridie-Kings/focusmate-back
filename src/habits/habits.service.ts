@@ -53,28 +53,30 @@ export class HabitsService {
     
     // Ensure we're working with Date objects
     const lastDate = new Date(lastCompletedDate);
+    const normalizedLastDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
     const currentDate = new Date(completedDate);
-    
+    const normalizedCurrentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
     // Calculate the difference in milliseconds
-    const diffMs = currentDate.getTime() - lastDate.getTime();
+   const diffMs = Math.round(normalizedCurrentDate.getTime() - normalizedLastDate.getTime());
     
     if (frequency === 'daily') {
       // For daily habits, check if the difference is between 1 and 2 days
       // This allows for some flexibility in completion time
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      return diffDays >= 1 && diffDays < 2;
+      console.log("diffDays", diffDays);
+      return diffDays === 1;
     } 
-    else if (frequency === 'weekly') {
-      // For weekly habits, check if the difference is between 7 and 14 days
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      return diffDays >= 7 && diffDays < 14;
-    } 
-    else if (frequency === 'monthly') {
-      // For monthly habits, check if the difference is between 28 and 31 days
-      // This accounts for different month lengths
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      return diffDays >= 28 && diffDays < 31;
-    }
+    // else if (frequency === 'weekly') {
+    //   // For weekly habits, check if the difference is between 7 and 14 days
+    //   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    //   return diffDays >= 7 && diffDays < 14;
+    // } 
+    // else if (frequency === 'monthly') {
+    //   // For monthly habits, check if the difference is between 28 and 31 days
+    //   // This accounts for different month lengths
+    //   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    //   return diffDays >= 28 && diffDays < 31;
+    // }
     
     return false;
   }

@@ -48,7 +48,7 @@ export class UserLogsService {
             lastUpdate: new Date()
           },
           $inc: { loginCount: 1 },
-          $push: { logs: log }
+          $addToSet: { logs: log, loginDates: new Date() }
         },
         { new: true, upsert: true }
       );
@@ -91,7 +91,6 @@ export class UserLogsService {
         lastLoginDate.getMonth(), 
         lastLoginDate.getDate()
       );
-      
       const normalizedCurrentDate = new Date(
         currentDate.getFullYear(), 
         currentDate.getMonth(), 
@@ -99,7 +98,18 @@ export class UserLogsService {
       );
       // If already logged in today, don't change anything
       if (normalizedLastLogin.getTime() === normalizedCurrentDate.getTime()) {
-        this.logger.log("already logged in today, returning streak", userLog.streak);
+        this.logger.log("already logged in today, returning streak");
+        if (userLog.streak === 0) {
+          await this.userLogModel.updateOne(
+            { userId },
+            { 
+              $set: { 
+                streak: 1,
+                bestStreak: 1
+              }
+            }
+          );
+        }
         return userLog.streak;
       }
 
@@ -109,7 +119,7 @@ export class UserLogsService {
         (normalizedCurrentDate.getTime() - normalizedLastLogin.getTime()) / oneDayInMs
       );
 
-      let newStreak = userLog.streak;
+      let newStreak = userLog.streak || 0;
       let bestStreak = userLog.bestStreak || 0;
 
       if (daysDifference === 1) {
