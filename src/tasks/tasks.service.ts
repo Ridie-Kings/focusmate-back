@@ -30,6 +30,14 @@ export class TasksService {
       throw new InternalServerErrorException('Error creating task');
     }
   }
+  private async checkTaskDates(date: Date): Promise<boolean> {
+    const allTasks = await this.taskModel.find({});
+    return allTasks.some(task => {
+      const taskDate = new Date(task.dueDate);
+      return taskDate.toDateString() === date.toDateString();
+    });
+    
+  }
 
   async findAll(userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
