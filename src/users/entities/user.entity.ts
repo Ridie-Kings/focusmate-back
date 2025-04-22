@@ -42,6 +42,9 @@ export class User extends Document {
   @Prop({ required: false, default: null, type: Date })
   birthDate: Date;
 
+  @Prop({ required: false, default: null, type: Number})
+  phoneNumber: number;
+
   // @Prop({ default: 0 })
   // xp: number;
 
@@ -59,6 +62,9 @@ export class User extends Document {
 
   @Prop({ default: null })
   resetCode: string;
+
+  @Prop({ type: String, required: false })
+  googleId?: string;
 
 }
 
