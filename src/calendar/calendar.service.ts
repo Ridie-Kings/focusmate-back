@@ -185,6 +185,14 @@ export class CalendarService {
         const taskDate = new Date(task["dueDate"]);
         return taskDate >= start && taskDate <= end;
       });
+     
+      // Sort tasks by start date
+      tasks.sort((a, b) => {
+        const dateA = new Date(a["startDate"]);
+        const dateB = new Date(b["startDate"]);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
       return tasks;
     } catch (error) {
       console.log(error);
@@ -203,6 +211,11 @@ export class CalendarService {
       const tasks = calendar.tasks.filter((task) => {
         const taskDate = new Date(task["dueDate"]);
         return taskDate >= start && taskDate <= end;
+      });
+      tasks.sort((a, b) => {
+        const dateA = new Date(a["startDate"]);
+        const dateB = new Date(b["startDate"]);
+        return dateA.getTime() - dateB.getTime();
       });
       return tasks;
     } catch (error) {

@@ -70,10 +70,11 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
-    // Send a welcome message to confirm connection
+    const userId = client.handshake.query.userId as string;
+    if (userId) {
+      client.join(userId);
+    }
     client.emit('connected', { message: 'Connected to Pomodoro WebSocket' });
-    
-    // Log socket handshake data for debugging
     this.logger.debug(`Client handshake: ${JSON.stringify(client.handshake)}`);
   }
 
@@ -115,7 +116,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
           isPaused: true
         };
         
-        this.server.emit('pomodoroStatus', status);
+        this.server.to(userId).emit('pomodoroStatus', status);
       }
     } catch (error) {
       this.logger.error(`Error auto-pausing pomodoro on disconnect: ${error.message}`);
@@ -181,7 +182,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         isPaused: false,
       } };
       this.logger.debug(`Pomodoro started successfully: ${JSON.stringify(response)}`);
-      this.server.emit('pomodoroStarted', response);
+      client.emit('pomodoroStarted', response);
       return response;
     } catch (error) {
       this.logger.error(`Error starting pomodoro: ${error.message}`);
@@ -210,7 +211,7 @@ export class PomodoroGateway implements OnGatewayConnection, OnGatewayDisconnect
         remainingTime: 0
       };
       
-      this.server.emit('pomodoroStopped', {success: true});
+      this.server.to(pomodoro.userId.toString()).emit('pomodoroStopped', {success: true});
       return { success: true, status };
     } catch (error) {
       this.logger.error(`Error stopping pomodoro: ${error.message}`);
@@ -291,7 +292,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
         isPaused: true
       };
       
-      this.server.emit('pomodoroStatus', status);
+      this.server.to(userId).emit('pomodoroStatus', status);
       return { success: true, status };
     } catch (error) {
       this.logger.error(`Error pausing pomodoro: ${error.message}`);
@@ -363,7 +364,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
         isBreak: activePomodoro.type !== 'pomodoro'
       };
       
-      this.server.emit('pomodoroStatus', status);
+      this.server.to(userId).emit('pomodoroStatus', status);
       return { success: true, status };
     } catch (error) {
       this.logger.error(`Error resuming pomodoro: ${error.message}`);
@@ -425,7 +426,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           await this.pomodoroService.stopPomodoro(pomodoroId);
 
           // Emit completion status to all clients
-          this.server.emit('pomodoroStatus', {
+          this.server.to(userId).emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: false,
@@ -445,7 +446,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           }
           
           // Emit status update to all clients
-          this.server.emit('pomodoroStatus', {
+          this.server.to(userId).emit('pomodoroStatus', {
             userId,
             pomodoroId,
             active: true,
@@ -458,7 +459,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
         this.logger.error(`Error in pomodoro cycle: ${error.message}`);
         clearInterval(interval);
         this.activeTimers.delete(userId);
-        this.server.emit('error', { userId, message: error.message });
+        this.server.to(userId).emit('error', { userId, message: error.message });
       }
     }, 1000);
 
@@ -474,7 +475,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           clearInterval(breakInterval);
           this.activeTimers.delete(userId);
 
-          this.server.emit('pomodoroStatus', {
+          this.server.to(userId).emit('pomodoroStatus', {
             userId,
             pomodoroId: null,
             active: false,
@@ -484,7 +485,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           });
         } else {
           breakTime--;
-          this.server.emit('pomodoroStatus', {
+          this.server.to(userId).emit('pomodoroStatus', {
             userId,
             pomodoroId: null,
             active: true,
@@ -497,7 +498,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
         this.logger.error(`Error in break cycle: ${error.message}`);
         clearInterval(breakInterval);
         this.activeTimers.delete(userId);
-        this.server.emit('error', { userId, message: error.message });
+        this.server.to(userId).emit('error', { userId, message: error.message });
       }
     }, 1000);
 
