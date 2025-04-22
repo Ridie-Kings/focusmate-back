@@ -91,4 +91,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   stripeCustomerId?: string;
+
+  @ApiProperty({
+    example: 1234567890,
+    description: "User phone number (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  phoneNumber?: number;
 }
