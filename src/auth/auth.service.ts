@@ -14,6 +14,7 @@ import { ResetPasswordDto } from "./dto/reset-password.dto";
 import * as crypto from 'crypto';
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { EventsList } from "src/events/list.events";
+import { DiscordWebhookService } from "../webhooks/discord-webhook.service";
 
 @Injectable()
 export class AuthService {
@@ -26,12 +27,17 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly tokenBlacklistService: TokenBlacklistService,
     private readonly emailService: EmailService,
+    private readonly discordWebhookService: DiscordWebhookService,
     @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
   ) {}
 
   async register(createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
     await this.emailService.sendWelcomeEmail(user.email, user.fullname);
+    
+    // Send Discord notification
+    await this.discordWebhookService.notifyNewUser(user.username, user.email);
+    
     return user;
   }
 
@@ -66,6 +72,10 @@ export class AuthService {
 
       this.logger.debug(`Login successful for user: ${email}`);
       this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
+      
+      // Send Discord notification
+      await this.discordWebhookService.notifyUserLogin(user.username);
+      
       return {
         access_token: accessToken,
         refresh_token: refreshToken,

@@ -6,6 +6,9 @@ import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { EventsList } from 'src/events/list.events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DiscordWebhookService } from '../webhooks/discord-webhook.service';
+import { UsersService } from '../users/users.service';
+
 @Injectable()
 export class TasksService {
   private readonly logger = new Logger(TasksService.name);
@@ -13,6 +16,8 @@ export class TasksService {
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
     private eventEmitter: EventEmitter2,
+    private readonly discordWebhookService: DiscordWebhookService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
@@ -24,6 +29,17 @@ export class TasksService {
         userId: userId,
       });
       this.eventEmitter.emit(EventsList.TASK_CREATED, {userId: userId, taskId: task._id});
+      
+      // Get user info for the notification
+      const user = await this.usersService.findOne(userId.toString());
+      
+      // Send Discord notification
+      await this.discordWebhookService.notifyNewTask(
+        task.title,
+        user.username,
+        task.priority || 'none'
+      );
+      
       return task;
     } catch (error) {
       console.error('Error creating task:', error);
@@ -68,19 +84,32 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      console.log('updateTaskDto', updateTaskDto);
+      
+      // Check if the task is being marked as completed
+      const isBeingCompleted = updateTaskDto.status === 'completed' && task.status !== 'completed';
+      
       if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
         return await this.updateTags(id, updateTaskDto, userId);
         updateTaskDto.addTags = null;
         updateTaskDto.deleteTags = null;
       }
-      console.log('updateTaskDto', updateTaskDto);
-      return await this.taskModel.findByIdAndUpdate(id ,
+      
+      const updatedTask = await this.taskModel.findByIdAndUpdate(id,
         {
           ...updateTaskDto,
         },
         {new: true});
-
+      
+      // If task was marked as completed, send notification
+      if (isBeingCompleted) {
+        const user = await this.usersService.findOne(userId.toString());
+        await this.discordWebhookService.notifyTaskCompleted(
+          updatedTask.title,
+          user.username
+        );
+      }
+      
+      return updatedTask;
     } catch (error) {
       console.error('Error updating task:', error);
       throw new InternalServerErrorException('Error updating task');
