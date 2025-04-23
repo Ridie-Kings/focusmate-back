@@ -467,41 +467,59 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
   }
 
   private async startBreak(userId: string, breakDuration: number = 300, pomodoroId: string) {
-    let breakTime = breakDuration;
-    
-    const breakInterval = setInterval(async () => {
-      try {
-        if (breakTime <= 0) {
+    try {
+      // Create a new pomodoro record for the break
+      const breakPomodoro = await this.pomodoroService.startPomodoro(userId, breakDuration);
+      // Set the type to shortBreak
+      await this.pomodoroService.updatePomodoroStatus(breakPomodoro.id, { type: 'shortBreak' });
+      
+      let breakTime = breakDuration;
+      
+      const breakInterval = setInterval(async () => {
+        try {
+          if (breakTime <= 0) {
+            clearInterval(breakInterval);
+            this.activeTimers.delete(userId);
+
+            // Stop the break pomodoro
+            await this.pomodoroService.stopPomodoro(breakPomodoro.id);
+
+            this.server.to(userId).emit('pomodoroStatus', {
+              userId,
+              pomodoroId: breakPomodoro.id,
+              active: false,
+              remainingTime: 0,
+              isBreak: false,
+              isPaused: false
+            });
+          } else {
+            breakTime--;
+            // Update remaining time in database periodically
+            if (breakTime % 15 === 0) {
+              await this.pomodoroService.updateRemainingTime(breakPomodoro.id, breakTime);
+            }
+            
+            this.server.to(userId).emit('pomodoroStatus', {
+              userId,
+              pomodoroId: breakPomodoro.id,
+              active: true,
+              remainingTime: breakTime,
+              isBreak: true,
+              isPaused: false
+            });
+          }
+        } catch (error) {
+          this.logger.error(`Error in break cycle: ${error.message}`);
           clearInterval(breakInterval);
           this.activeTimers.delete(userId);
-
-          this.server.to(userId).emit('pomodoroStatus', {
-            userId,
-            pomodoroId: pomodoroId,
-            active: false,
-            remainingTime: 0,
-            isBreak: false,
-            isPaused: false
-          });
-        } else {
-          breakTime--;
-          this.server.to(userId).emit('pomodoroStatus', {
-            userId,
-            pomodoroId: pomodoroId,
-            active: true,
-            remainingTime: breakTime,
-            isBreak: true,
-            isPaused: false
-          });
+          this.server.to(userId).emit('error', { userId, message: error.message });
         }
-      } catch (error) {
-        this.logger.error(`Error in break cycle: ${error.message}`);
-        clearInterval(breakInterval);
-        this.activeTimers.delete(userId);
-        this.server.to(userId).emit('error', { userId, message: error.message });
-      }
-    }, 1000);
+      }, 1000);
 
-    this.activeTimers.set(userId, breakInterval);
+      this.activeTimers.set(userId, breakInterval);
+    } catch (error) {
+      this.logger.error(`Error starting break: ${error.message}`);
+      this.server.to(userId).emit('error', { userId, message: error.message });
+    }
   }
 }
