@@ -141,7 +141,7 @@ export class PomodoroService {
     return this.configService.get('POMODORO_LONG_BREAK', 900);
   }
 
-  async updatePomodoroStatus(pomodoroId: string, status: { isPaused?: boolean }): Promise<Pomodoro> {
+  async updatePomodoroStatus(pomodoroId: string, status: { isPaused?: boolean; type?: string }): Promise<Pomodoro> {
     return this.pomodoroModel.findByIdAndUpdate(
       pomodoroId,
       { $set: status },
