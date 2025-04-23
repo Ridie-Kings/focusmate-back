@@ -436,7 +436,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
           });
 
           // Start break with custom duration
-          this.startBreak(userId, breakDuration, pomodoroId);
+          this.startBreak(userId, breakDuration);
         } else {
           remainingTime--;
           this.userRemainingTimes.set(userId, remainingTime);
@@ -466,7 +466,7 @@ async getPomodoroStatus(client: Socket, payload: GetStatusPayload) {
     this.activeTimers.set(userId, interval);
   }
 
-  private async startBreak(userId: string, breakDuration: number = 300, pomodoroId: string) {
+  private async startBreak(userId: string, breakDuration: number = 300) {
     try {
       // Create a new pomodoro record for the break
       const breakPomodoro = await this.pomodoroService.startPomodoro(userId, breakDuration);
