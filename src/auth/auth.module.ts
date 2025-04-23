@@ -10,6 +10,7 @@ import { MongooseModule } from "@nestjs/mongoose";
 import { User, UserSchema } from "src/users/entities/user.entity";
 import { TokenBlacklistModule } from "../token-black-list/token-black-list.module";
 import { EmailModule } from '../email/email.module';
+import { WebhooksModule } from '../webhooks/webhooks.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from '../email/email.module';
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     TokenBlacklistModule,
     EmailModule,
+    WebhooksModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, ConfigService],
