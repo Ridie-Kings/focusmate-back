@@ -37,13 +37,7 @@ export class Task extends Document{
   @Prop({ type: Date, required: false })
   endDate?: Date;
 
-  @Prop({ type: Date, required: false, set: (val : string | Date) => {
-    if (typeof val === 'string') {
-      const [year, month, day] = val.split('-').map(Number);
-      return new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
-    }
-    return val;
-  }})
+  @Prop({ type: Date, required: false, })
   dueDate?: Date;
 
   @Prop({ type: Boolean, default: false })
