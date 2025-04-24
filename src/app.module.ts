@@ -49,7 +49,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
       {
         name: "default",
         ttl: 10000, // 1 minuto
-        limit: 10,
+        limit: 100,
       },
     ]),
 
