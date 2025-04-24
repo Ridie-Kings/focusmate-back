@@ -23,22 +23,12 @@ export class TasksService {
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
     this.logger.debug('Creating task with DTO:', createTaskDto);
     try {
-      console.log('createTaskDto', createTaskDto);
+      console.log('Hora backend actual', new Date());
       const task = await this.taskModel.create({
         ...createTaskDto,
         userId: userId,
       });
       this.eventEmitter.emit(EventsList.TASK_CREATED, {userId: userId, taskId: task._id});
-      
-      // Get user info for the notification
-      const user = await this.usersService.findOne(userId.toString());
-      
-      // Send Discord notification
-      await this.discordWebhookService.notifyNewTask(
-        task.title,
-        user.username,
-        task.priority || 'none'
-      );
       
       return task;
     } catch (error) {
@@ -85,9 +75,6 @@ export class TasksService {
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       
-      // Check if the task is being marked as completed
-      const isBeingCompleted = updateTaskDto.status === 'completed' && task.status !== 'completed';
-      
       if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
         return await this.updateTags(id, updateTaskDto, userId);
         updateTaskDto.addTags = null;
@@ -99,15 +86,6 @@ export class TasksService {
           ...updateTaskDto,
         },
         {new: true});
-      
-      // If task was marked as completed, send notification
-      if (isBeingCompleted) {
-        const user = await this.usersService.findOne(userId.toString());
-        await this.discordWebhookService.notifyTaskCompleted(
-          updatedTask.title,
-          user.username
-        );
-      }
       
       return updatedTask;
     } catch (error) {

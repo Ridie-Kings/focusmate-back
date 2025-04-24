@@ -161,6 +161,9 @@ export class AuthService {
       await this.usersService.update(user._id.toString(), { refreshToken: null });
       this.logger.debug('Refresh token removed from user record');
 
+      // Send Discord notification
+      await this.discordWebhookService.notifyUserLogout(user.username);
+
       // Clear cookies with matching settings
       res.clearCookie('access_token', {
         httpOnly: true,

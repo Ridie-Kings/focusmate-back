@@ -77,37 +77,17 @@ export class DiscordWebhookService {
     await this.sendWebhook({ embeds: [embed] });
   }
 
-  async notifyNewTask(taskTitle: string, username: string, priority: string): Promise<void> {
+  async notifyUserLogout(username: string): Promise<void> {
     const embed: DiscordEmbed = {
-      title: '📝 New Task Created',
-      description: 'A new task has been created',
-      color: 0xffa500, // Orange color
+      title: '🚪 User Logout',
+      description: 'A user has logged out of the application',
+      color: 0xff0000, // Red color
       fields: [
-        { name: 'Task', value: taskTitle, inline: true },
-        { name: 'Created By', value: username, inline: true },
-        { name: 'Priority', value: priority, inline: true }
+        { name: 'Username', value: username }
       ],
       timestamp: new Date().toISOString(),
       footer: {
-        text: 'SherpApp Task Management'
-      }
-    };
-
-    await this.sendWebhook({ embeds: [embed] });
-  }
-
-  async notifyTaskCompleted(taskTitle: string, username: string): Promise<void> {
-    const embed: DiscordEmbed = {
-      title: '✅ Task Completed',
-      description: 'A task has been marked as complete',
-      color: 0x00ff00, // Green color
-      fields: [
-        { name: 'Task', value: taskTitle, inline: true },
-        { name: 'Completed By', value: username, inline: true }
-      ],
-      timestamp: new Date().toISOString(),
-      footer: {
-        text: 'SherpApp Task Management'
+        text: 'SherpApp User Logout'
       }
     };
 
