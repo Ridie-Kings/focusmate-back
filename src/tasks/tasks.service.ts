@@ -23,7 +23,6 @@ export class TasksService {
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
     this.logger.debug('Creating task with DTO:', createTaskDto);
     try {
-      console.log('Hora backend actual', new Date());
       const task = await this.taskModel.create({
         ...createTaskDto,
         userId: userId,
@@ -36,14 +35,14 @@ export class TasksService {
       throw new InternalServerErrorException('Error creating task');
     }
   }
-  private async checkTaskDates(date: Date): Promise<boolean> {
-    const allTasks = await this.taskModel.find({});
-    return allTasks.some(task => {
-      const taskDate = new Date(task.dueDate);
-      return taskDate.toDateString() === date.toDateString();
-    });
+  // private async checkTaskDates(date: Date): Promise<boolean> {
+  //   const allTasks = await this.taskModel.find({});
+  //   return allTasks.some(task => {
+  //     const taskDate = new Date(task.dueDate);
+  //     return taskDate.toDateString() === date.toDateString();
+  //   });
     
-  }
+  // }
 
   async findAll(userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
