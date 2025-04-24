@@ -48,8 +48,8 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     ThrottlerModule.forRoot([
       {
         name: "default",
-        ttl: 10000, // 1 minuto
-        limit: 100,
+        ttl: 60000, // 1 minuto
+        limit: 1000,
       },
     ]),
 
