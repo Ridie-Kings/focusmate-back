@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { APP_GUARD, APP_FILTER } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { MongooseModule } from "@nestjs/mongoose";
@@ -45,14 +44,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        name: "default",
-        ttl: 60, // 1 minuto
-        limit: 8000,
-      },
-    ]),
-
     ConfigModule.forRoot({ isGlobal: true }),
 
     MongooseModule.forRootAsync({
@@ -101,10 +92,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
   ],
   controllers: [AppController, AdminController],
   providers: [
-    {
-      provide: APP_GUARD,
-      useClass: ThrottlerGuard,
-    },
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
