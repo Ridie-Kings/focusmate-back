@@ -3,7 +3,7 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
 import helmet from "helmet";
-import { rateLimit } from "express-rate-limit";
+//import { rateLimit } from "express-rate-limit";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cookieParser from "cookie-parser";
 import { Logger } from '@nestjs/common';
@@ -45,13 +45,13 @@ async function sherpmain() {
 
   app.use(cookieParser());
   // configuracón de Rate Limiting ()
-  app.use(
-    rateLimit({
-      windowMs: 60 * 1000, // 1 minuto
-      max: 10000, // Máximo 10,000 solicitudes en total por minuto
-      message: "Global API limit reached. Please try again later.",
-    }),
-  );
+  // app.use(
+  //   rateLimit({
+  //     windowMs: 60 * 1000, // 1 minuto
+  //     max: 10000, // Máximo 10,000 solicitudes en total por minuto
+  //     message: "Global API limit reached. Please try again later.",
+  //   }),
+  // );
 
   // Configuración global de validaciones
   app.useGlobalPipes(
