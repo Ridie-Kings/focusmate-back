@@ -47,7 +47,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
   imports: [
     ThrottlerModule.forRoot([{
       ttl: 60000, // 1 minute
-      limit: 8000,
+      limit: 1000,
     }]),
 
     ConfigModule.forRoot({ isGlobal: true }),
