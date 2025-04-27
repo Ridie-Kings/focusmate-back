@@ -121,6 +121,7 @@ export class TasksService {
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       await this.taskModel.findByIdAndUpdate(id, {isDeleted: true}, {new: true});
+      this.eventEmitter.emit(EventsList.TASK_DELETED, {userId: userId, taskId: task._id});
       return (await this.findOne(id, userId)).populate('userId');
     } catch (error) {
       throw new InternalServerErrorException('Error deleting task');
@@ -133,6 +134,7 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      this.eventEmitter.emit(EventsList.TASK_DELETED, {userId: userId, taskId: task._id});
       return this.taskModel.findByIdAndDelete(id);
     } catch (error) {
       throw new InternalServerErrorException('Error deleting task');
