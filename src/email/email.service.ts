@@ -25,19 +25,23 @@ export class EmailService {
         to: email,
         subject: '¡Bienvenido a SherpApp! 🎉',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: #00544d;">
             <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #4a6cf7; margin-bottom: 10px;">¡Bienvenido a SherpApp, ${name}! 🚀</h1>
-              <p style="font-size: 18px; color: #555;">¡Estamos emocionados de tenerte a bordo! 🌟</p>
+              <h1 style="color: #fff; margin-bottom: 10px;">¡Bienvenido a SherpApp, ${name}! 🚀</h1>
+              <p style="font-size: 18px; color: #fff;">¡Estamos emocionados de tenerte a bordo! 🌟</p>
             </div>
             
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <p style="font-size: 16px; line-height: 1.6;">Comienza a organizar tus tareas y aumenta tu productividad hoy mismo. Con SherpApp, tendrás todo lo que necesitas para alcanzar tus objetivos. 📋✨</p>
+            <div style="background-color: #00443e; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p style="font-size: 16px; line-height: 1.6; color: #fff;">Comienza a organizar tus tareas y aumenta tu productividad hoy mismo. Con SherpApp, tendrás todo lo que necesitas para alcanzar tus objetivos. 📋✨</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${"https://sherp-app.com"}" style="background-color: #7fd3b0; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 20px;">Ir a SherpApp&nbsp;<span style='font-size:22px;'></span></a>
             </div>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-              <p style="color: #777; font-size: 14px;">Saludos cordiales,<br><strong>El Equipo de SherpApp</strong> 🐑</p>
-              <p style="color: #777; font-size: 12px;">Una empresa de Thallein</p>
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #7fd3b0;">
+              <p style="color: #fff; font-size: 14px;">Saludos cordiales,<br><strong>El Equipo de SherpApp</strong> 🐑</p>
+              <p style="color: #fff; font-size: 12px;">Una empresa de Thallein</p>
             </div>
           </div>
         `,
@@ -55,25 +59,25 @@ export class EmailService {
         to: email,
         subject: 'Código de Restablecimiento de Contraseña - SherpApp 🔐',
         html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); background: #00544d;">
             <div style="text-align: center; margin-bottom: 20px;">
-              <h1 style="color: #4a6cf7; margin-bottom: 10px;">Restablecimiento de Contraseña 🔑</h1>
+              <h1 style="color: #fff; margin-bottom: 10px;">Restablecimiento de Contraseña 🔑</h1>
             </div>
             
-            <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-              <p style="font-size: 16px; line-height: 1.6;">Has solicitado restablecer tu contraseña. Utiliza el siguiente código para continuar:</p>
+            <div style="background-color: #00443e; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p style="font-size: 16px; line-height: 1.6; color: #fff;">Has solicitado restablecer tu contraseña. Utiliza el siguiente código para continuar:</p>
               
-              <div style="background-color: #e9ecef; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 8px; color: #4a6cf7;">
+              <div style="background-color: #7fd3b0; padding: 15px; text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 8px; color: #00544d;">
                 ${resetCode}
               </div>
               
-              <p style="font-size: 16px; line-height: 1.6;">Este código expirará en 15 minutos. ⏱️</p>
-              <p style="font-size: 16px; line-height: 1.6;">Si no solicitaste este restablecimiento de contraseña, por favor ignora este correo. 🚫</p>
+              <p style="font-size: 16px; line-height: 1.6; color: #fff;">Este código expirará en 15 minutos. ⏱️</p>
+              <p style="font-size: 16px; line-height: 1.6; color: #fff;">Si no solicitaste este restablecimiento de contraseña, por favor ignora este correo. 🚫</p>
             </div>
             
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-              <p style="color: #777; font-size: 14px;">Saludos cordiales,<br><strong>El Equipo de SherpApp</strong> 🐑</p>
-              <p style="color: #777; font-size: 12px;">Una empresa de Thallein</p>
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #7fd3b0;">
+              <p style="color: #fff; font-size: 14px;">Saludos cordiales,<br><strong>El Equipo de SherpApp</strong> 🐑</p>
+              <p style="color: #fff; font-size: 12px;">Una empresa de Thallein</p>
             </div>
           </div>
         `,

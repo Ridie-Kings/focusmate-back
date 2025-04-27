@@ -11,6 +11,8 @@ import { User, UserSchema } from "src/users/entities/user.entity";
 import { TokenBlacklistModule } from "../token-black-list/token-black-list.module";
 import { EmailModule } from '../email/email.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
+import { GoogleStrategy } from './strategies/google.strategy';
+
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { WebhooksModule } from '../webhooks/webhooks.module';
     WebhooksModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, ConfigService],
+  providers: [AuthService, JwtStrategy, GoogleStrategy, ConfigService],
   exports: [AuthService, JwtModule, ConfigService],
 })
 export class AuthModule {}
