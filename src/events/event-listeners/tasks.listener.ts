@@ -3,6 +3,7 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import mongoose from 'mongoose';
 import { UserLogsService } from 'src/user-logs/user-logs.service';
+import { EventsList } from '../list.events';
 
 @Injectable()
 export class TaskListener {
@@ -12,9 +13,8 @@ export class TaskListener {
     @Inject(UserLogsService) private readonly userLogsService: UserLogsService,
   ) {}
   // Escuchar evento cuando se crea una tarea
-  @OnEvent('task.created')
+  @OnEvent(EventsList.TASK_CREATED)
   handleTaskCreated(payload: {userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId}) {
-    this.logger.log('Tarea creada:', payload);
     this.userLogsService.taskCreated(payload.userId, payload.taskId);
     
   }
@@ -26,9 +26,9 @@ export class TaskListener {
   }
 
   // Escuchar evento cuando se elimina una tarea
-  @OnEvent('task.deleted')
-  handleTaskDeleted(payload: any) {
-    this.logger.log('Tarea eliminada:', payload);
+  @OnEvent(EventsList.TASK_DELETED)
+  handleTaskDeleted(payload: {userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId}) {
+    this.userLogsService.taskDeleted(payload.userId, payload.taskId);
   }
 
   // Escuchar evento cuando se marca una tarea como completada

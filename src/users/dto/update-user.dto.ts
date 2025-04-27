@@ -100,4 +100,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsNumber()
   phoneNumber?: number;
+
+  @ApiProperty({
+    example: "123456789",
+    description: "Google ID (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  googleId?: string;
 }
