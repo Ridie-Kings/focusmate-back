@@ -42,8 +42,36 @@ export class AuthController {
   })
   @Public()
   @Post("register")
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, access_token, refresh_token } = await this.authService.register(createUserDto);
+
+    // Set cookies with proper configuration
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "strict",
+      path: '/',
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "strict",
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { 
+      success: true,
+      message: "Registration successful",
+      user,
+      access_token,
+      refresh_token
+    };
   }
 
   @Public()
