@@ -39,7 +39,23 @@ export class AuthService {
     // Send Discord notification
     await this.discordWebhookService.notifyNewUser(user.username, user.email);
     
-    return user;
+    // Generate tokens
+    const payload = { id: user._id.toString(), email: user.email };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+
+    // Store the refresh token in the database
+    await this.usersService.update(user._id.toString(), {
+      refreshToken: refreshToken,
+    });
+
+    this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
+    
+    return {
+      user,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 
   async login(loginUserDto: LoginUserDto) {
