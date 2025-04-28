@@ -65,6 +65,28 @@ export class CalendarService {
     if (!task) {
       throw new NotFoundException("Task not found");
     }
+    const tasks_calendar = await this.findByDate(userId, task["dueDate"]);
+    // Check for task time conflicts
+    if (tasks_calendar?.length > 0) {
+      const newTaskStart = new Date(task.startDate);
+      const newTaskEnd = new Date(task.endDate);
+
+      const hasConflict = tasks_calendar.some(async (existingTask) => {
+        const existingTaskCalendar = await this.tasksService.findOne(existingTask._id, userId);
+        const existingStart = new Date(existingTaskCalendar.startDate);
+        const existingEnd = new Date(existingTaskCalendar.endDate);
+
+        return (
+          (newTaskStart >= existingStart && newTaskStart < existingEnd) ||
+          (newTaskEnd > existingStart && newTaskEnd <= existingEnd) ||
+          (newTaskStart <= existingStart && newTaskEnd >= existingEnd)
+        );
+      });
+
+      if (hasConflict) {
+        throw new ConflictException('Task conflicts with existing task time slot');
+      }
+    }
     try {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
