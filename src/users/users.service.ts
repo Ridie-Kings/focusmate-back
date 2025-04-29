@@ -79,18 +79,25 @@ export class UsersService {
     return user;
   }
 
-  async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ refreshToken })
-    return user ? user : null;
+  async findOneByRefreshToken(accessToken: string): Promise<User> {
+    if (!accessToken) throw new BadRequestException("Invalid token or null");
+    const decode = atob(accessToken.split(".")[1]);
+    const {id} = JSON.parse(decode);
+    console.log("id", id);
+    return await this.userModel.findById(id);
   }
 
-  async validateRefreshToken(userId: mongoose.Types.ObjectId, token: string): Promise<boolean> {
-    const user = await this.userModel.findById(userId)
+  // 🔹 Verificar refresh token
+  async validateRefreshToken(
+    userId: mongoose.Types.ObjectId,
+    token: string,
+  ): Promise<boolean> {
+    const user = await this.userModel.findById(userId);
     if (!user || !user.refreshToken) return false;
     return await argon2.verify(user.refreshToken, token);
   }
-
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    //REVISA ESTO
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
@@ -114,6 +121,35 @@ export class UsersService {
     return user_new;
   }
 
+  async getProfile(id: mongoose.Types.ObjectId) {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+    console.log("get profile");
+    return user.profile;
+  }
+
+  async updateProfile(
+    userId: mongoose.Types.ObjectId,
+    updateData: UpdateProfileDto,
+  ) {
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    // 🔹 Actualiza solo los campos permitidos en `UpdateProfileDto`
+    if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
+    if (updateData.avatar !== undefined)
+      user.profile.avatar = updateData.avatar;
+    // if (updateData.settings !== undefined)
+    //   user.profile.settings = updateData.settings;
+
+    await user.save();
+    return { message: "Profile updated successfully", profile: user.profile };
+  }
+
   async remove(id: mongoose.Types.ObjectId) {
     const user = await this.userModel.findById(id);
     if (!isValidObjectId(id) || !user) {
@@ -121,22 +157,5 @@ export class UsersService {
     }
     await this.userModel.findByIdAndDelete(id);
     return user;
-  }
-
-  async updatePassword(email: string, hashedPassword: string) {
-    try {
-      const user = await this.userModel.findOne({ email });
-      if (!user) {
-        throw new NotFoundException('User not found');
-      }
-
-      user.password = hashedPassword;
-      await user.save();
-      
-      return { message: 'Password updated successfully' };
-    } catch (error) {
-      this.logger.error(`Failed to update password: ${error.message}`);
-      throw error;
-    }
   }
 }
