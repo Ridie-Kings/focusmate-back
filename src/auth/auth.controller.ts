@@ -232,7 +232,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     try {
-      const { access_token, refresh_token } = await this.authService.validateGoogleUser(req.user);
+      const { access_token, refresh_token } = req.user;
 
       res.cookie("access_token", access_token, {
         httpOnly: true,
