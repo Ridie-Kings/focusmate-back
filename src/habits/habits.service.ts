@@ -4,12 +4,15 @@ import { UpdateHabitDto } from './dto/update-habit.dto';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Habit, HabitDocument } from './entities/habit.entity';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventsList } from '../events/list.events';
 
 @Injectable()
 export class HabitsService {
 
   constructor(
     @InjectModel(Habit.name) private habitModel: Model<HabitDocument>,
+    private eventEmitter: EventEmitter2
   ){}
 
   async create(createHabitDto: CreateHabitDto, userId: mongoose.Types.ObjectId): Promise<HabitDocument> { 
@@ -20,6 +23,7 @@ export class HabitsService {
         streak: 0,
         bestStreak: 0,
       });
+      this.eventEmitter.emit(EventsList.HABIT_CREATED, {userId: userId, habitId: habit._id});
       return await habit.populate('userId');
     } catch (error) {
       throw new InternalServerErrorException('Error creating habit');
@@ -172,7 +176,7 @@ export class HabitsService {
       const habit = await this.habitModel.findById(id);
       if (!habit) throw new NotFoundException('Habit not found');
       if (!habit.userId.equals(userId)) throw new UnauthorizedException('Unauthorized access');
-      
+      this.eventEmitter.emit(EventsList.HABIT_DELETED, {userId: userId, habitId: habit._id});
       return await this.habitModel.findByIdAndDelete(id);
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof UnauthorizedException) {

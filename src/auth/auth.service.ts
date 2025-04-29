@@ -15,6 +15,7 @@ import * as crypto from 'crypto';
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { EventsList } from "src/events/list.events";
 import { DiscordWebhookService } from "../webhooks/discord-webhook.service";
+import { GoogleUser } from './interfaces/google-user.interface';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +39,23 @@ export class AuthService {
     // Send Discord notification
     await this.discordWebhookService.notifyNewUser(user.username, user.email);
     
-    return user;
+    // Generate tokens
+    const payload = { id: user._id.toString(), email: user.email };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+
+    // Store the refresh token in the database
+    await this.usersService.update(user._id.toString(), {
+      refreshToken: refreshToken,
+    });
+
+    this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
+    
+    return {
+      user,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
   }
 
   async login(loginUserDto: LoginUserDto) {
@@ -245,6 +262,53 @@ export class AuthService {
       return { message: 'Password has been reset successfully' };
     } catch (error) {
       this.logger.error(`Password reset failed: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async validateGoogleUser(googleUser: GoogleUser) {
+    try {
+      let user = await this.usersService.findOne(googleUser.email);
+      
+      if (!user) {
+        // Create new user if doesn't exist
+        const createUserDto = {
+          email: googleUser.email,
+          username: googleUser.username,
+          fullname: googleUser.fullname,
+          password: crypto.randomBytes(32).toString('hex'), // Random password for Google users
+          //avatar: googleUser.avatar,
+          googleId: googleUser.googleId,
+        };
+        user = await this.usersService.create(createUserDto);
+        await this.eventEmitter.emit(EventsList.USER_REGISTERED_GOOGLE, {userId: user.id, avatar: googleUser.avatar});
+        await this.emailService.sendWelcomeEmail(user.email, user.fullname);
+        await this.discordWebhookService.notifyNewUser(user.username, user.email);
+      } else if (!user.googleId) {
+        // Link Google account to existing user
+        await this.usersService.update(user._id.toString(), {
+          googleId: googleUser.googleId,
+          //avatar: googleUser.avatar,
+        });
+      }
+
+      const payload = { id: user._id.toString(), email: user.email };
+      const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+
+      await this.usersService.update(user._id.toString(), {
+        refreshToken: refreshToken,
+      });
+
+      this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
+      await this.discordWebhookService.notifyUserLogin(user.username);
+
+      return {
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      this.logger.error(`Google validation error: ${error.message}`);
       throw error;
     }
   }

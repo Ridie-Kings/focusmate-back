@@ -157,10 +157,10 @@ export class UserLogsService {
       const log = {type: 'task-created', object: taskId, date: new Date()};
       const userLog = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $inc: { taskCount: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+        { $inc: { taskCounts: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
         { new: true }
       );
-      return userLog;
+      return userLog.save();
     } catch (error) {
       console.error('Error updating task count:', error);
       throw new InternalServerErrorException('Error updating task count');
@@ -172,10 +172,10 @@ export class UserLogsService {
       const log = {type: 'habit-created', object: habitId, date: new Date()};
       const userLog = await this.userLogModel.findOneAndUpdate(
         { userId },
-        { $inc: { habitCount: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+        { $inc: { habitCounts: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
         { new: true }
       );
-      return userLog;
+      return userLog.save();
     } catch (error) {
       console.error('Error updating habit count:', error);
       throw new InternalServerErrorException('Error updating habit count');
@@ -259,4 +259,25 @@ export class UserLogsService {
   async findAll() {
     return `This action returns all userLogs`;
   }
+
+  async taskDeleted(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId) {
+    const log = {type: 'task-deleted', object: taskId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { taskDeleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+  async habitDeleted(userId: mongoose.Types.ObjectId, habitId: mongoose.Types.ObjectId) {
+    const log = {type: 'habit-deleted', object: habitId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { habitDeleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true } 
+    );
+    return userLog;
+  }
+  
 }

@@ -42,14 +42,15 @@ export class DiscordWebhookService {
     }
   }
 
-  async notifyNewUser(username: string, email: string): Promise<void> {
+  async notifyNewUser(username: string, email: string, googleLogin?: boolean): Promise<void> {
     const embed: DiscordEmbed = {
       title: '👤 New User Registration',
       description: 'A new user has registered in the application',
       color: 0x00ff00, // Green color
       fields: [
         { name: 'Username', value: username, inline: true },
-        { name: 'Email', value: email, inline: true }
+        { name: 'Email', value: email, inline: true },
+        { name: 'Google Login', value: googleLogin ? 'Yes' : 'No', inline: true }
       ],
       timestamp: new Date().toISOString(),
       footer: {

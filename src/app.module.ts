@@ -45,13 +45,10 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        name: "default",
-        ttl: 60000, // 1 minuto
-        limit: 1000,
-      },
-    ]),
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minute
+      limit: 1000,
+    }]),
 
     ConfigModule.forRoot({ isGlobal: true }),
 

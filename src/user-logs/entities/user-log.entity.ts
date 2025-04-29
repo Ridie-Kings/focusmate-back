@@ -54,6 +54,10 @@ export class UserLog extends Document {
   streak: number;
   @Prop({ type: Number, required: false, default: 0})
   bestStreak: number;
+  @Prop({ type: Number, required: false, default: 0})
+  taskDeleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  habitDeleted: number;
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);

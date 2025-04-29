@@ -7,6 +7,8 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   Logger,
+  Get,
+  UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
@@ -16,6 +18,12 @@ import { Request, Response } from "express";
 import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AuthGuard } from '@nestjs/passport';
+
+// Define interface for request with user property
+interface RequestWithUser extends Request {
+  user?: any;
+}
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -34,8 +42,36 @@ export class AuthController {
   })
   @Public()
   @Post("register")
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, access_token, refresh_token } = await this.authService.register(createUserDto);
+
+    // Set cookies with proper configuration
+    res.cookie("access_token", access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "strict",
+      path: '/',
+      maxAge: 12 * 60 * 60 * 1000, // 12 hours
+    });
+
+    res.cookie("refresh_token", refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: "strict",
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    return { 
+      success: true,
+      message: "Registration successful",
+      user,
+      access_token,
+      refresh_token
+    };
   }
 
   @Public()
@@ -177,5 +213,52 @@ export class AuthController {
     @Body() dto: ResetPasswordDto
   ) {
     return this.authService.resetPassword(email, dto);
+  }
+
+  @Public()
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Initiate Google OAuth login' })
+  async googleAuth() {
+    // This endpoint will be handled by the Google strategy
+  }
+
+  @Public()
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback' })
+  async googleAuthCallback(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    try {
+      const { access_token, refresh_token } = await this.authService.validateGoogleUser(req.user);
+
+      res.cookie("access_token", access_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
+      });
+
+      res.cookie("refresh_token", refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: "strict",
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      return { 
+        success: true,
+        message: "Google login successful",
+        access_token,
+        refresh_token
+      };
+    } catch (error) {
+      this.logger.error(`Google callback error: ${error.message}`);
+      throw error;
+    }
   }
 }

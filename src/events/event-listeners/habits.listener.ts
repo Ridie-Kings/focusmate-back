@@ -3,6 +3,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import mongoose from 'mongoose';
 import { UserLogsService } from 'src/user-logs/user-logs.service';
+import { EventsList } from '../list.events';
 
 @Injectable()
 export class HabitListener {
@@ -14,7 +15,6 @@ export class HabitListener {
   // Escuchar evento cuando se crea un hábito
   @OnEvent('habit.created')
   async handleHabitCreated(payload: {userId: mongoose.Types.ObjectId, habitId: mongoose.Types.ObjectId}) {
-    this.logger.log('Hábito creado:', payload);
     await this.userLogsService.habitCreated(payload.userId, payload.habitId);
   }
 
@@ -29,4 +29,12 @@ export class HabitListener {
   handleHabitCompleted(payload: any) {
     this.logger.log('Hábito completado:', payload);
   }
+
+  // Escuchar evento cuando se elimina un hábito
+  @OnEvent(EventsList.HABIT_DELETED)
+  handleHabitDeleted(payload: {userId: mongoose.Types.ObjectId, habitId: mongoose.Types.ObjectId}) {
+    this.userLogsService.habitDeleted(payload.userId, payload.habitId);
+  }
+
+
 }
