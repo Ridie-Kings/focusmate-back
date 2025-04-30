@@ -279,5 +279,34 @@ export class UserLogsService {
     );
     return userLog;
   }
-  
+
+  async taskCompleted(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId) {
+    const log = {type: 'task-completed', object: taskId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { taskCompleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+  async habitCompleted(userId: mongoose.Types.ObjectId, habitId: mongoose.Types.ObjectId) {
+    const log = {type: 'habit-completed', object: habitId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { habitCompleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+  async taskCalendarCreated(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId) {
+    const log = {type: 'task-calendar-created', object: taskId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { taskCalendarCreated: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
 }
