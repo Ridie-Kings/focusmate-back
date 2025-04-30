@@ -250,7 +250,7 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      return res.redirect('https://sherp-app.com');
+      return res.redirect('http://localhost:3000');
     } catch (error) {
       this.logger.error(`Google callback error: ${error.message}`);
       throw error;
