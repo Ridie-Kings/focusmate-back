@@ -250,12 +250,7 @@ export class AuthController {
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       });
 
-      return { 
-        success: true,
-        message: "Google login successful",
-        access_token,
-        refresh_token
-      };
+      return res.redirect('https://sherp-app.com');
     } catch (error) {
       this.logger.error(`Google callback error: ${error.message}`);
       throw error;
