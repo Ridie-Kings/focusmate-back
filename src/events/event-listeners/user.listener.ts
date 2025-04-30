@@ -33,11 +33,12 @@ export class UserListener {
     await this.statsService.updateUsersCount();// Crear estadísticas de usuario
     await this.subscriptionsService.createFreeSubscription(payload.userId); // Crear suscripción gratuita
   }
-  // @OnEvent(EventsList.USER_REGISTERED_GOOGLE)
-  // async handleUserRegisteredGoogle(payload: {userId: string, avatar: string}) {
-  //   const profile = await this.gamificationProfileService.findMe(new mongoose.Types.ObjectId(payload.userId));
-  //   await this.gamificationProfileService.update(profile.id, {avatar: payload.avatar}, profile.user); // Crear perfil de gamificación
-  // }
+  @OnEvent(EventsList.USER_REGISTERED_GOOGLE)
+  async handleUserRegisteredGoogle(payload: {userId: string, avatar?: string}) {
+    // const profile = await this.gamificationProfileService.findMe(new mongoose.Types.ObjectId(payload.userId));
+    // await this.gamificationProfileService.update(profile.id, {avatar: payload.avatar}, profile.user); // Crear perfil de gamificación
+    await this.statsService.updateUsersCount(true);
+  }
 
   // Escuchar evento cuando un usuario inicie sesión
   @OnEvent(EventsList.USER_LOGGED_IN)

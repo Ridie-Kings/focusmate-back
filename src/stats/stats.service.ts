@@ -36,8 +36,11 @@ export class StatsService {
     return stats;
   }
 
-  async updateUsersCount() {
+  async updateUsersCount(google?: boolean) {
     const stats = await this.statsModel.findOne();  // Obtiene el único documento de Stats
+    if (google) {
+      stats.usersRegisteredUsingGoogle++;
+    }
     stats.usersRegistered++;
     await stats.save();  // Guarda los cambios
   }
@@ -68,4 +71,58 @@ export class StatsService {
 
     return stats;
   }
+
+  async taskCreated() {
+    const stats = await this.statsModel.findOne();
+    stats.totalTasks++;
+    await stats.save();
+  }
+
+  async taskCalendarCreated() {
+    const stats = await this.statsModel.findOne();
+    stats.totalTasksCalendar++;
+    await stats.save();
+  }
+
+  async habitCreated() {
+    const stats = await this.statsModel.findOne();
+    stats.totalHabits++;
+    await stats.save();
+  }
+
+  async habitCompleted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalHabitsCompleted++;
+    await stats.save();
+  }
+
+  async habitDeleted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalHabitsDeleted++;
+    await stats.save();
+  }
+
+  async taskCompleted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalTasksCompleted++;
+    await stats.save();
+  }
+  
+  async taskDeleted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalTasksDeleted++;
+    await stats.save();
+  }
+  
+  async pomodoroStarted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalPomodoros++;
+    await stats.save();
+  }
+
+  
+  
+  
+  
+  
 }
