@@ -6,10 +6,8 @@ import { User } from 'src/users/entities/user.entity';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import mongoose from 'mongoose';
-import { ApiKeyGuard } from 'src/auth/guards/api-key-guard';
 
 @ApiTags('Dashboard')
-@ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
 export class DashboardController {
@@ -26,7 +24,6 @@ export class DashboardController {
   }
 
   @Get('global')
-  @UseGuards(ApiKeyGuard)
   @ApiOperation({ summary: 'Get global dashboard data for all users' })
   @ApiResponse({ 
     status: 200, 
