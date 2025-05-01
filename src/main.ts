@@ -41,7 +41,7 @@ async function sherpmain() {
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,
-    allowedHeaders: ['content-type', 'authorization', 'access-control-allow-origin'],
+    allowedHeaders: ['content-type', 'authorization', 'access-control-allow-origin', 'x-api-key'],
   });
 
   app.use(cookieParser());
