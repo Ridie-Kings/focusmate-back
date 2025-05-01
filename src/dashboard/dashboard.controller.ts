@@ -8,7 +8,6 @@ import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import mongoose from 'mongoose';
 
 @ApiTags('Dashboard')
-@UseGuards(JwtAuthGuard)
 @Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
