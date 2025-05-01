@@ -44,6 +44,7 @@ async function sherpmain() {
       "content-type",
       "authorization",
       "access-control-allow-origin",
+      "x-api-key",
     ],
   });
 
