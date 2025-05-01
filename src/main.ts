@@ -34,6 +34,8 @@ async function sherpmain() {
       "http://localhost:4000",
       "https://sherp-app.com",
       "http://sherp-app.com",
+      "https://develop.sherp-app.com",
+      "http://develop.sherp-app.com",
       "wss://sherp-app.com:4323",
       "ws://sherp-app.com:4323"
     ],
