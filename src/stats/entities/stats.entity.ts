@@ -12,6 +12,9 @@ export class Stat extends Document {
   usersRegistered: number;
 
   @Prop({ type: Number, default: 0 })
+  usersRegisteredUsingGoogle: number;
+  
+  @Prop({ type: Number, default: 0 })
   activeUsers: number;
 
   @Prop({ type: Number, default: 0 })
@@ -48,10 +51,16 @@ export class Stat extends Document {
   totalPaidUsers: number; // Total users who paid for the app
 
   @Prop({ type: Number, default: 0 })
-  totalHabits: number; // Total habits created
+  totalHabits: number;// Total habits created
 
   @Prop({ type: Number, default: 0 })
   totalHabitsCompleted: number; // Total habits completed
+
+  @Prop({ type: Number, default: 0 })
+  totalHabitsDeleted: number; // Total habits deleted
+
+  @Prop({ type: Number, default: 0 })
+  totalTasksDeleted: number; // Total tasks deleted
 
   // @Prop({ type: Number, default: 0 })
   // totalUsersNotUsingPomodoro: number; // Total users who have not used the pomodoro feature
@@ -85,6 +94,11 @@ export class Stat extends Document {
 
   @Prop({ type: Date, default: Date.now })
   lastUpdated: Date;
+
+  @Prop({ type: Number, default: 0 })
+  totalTasksCalendar: number; // Total tasks created
+  
+  
 }
 
 // Create and export the schema

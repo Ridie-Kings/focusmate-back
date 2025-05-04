@@ -299,7 +299,7 @@ export class AuthService {
         refreshToken: refreshToken,
       });
 
-      //await this.eventEmitter.emit(EventsList.USER_REGISTERED_GOOGLE, {userId: user.id, avatar: googleUser.avatar});
+      this.eventEmitter.emit(EventsList.USER_REGISTERED_GOOGLE, {userId: user.id});
       this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
       await this.discordWebhookService.notifyUserLogin(user.username);
 

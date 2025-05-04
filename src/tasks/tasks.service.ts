@@ -98,6 +98,9 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      if (updateTaskDto.status === 'completed') {
+        this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
+      }
       if (updateTaskDto.addTags.length) {
         await this.taskModel.findByIdAndUpdate(id,
           {
