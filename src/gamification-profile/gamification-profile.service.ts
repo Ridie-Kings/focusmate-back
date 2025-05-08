@@ -46,7 +46,7 @@ export class GamificationProfileService {
   async findMe(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument> {
     try{
       const profile = await this.gamificationProfileModel.findOne({ user: userId });
-      console.log('profile', profile);
+      //console.log('profile', profile);
       return await profile.populate('user');
     }catch (error){
       throw new InternalServerErrorException('Error getting my profile');

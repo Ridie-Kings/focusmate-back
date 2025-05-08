@@ -1,39 +1,61 @@
-import { Controller, Get, Post, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, Req, Body, Patch, Delete } from '@nestjs/common';
 import { PomodoroService } from './pomodoro.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+import { GetUser } from 'src/users/decorators/get-user.decorator';
+import { CreatePomodoroDto } from './dto/create-pomodoro.dto';
+import { UserDocument } from 'src/users/entities/user.entity';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
+import { UpdatePomodoroDto } from './dto/update-pomodoro.dto';
+import mongoose from 'mongoose';
 @ApiTags('Pomodoro')
 @Controller('pomodoro')
 @UseGuards(JwtAuthGuard)
 export class PomodoroController {
   constructor(private readonly pomodoroService: PomodoroService) {}
 
-  @Post(':id/share')
-  @ApiOperation({ summary: 'Share a pomodoro with other users' })
-  @ApiResponse({ status: 200, description: 'Pomodoro shared successfully' })
+  @Post()
+  @ApiOperation({ summary: 'Create a new pomodoro' })
+  @ApiResponse({ status: 201, description: 'Pomodoro created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async createPomodoro(@Body() createPomodoroDto: CreatePomodoroDto, @GetUser() user: UserDocument) {
+    return this.pomodoroService.createPomodoro(createPomodoroDto, user.id);
+  }
+
+  @Post(':id/start')
+  @ApiOperation({ summary: 'Start a pomodoro' })
+  @ApiResponse({ status: 200, description: 'Pomodoro started successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async startPomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.startPomodoro(id, user.id);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
   @ApiResponse({ status: 404, description: 'Pomodoro not found' })
-  async sharePomodoro(@Param('id') id: string, @Req() req) {
-    return this.pomodoroService.sharePomodoro(id, req.user.id);
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async getPomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.findOne(id, user.id);
   }
 
-  @Get('status')
-  getStatus() {
-    return { status: 'WebSocket server ready', timestamp: new Date().toISOString() };
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro updated successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async updatePomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updatePomodoroDto: UpdatePomodoroDto, @GetUser() user: UserDocument) {
+    return this.pomodoroService.update(id, updatePomodoroDto, user.id);
   }
 
-  @Post('join/:shareCode')
-  @ApiOperation({ summary: 'Join a shared pomodoro' })
-  @ApiResponse({ status: 200, description: 'Joined shared pomodoro successfully' })
-  @ApiResponse({ status: 404, description: 'Shared pomodoro not found' })
-  async joinSharedPomodoro(@Param('shareCode') shareCode: string, @Req() req) {
-    return this.pomodoroService.joinSharedPomodoro(shareCode, req.user.id);
-  }
-
-  @Get('shared')
-  @ApiOperation({ summary: 'Get all shared pomodoros' })
-  @ApiResponse({ status: 200, description: 'List of shared pomodoros' })
-  async getSharedPomodoros(@Req() req) {
-    return this.pomodoroService.getSharedPomodoros(req.user.id);
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro deleted successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async reset(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.reset(id, user.id);
   }
 }

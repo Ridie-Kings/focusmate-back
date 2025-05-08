@@ -59,11 +59,20 @@ export class UserLog extends Document {
   @Prop({ type: Number, required: false, default: 0})
   habitDeleted: number;
   @Prop({ type: Number, required: false, default: 0})
+  pomodoroStarted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  pomodoroCompleted: number;
+  @Prop({ type: Number, required: false, default: 0})
   taskCompleted: number;
   @Prop({ type: Number, required: false, default: 0})
   habitCompleted: number;
   @Prop({ type: Number, required: false, default: 0})
   taskCalendarCreated: number;
+  @Prop({ type: Number, required: false, default: 0})
+  EventsCalendarCreated: number;
+  @Prop({ type: Number, required: false, default: 0})
+  EventsCalendarDeleted: number;
+
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);

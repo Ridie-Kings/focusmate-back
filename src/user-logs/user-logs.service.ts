@@ -309,4 +309,37 @@ export class UserLogsService {
     );
     return userLog;
   }
+
+  async pomodoroStarted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId) {
+    const log = {type: 'pomodoro-started', date: new Date(), object: pomodoroId};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { pomodoroStarted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+  async pomodoroCompleted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId) {
+    const log = {type: 'pomodoro-completed', object: pomodoroId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { pomodoroCompleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+  async eventCalendarCreated(userId: mongoose.Types.ObjectId, eventId: mongoose.Types.ObjectId) {
+    const log = {type: 'event-calendar-created', object: eventId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { EventsCalendarCreated: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+  
+  
+  
 }

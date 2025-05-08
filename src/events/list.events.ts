@@ -18,6 +18,7 @@ export const EventsList = {
   HABIT_DELETED: 'habit.deleted',
   REMINDER_CREATED: 'reminder.created',
   REMINDER_COMPLETED: 'reminder.completed',
+  POMODORO_CREATED: 'pomodoro.created',
   POMODORO_STARTED: 'pomodoro.started',
   POMODORO_COMPLETED: 'pomodoro.completed',
   POMODORO_PAUSED: 'pomodoro.paused',

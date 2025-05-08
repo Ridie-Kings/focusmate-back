@@ -7,10 +7,20 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from 'src/users/users.module';
 import { PomodoroModule } from 'src/pomodoro/pomodoro.module';
 import { UserLogsController } from './user-logs.controller';
+import { Pomodoro, PomodoroSchema } from 'src/pomodoro/entities/pomodoro.entity';
+
 @Module({
-  providers: [ UserLogsService],
+  providers: [UserLogsService],
   controllers: [UserLogsController],
-  imports: [MongooseModule.forFeature([{name: UserLog.name, schema: UserLogSchema}]), AuthModule, UsersModule, PomodoroModule],
+  imports: [
+    MongooseModule.forFeature([
+      { name: UserLog.name, schema: UserLogSchema },
+      { name: Pomodoro.name, schema: PomodoroSchema }
+    ]), 
+    AuthModule, 
+    UsersModule, 
+    PomodoroModule
+  ],
   exports: [UserLogsService]
 })
 export class UserLogsModule {}

@@ -229,7 +229,7 @@ export class CalendarService {
       start.setHours(0, 0, 0, 0); // Set to beginning of day
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Set to end of day
-      console.log(start, end);
+      //console.log(start, end);
       const tasks = calendar.tasks.filter((task) => {
         const taskDate = new Date(task["dueDate"]);
         return taskDate >= start && taskDate <= end;
