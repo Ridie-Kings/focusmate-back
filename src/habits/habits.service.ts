@@ -103,10 +103,13 @@ export class HabitsService {
       // Handle status change
       if (updateHabitDto.status !== undefined && updateHabitDto.status !== habit.status) {
         // Marking habit as completed
-        this.eventEmitter.emit(EventsList.HABIT_COMPLETED, {userId: userId, habitId: habit._id});
+        
         if (updateHabitDto.status === true && habit.status === false) {
           // Check if streak should be incremented
           const shouldIncrementStreak = this.checkStreak(habit.frequency, habit.lastCompletedDate, now);
+          if (shouldIncrementStreak) {
+            this.eventEmitter.emit(EventsList.HABIT_COMPLETED, {userId: userId, habitId: habit._id});
+          }
           const newStreak = shouldIncrementStreak ? habit.streak + 1 : 1;
           
           updatedHabit = await this.habitModel.findByIdAndUpdate(
