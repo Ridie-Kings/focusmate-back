@@ -1,5 +1,5 @@
 // src/pomodoro/pomodoro.service.ts
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Pomodoro, PomodoroDocument } from './entities/pomodoro.entity';
@@ -22,18 +22,41 @@ export class PomodoroService {
   constructor(
     @InjectModel(Pomodoro.name) private pomodoroModel: Model<PomodoroDocument>,
     @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
-    private gateway: PomodoroGateway,
+    @Inject(forwardRef(() => PomodoroGateway)) private gateway: PomodoroGateway,
     private schedulerRegistry: SchedulerRegistry,
   ) {}
 
   async createPomodoro(createPomodoroDto: CreatePomodoroDto, user: mongoose.Types.ObjectId) {
     try {
-      const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user._id});
-      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user._id, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      const previousPomodoro = await this.pomodoroModel.findOne({userId: user, state: PomodoroState.IDLE});
+      if(previousPomodoro) {
+        await this.pomodoroModel.findByIdAndUpdate(previousPomodoro._id, {state: PomodoroState.FINISHED});
+      }
+      const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user});
+      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       return pomodoro;
     } catch (error) {
       this.logger.error('Error creating pomodoro:', error);
       throw new InternalServerErrorException('Error creating pomodoro');
+    }
+  }
+
+  async findAll(user: mongoose.Types.ObjectId) {
+    try{
+      return this.pomodoroModel.find({userId: user, state: PomodoroState.IDLE});
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
+    }
+  }
+
+  async findAllNotIdle(user: mongoose.Types.ObjectId) {
+    try{
+      return await this.pomodoroModel.find({userId: user});
+
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
     }
   }
 
@@ -51,6 +74,7 @@ export class PomodoroService {
       pomodoro.startTime = new Date();
       pomodoro.endTime = new Date(pomodoro.startTime.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
+      this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, pomodoro.workDuration);    
       return pomodoro;
@@ -65,7 +89,9 @@ export class PomodoroService {
       const pomodoro = await this.pomodoroModel.findById(id);
       if(!pomodoro) return;
       if(pomodoro.state === PomodoroState.WORKING) {
-        if( pomodoro.currentCycle % pomodoro.cycles === 0) {
+        pomodoro.currentCycle+=1;
+
+        if( pomodoro.currentCycle % 4 === 0) {
           pomodoro.state = PomodoroState.LONG_BREAK;
           pomodoro.endTime = new Date( Date.now() + pomodoro.longBreak * 1000);
         } else {
@@ -76,7 +102,17 @@ export class PomodoroService {
         pomodoro.state === PomodoroState.SHORT_BREAK ||
         pomodoro.state === PomodoroState.LONG_BREAK
       ) {
-        pomodoro.currentCycle+=1;
+
+        if( pomodoro.currentCycle >= pomodoro.cycles) {
+          pomodoro.state = PomodoroState.COMPLETED;
+          pomodoro.endTime = new Date( Date.now());
+
+          await pomodoro.save();
+          this.gateway.emitStatus(pomodoro);
+          this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+          return;
+        } 
+
         pomodoro.state = PomodoroState.WORKING;
         pomodoro.endTime = new Date( Date.now() + pomodoro.workDuration * 1000);
       }

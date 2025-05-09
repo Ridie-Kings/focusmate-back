@@ -10,6 +10,7 @@ export enum PomodoroState {
   SHORT_BREAK = 'shortBreak',
   LONG_BREAK = 'longBreak',
   COMPLETED = 'completed',
+  FINISHED = 'finished',
 }
 
 export type PomodoroDocument = Pomodoro & Document;
@@ -18,7 +19,7 @@ export class Pomodoro extends Document {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true })
   userId: mongoose.Types.ObjectId;
 
-  @Prop({ type: Date, required: true })
+  @Prop({ type: Date, required: false })
   startTime: Date;
 
   @Prop({ type: Date, required: false })

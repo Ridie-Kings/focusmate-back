@@ -14,6 +14,22 @@ import mongoose from 'mongoose';
 export class PomodoroController {
   constructor(private readonly pomodoroService: PomodoroService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all pomodoros with IDLE state' })
+  @ApiResponse({ status: 200, description: 'Pomodoros retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  async getAllPomodoros(@GetUser() user: UserDocument) {
+    return this.pomodoroService.findAll(user.id);
+  }
+
+  @Get('@me')
+  @ApiOperation({ summary: 'Get all pomodoros with all states' })
+  @ApiResponse({ status: 200, description: 'Pomodoros retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  async getAllFinishedPomodoros(@GetUser() user: UserDocument) {
+    return this.pomodoroService.findAllNotIdle(user.id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Create a new pomodoro' })
   @ApiResponse({ status: 201, description: 'Pomodoro created successfully' })

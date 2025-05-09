@@ -1,5 +1,5 @@
 // src/pomodoro/pomodoro.gateway.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer, SubscribeMessage, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { PomodoroService } from './pomodoro.service';
@@ -12,7 +12,7 @@ import { User } from 'src/users/entities/user.entity';
 
 @UseGuards(WsJwtAuthGuard)
 @WebSocketGateway({ 
-  path: '/api/v0/pomodoro',
+  path: '/api/v0/pomodoro/ws',
   cors: { 
     origin: [
       "http://localhost:3000",
@@ -31,10 +31,16 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   private readonly logger = new Logger(PomodoroGateway.name);
 
-  private readonly pomodoroService: PomodoroService;
+  constructor(
+    @Inject(forwardRef(() => PomodoroService)) private readonly pomodoroService: PomodoroService
+  ) {}
 
   afterInit(server: Server) {
     this.logger.log('Initialized');
+    // server.of('/').on('connection', socket => {
+    //   this.logger.log(`💡 Test-namespace "/" conectado (socket-id: ${socket.id})`);
+    //   // no hace nada más, solo permite que el Test Client conecte
+    // });
   }
 
   handleConnection(client: Socket, ...args: any[]) {
@@ -54,6 +60,8 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       return;
     }
     client.join(id);
+    this.emitStatus(pomodoro);
+    this.logger.log(`💡 User ${user.id} joined room ${id}`);
   }
 
   emitStatus(pomodoro: Pomodoro) {
