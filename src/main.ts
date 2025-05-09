@@ -5,7 +5,8 @@ import { config } from "dotenv";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cookieParser from "cookie-parser";
-import * as express from "express";
+import { Logger } from "@nestjs/common";
+
 // Carga las variables de entorno
 config();
 
@@ -49,16 +50,7 @@ async function sherpmain() {
   });
 
   app.use(cookieParser());
-  // configuracón de Rate Limiting ()
-  app.use(
-    rateLimit({
-      windowMs: 60 * 1000, // 1 minuto
-      max: 10000, // Máximo 10,000 solicitudes en total por minuto
-      message: "Global API limit reached. Please try again later.",
-    }),
-  );
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set("trust proxy", 1);
+
   // Configuración global de validaciones
   app.useGlobalPipes(
     new ValidationPipe({
