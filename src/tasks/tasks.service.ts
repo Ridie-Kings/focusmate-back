@@ -70,7 +70,7 @@ export class TasksService {
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
-      const statusInit = task.status;
+      const statusInit = task.status
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       
@@ -79,13 +79,11 @@ export class TasksService {
         updateTaskDto.addTags = null;
         updateTaskDto.deleteTags = null;
       }
-      
       const updatedTask = await this.taskModel.findByIdAndUpdate(id,
         {
           ...updateTaskDto,
         },
         {new: true});
-      
       if (statusInit != 'completed' && updateTaskDto.status === 'completed') {
         this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
       }

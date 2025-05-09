@@ -310,8 +310,19 @@ export class UserLogsService {
     return userLog;
   }
 
-  async pomodoroStarted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId) {
-    const log = {type: 'pomodoro-started', date: new Date(), object: pomodoroId};
+  async pomodoroCreated(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number) {
+    const log = {type: 'pomodoro-created', date: new Date(), object: pomodoroId, value: {duration: duration, cycles: cycles}};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { pomodoroCreated: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
+
+  async pomodoroStarted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number) {
+    const log = {type: 'pomodoro-started', date: new Date(), object: pomodoroId, value: {duration: duration, cycles: cycles}};
     const userLog = await this.userLogModel.findOneAndUpdate(
       { userId },
       { $inc: { pomodoroStarted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
@@ -320,8 +331,8 @@ export class UserLogsService {
     return userLog;
   }
 
-  async pomodoroCompleted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId) {
-    const log = {type: 'pomodoro-completed', object: pomodoroId, date: new Date()};
+  async pomodoroCompleted(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number) {
+    const log = {type: 'pomodoro-completed', object: pomodoroId, value: {duration: duration, cycles: cycles}};
     const userLog = await this.userLogModel.findOneAndUpdate(
       { userId },
       { $inc: { pomodoroCompleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },

@@ -81,7 +81,6 @@ export class TasksController {
     @GetUser() user: User
   ): Promise<TaskDocument> 
   {
-    this.logger.debug('Updating task with DTO:', updateTaskDto);
     return this.tasksService.update(id, updateTaskDto, user.id);
   }
 

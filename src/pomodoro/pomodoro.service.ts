@@ -29,7 +29,7 @@ export class PomodoroService {
   async createPomodoro(createPomodoroDto: CreatePomodoroDto, user: mongoose.Types.ObjectId) {
     try {
       const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user._id});
-      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user._id, pomodoroId: pomodoro._id});
+      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user._id, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       return pomodoro;
     } catch (error) {
       this.logger.error('Error creating pomodoro:', error);

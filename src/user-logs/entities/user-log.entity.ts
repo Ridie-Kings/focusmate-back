@@ -6,7 +6,7 @@ export class eventLog{
   type: string;
   dateLog: Date;
   object?: mongoose.Types.ObjectId;
-  value?: number;
+  value?: any;
 }
 
 export type UserLogDocument = UserLog & Document;
@@ -58,6 +58,8 @@ export class UserLog extends Document {
   taskDeleted: number;
   @Prop({ type: Number, required: false, default: 0})
   habitDeleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  pomodoroCreated: number;
   @Prop({ type: Number, required: false, default: 0})
   pomodoroStarted: number;
   @Prop({ type: Number, required: false, default: 0})
