@@ -32,6 +32,7 @@ export class PomodoroService {
       if(previousPomodoro) {
         await this.pomodoroModel.findByIdAndUpdate(previousPomodoro._id, {state: PomodoroState.FINISHED});
       }
+      
       const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user});
       this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       return pomodoro;
@@ -60,6 +61,24 @@ export class PomodoroService {
     }
   }
 
+  async findWorking(user: mongoose.Types.ObjectId) {
+    try{
+      return await this.pomodoroModel.findOne({
+        userId: user, 
+        state: { 
+          $in: [
+            PomodoroState.WORKING,
+            PomodoroState.LONG_BREAK,
+            PomodoroState.SHORT_BREAK
+          ]
+        }
+      });
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
+    }
+  }
+  
   async startPomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId): Promise<Pomodoro> {
     try{
         const pomodoro = await this.pomodoroModel.findById(id);
@@ -84,49 +103,76 @@ export class PomodoroService {
     }
   }
 
-  private scheduleNext(id: mongoose.Types.ObjectId, duration: number) {
-    const timeout = setTimeout(async () => {
-      const pomodoro = await this.pomodoroModel.findById(id);
-      if(!pomodoro) return;
-      if(pomodoro.state === PomodoroState.WORKING) {
-        pomodoro.currentCycle+=1;
-
-        if( pomodoro.currentCycle % 4 === 0) {
-          pomodoro.state = PomodoroState.LONG_BREAK;
-          pomodoro.endTime = new Date( Date.now() + pomodoro.longBreak * 1000);
-        } else {
-          pomodoro.state = PomodoroState.SHORT_BREAK;
-          pomodoro.endTime = new Date( Date.now() + pomodoro.shortBreak * 1000);
-        }
-      } else if (
-        pomodoro.state === PomodoroState.SHORT_BREAK ||
-        pomodoro.state === PomodoroState.LONG_BREAK
-      ) {
-
-        if( pomodoro.currentCycle >= pomodoro.cycles) {
-          pomodoro.state = PomodoroState.COMPLETED;
-          pomodoro.endTime = new Date( Date.now());
-
-          await pomodoro.save();
-          this.gateway.emitStatus(pomodoro);
-          this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
-          return;
-        } 
-
-        pomodoro.state = PomodoroState.WORKING;
-        pomodoro.endTime = new Date( Date.now() + pomodoro.workDuration * 1000);
-      }
-
+  async stopPomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to stop this pomodoro');
+      pomodoro.state = PomodoroState.FINISHED;
+      pomodoro.endTime = new Date( Date.now());
       await pomodoro.save();
       this.gateway.emitStatus(pomodoro);
-      this.scheduleNext(id, 
-        pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
+      this.eventEmitter.emit(EventsList.POMODORO_FINISHED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error stopping pomodoro:', error);
+      throw new InternalServerErrorException('Error stopping pomodoro');
+    }
+  }
+
+  private scheduleNext(id: mongoose.Types.ObjectId, duration: number) {
+    try {
+      // Delete existing timeout if it exists
+      if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
+        this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
+      }
+
+      const timeout = setTimeout(async () => {
+        const pomodoro = await this.pomodoroModel.findById(id);
+        if(!pomodoro) return;
+        if(pomodoro.state === PomodoroState.WORKING) {
+          pomodoro.currentCycle+=1;
+
+          if( pomodoro.currentCycle % 4 === 0) {
+            pomodoro.state = PomodoroState.LONG_BREAK;
+            pomodoro.endTime = new Date( Date.now() + pomodoro.longBreak * 1000);
+          } else {
+            pomodoro.state = PomodoroState.SHORT_BREAK;
+            pomodoro.endTime = new Date( Date.now() + pomodoro.shortBreak * 1000);
+          }
+        } else if (
+          pomodoro.state === PomodoroState.SHORT_BREAK ||
+          pomodoro.state === PomodoroState.LONG_BREAK
+        ) {
+
+          if( pomodoro.currentCycle >= pomodoro.cycles) {
+            pomodoro.state = PomodoroState.COMPLETED;
+            pomodoro.endTime = new Date( Date.now());
+
+            await pomodoro.save();
+            this.gateway.emitStatus(pomodoro);
+            this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+            return;
+          } 
+
+          pomodoro.state = PomodoroState.WORKING;
+          pomodoro.endTime = new Date( Date.now() + pomodoro.workDuration * 1000);
+        }
+
+        await pomodoro.save();
+        this.gateway.emitStatus(pomodoro);
+        this.scheduleNext(id, 
+          pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
+        );
+      }, duration * 1000);
+      this.schedulerRegistry.addTimeout(
+        `pomodoro-${id}`,
+        timeout
       );
-    }, duration * 1000);
-    this.schedulerRegistry.addTimeout(
-      `pomodoro-${id}`,
-      timeout
-    );
+    } catch (error) {
+      this.logger.error('Error scheduling next pomodoro:', error);
+      throw new InternalServerErrorException('Error scheduling next pomodoro');
+    }
   }
 
   async findOne(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId  ) {

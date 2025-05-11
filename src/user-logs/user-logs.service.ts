@@ -350,7 +350,15 @@ export class UserLogsService {
     );
     return userLog;
   }
-  
-  
+
+  async pomodoroFinished(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number) {
+    const log = {type: 'pomodoro-finished', object: pomodoroId, value: {duration: duration, cycles: cycles}};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { pomodoroFinished: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
   
 }

@@ -28,4 +28,10 @@ export class PomodoroListener {
   async handlePomodoroDurationUpdated(payload: {userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number}) {
     this.userLogsService.pomodoroStarted(payload.userId, payload.pomodoroId, payload.duration, payload.cycles);
   }
+
+  // Escuchar evento cuando se finaliza un pomodoro
+  @OnEvent(EventsList.POMODORO_FINISHED)
+  async handlePomodoroFinished(payload: {userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number}) {
+    this.userLogsService.pomodoroFinished(payload.userId, payload.pomodoroId, payload.duration, payload.cycles);
+  }
 }

@@ -65,6 +65,8 @@ export class UserLog extends Document {
   @Prop({ type: Number, required: false, default: 0})
   pomodoroCompleted: number;
   @Prop({ type: Number, required: false, default: 0})
+  pomodoroFinished: number; //terminados pero no completados
+  @Prop({ type: Number, required: false, default: 0})
   taskCompleted: number;
   @Prop({ type: Number, required: false, default: 0})
   habitCompleted: number;

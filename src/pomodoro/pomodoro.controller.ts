@@ -22,6 +22,14 @@ export class PomodoroController {
     return this.pomodoroService.findAll(user.id);
   }
 
+  @Get('working')
+  @ApiOperation({ summary: 'Get all pomodoros with IDLE state' })
+  @ApiResponse({ status: 200, description: 'Pomodoros retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  async getAllWorkingPomodoros(@GetUser() user: UserDocument) {
+    return this.pomodoroService.findWorking(user.id);
+  }
+
   @Get('@me')
   @ApiOperation({ summary: 'Get all pomodoros with all states' })
   @ApiResponse({ status: 200, description: 'Pomodoros retrieved successfully' })
@@ -64,6 +72,15 @@ export class PomodoroController {
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   async updatePomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updatePomodoroDto: UpdatePomodoroDto, @GetUser() user: UserDocument) {
     return this.pomodoroService.update(id, updatePomodoroDto, user.id);
+  }
+
+  @Post(':id/stop')
+  @ApiOperation({ summary: 'Stop a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro stopped successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async stopPomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.stopPomodoro(id, user.id);
   }
 
   @Delete(':id')

@@ -22,6 +22,7 @@ export const EventsList = {
   POMODORO_STARTED: 'pomodoro.started',
   POMODORO_COMPLETED: 'pomodoro.completed',
   POMODORO_PAUSED: 'pomodoro.paused',
+  POMODORO_FINISHED: 'pomodoro.finished',
   CALENDAR_SYNCED: 'calendar.synced',
   CALENDAR_EVENT_ADDED: 'calendar.eventAdded',
   CALENDAR_EVENT_DELETED: 'calendar.eventDeleted',
