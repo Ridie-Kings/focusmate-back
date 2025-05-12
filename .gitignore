@@ -42,6 +42,7 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 .env.local
+.env.test
 
 # temp directory
 .temp
@@ -59,3 +60,14 @@ node_modules
 
 *.wt
 mongod.lock
+
+.cursor/*
+.cursorrules
+
+# Test artifacts
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+jest-coverage/
+.nyc_output/

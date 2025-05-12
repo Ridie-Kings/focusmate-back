@@ -3,17 +3,20 @@ import { AppModule } from "./app.module";
 import { ValidationPipe } from "@nestjs/common";
 import { config } from "dotenv";
 import helmet from "helmet";
-import { rateLimit } from "express-rate-limit";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as cookieParser from "cookie-parser";
+import { Logger } from '@nestjs/common';
 
 // Carga las variables de entorno
 config();
 
 async function sherpmain() {
-  console.log("Starting the application");
+  const logger = new Logger('Bootstrap');
+  logger.log("Starting the application");
 
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   app.use((req, res, next) => {
 	  req.app.set('trust proxy', 1);
 	  next();
@@ -26,20 +29,22 @@ async function sherpmain() {
 
   // Middleware de seguridad CORS
   app.enableCors({
-    origin: ["http://localhost:4000"], // Dominio o lista de dominios permitidos
-    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
-    credentials: true, // Permitir enviar cookies
+    origin: [
+      "http://localhost:3000", 
+      "http://localhost:4000",
+      "https://sherp-app.com",
+      "http://sherp-app.com",
+      "https://develop.sherp-app.com",
+      "http://develop.sherp-app.com",
+      "wss://sherp-app.com:4323",
+      "ws://sherp-app.com:4323"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
+    allowedHeaders: ['content-type', 'authorization', 'access-control-allow-origin', 'x-api-key'],
   });
 
   app.use(cookieParser());
-  // configuracón de Rate Limiting ()
-  app.use(
-    rateLimit({
-      windowMs: 60 * 1000, // 1 minuto
-      max: 10000, // Máximo 10,000 solicitudes en total por minuto
-      message: "Global API limit reached. Please try again later.",
-    }),
-  );
 
   // Configuración global de validaciones
   app.useGlobalPipes(
@@ -58,14 +63,11 @@ async function sherpmain() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api/docs", app, document);
-  // app.getHttpAdapter().get('/api-json', (req, res) => {
-  //   res.json(document);
-  // });
 
   const PORT = process.env.PORT ?? 4000;
   await app.listen(PORT);
 
-  console.log(`Application running on port ${PORT}`);
+  logger.log(`Application running on port ${PORT}`);
 }
 
 sherpmain();

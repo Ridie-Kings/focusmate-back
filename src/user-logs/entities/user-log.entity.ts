@@ -6,7 +6,7 @@ export class eventLog{
   type: string;
   dateLog: Date;
   object?: mongoose.Types.ObjectId;
-  value: number;
+  value?: number;
 }
 
 export type UserLogDocument = UserLog & Document;
@@ -18,35 +18,53 @@ export class UserLog extends Document {
   habitCounts: number;
   @Prop({ type: Number, required: false, default: 0 })
   taskCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  questCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  reminderCounts: number;
-  @Prop({ type: Number, required: false, default: 0 })
-  badgeCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // questCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // reminderCounts: number;
+  // @Prop({ type: Number, required: false, default: 0 })
+  // badgeCounts: number;
   @Prop({ type: [eventLog], required: true, default: []})
   logs: eventLog[];
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastLogin: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: [Date], required: false, default: []})
+  loginDates: Date[]
+  @Prop({ type: Date, required: false, default: new Date()})
   lastUpdate: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastPasswordChange: Date;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastEmailChange: Date;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   loginCount: number;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   lastSessionDuration: number;
-  @Prop({ type: Number, required: false })
-  PromedioSessionDuration: number;
-  @Prop({ type: Number, required: false })
+  // @Prop({ type: Number, required: false, default: 0})
+  // PromedioSessionDuration: number;
+  @Prop({ type: Number, required: false, default: 0})
   totalSessionDuration: number;
-  @Prop({ type: Number, required: false })
+  @Prop({ type: Number, required: false, default: 0})
   totalProfileUpdate: number;
-  @Prop({ type: Date, required: false })
+  @Prop({ type: Date, required: false, default: new Date()})
   lastProfileUpdate: Date;
-
+  @Prop({ type: Date, required: false, default: new Date()})
+  registerTime: Date;
+  @Prop({ type: Number, required: false, default: 0})
+  streak: number;
+  @Prop({ type: Number, required: false, default: 0})
+  bestStreak: number;
+  @Prop({ type: Number, required: false, default: 0})
+  taskDeleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  habitDeleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  taskCompleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  habitCompleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  taskCalendarCreated: number;
 }
 
 export const UserLogSchema = SchemaFactory.createForClass(UserLog);
+UserLogSchema.index({ userId: 1 }, { unique: true });

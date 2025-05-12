@@ -11,7 +11,7 @@ import mongoose, { Document } from "mongoose";
 // }
 
 export type UserDocument = User & Document;
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
   @Prop({
     required: true,
@@ -39,17 +39,33 @@ export class User extends Document {
   })
   password: string;
 
+  @Prop({ required: false, default: null, type: Date })
+  birthDate: Date;
+
+  @Prop({ required: false, default: null, type: Number})
+  phoneNumber: number;
+
   // @Prop({ default: 0 })
   // xp: number;
 
   // @Prop({ default: 1 })
   // level: number;
 
-  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
-  profile: mongoose.Types.ObjectId;
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: "Profile", req: true })
+  // profile: mongoose.Types.ObjectId;
 
   @Prop({ default: null })
   refreshToken: string;
+
+  @Prop({ default: null })
+  stripeCustomerId: string;
+
+  @Prop({ default: null })
+  resetCode: string;
+
+  @Prop({ type: String, required: false })
+  googleId?: string;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

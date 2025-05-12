@@ -9,37 +9,37 @@ export class GamificationProfile extends Document {
   user: mongoose.Types.ObjectId;
 
   // XP acumulada.
-  @Prop({ required: true, default: 0 })
+  @Prop({ required: false, default: 0 })
   xp: number;
 
   // Nivel actual del usuario.
-  @Prop({ required: true, default: 0 })
+  @Prop({ required: false, default: 0 })
   level: number;
 
-  @Prop({required: true, default: ''})
+  @Prop({required: false, default: ''})
   banner?: string;
 
-  @Prop({required: true, default: ''})
+  @Prop({required: false, default: ''})
   avatar?: string;
 
-  @Prop({required: true, default: ''})
+  @Prop({required: false, default: ''})
   frame?: string;
 
-  @Prop({required: true, default: 0})
+  @Prop({required: false, default: 0})
   coins?: number;
 
-  @Prop({required: true, default: ''})
+  @Prop({required: false, default: ''})
   bio?: string;
 
-  @Prop({required: true, default: 'Novice'})
+  @Prop({required: false, default: 'Novice'})
   title?: string;
 
   // Recompensas directas, otorgadas sin estar asociadas a un badge, quest o racha.
-  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Reward', default: [] })
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Reward', default: [], required: false })
   directRewards?: mongoose.Types.ObjectId[];
 
   // Badges desbloqueados.
-  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Badge', default: [] })
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Badge', default: [], required: false })
   unlockedBadges?: mongoose.Types.ObjectId[];
 }
 

@@ -61,11 +61,16 @@ export class UpdateUserDto {
   @MinLength(8, { message: "Password must be at least 8 characters long" })
   @IsOptional()
   readonly updatedPassword?: string;
+
   @ApiProperty({
     example: "John Doe",
     description: "User's full name (optional)",
     required: false,
   })
+  @IsString()
+  @IsOptional()
+  readonly fullname?: string;
+
   // @IsOptional()
   // readonly updateProfile: Profile;
 
@@ -77,4 +82,31 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   refreshToken?: string;
+
+  @ApiProperty({
+    example: "cus_123456789",
+    description: "Stripe customer ID (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  stripeCustomerId?: string;
+
+  @ApiProperty({
+    example: 1234567890,
+    description: "User phone number (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  phoneNumber?: number;
+
+  @ApiProperty({
+    example: "123456789",
+    description: "Google ID (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  googleId?: string;
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Logger } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -17,6 +17,8 @@ import mongoose from 'mongoose';
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 export class TasksController {
+  private readonly logger = new Logger(TasksController.name);
+
   constructor(private readonly tasksService: TasksService) {}
 
   @Post()
@@ -79,6 +81,7 @@ export class TasksController {
     @GetUser() user: User
   ): Promise<TaskDocument> 
   {
+    this.logger.debug('Updating task with DTO:', updateTaskDto);
     return this.tasksService.update(id, updateTaskDto, user.id);
   }
 
@@ -169,22 +172,30 @@ export class TasksController {
     return this.tasksService.getTasksByCategory(category, user.id);
   }
 
-  @Get(':idTask/subtasks/:id')
-  @ApiOperation({ summary: 'Retrieve all subtasks by task ID' })
-  @ApiResponse({ status: 200, description: 'List of subtasks retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getSubtasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<TaskDocument> {
-    return this.tasksService.getSubtasks(id, user.id);
-  }
+  // @Get(':idTask/subtasks')
+  // @ApiOperation({ summary: 'Retrieve all subtasks by task ID' })
+  // @ApiResponse({ status: 200, description: 'List of subtasks retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // async getSubtasks(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<TaskDocument> {
+  //   return this.tasksService.getSubtasks(id, user.id);
+  // }
 
-  @Get('tags/:tags')
-  @ApiOperation({ summary: 'Retrieve all tasks by tags' })
-  @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
-  @ApiResponse({ status: 401, description: 'Unauthorized access' })
-  async getTasksByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<TaskDocument[]> {
-    // Se espera una cadena de tags separados por comas, por ejemplo: "tag1,tag2,tag3"
-    const tagsArray = tags.split(',').map(tag => tag.trim());
-    return this.tasksService.getTasksByTags(tagsArray, user.id);
-  }
+  // @Get('tags/:tags')
+  // @ApiOperation({ summary: 'Retrieve all tasks by tags' })
+  // @ApiResponse({ status: 200, description: 'List of tasks retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // async getTasksByTags(@Param('tags') tags: string, @GetUser() user: User): Promise<TaskDocument[]> {
+  //   // Se espera una cadena de tags separados por comas, por ejemplo: "tag1,tag2,tag3"
+  //   const tagsArray = tags.split(',').map(tag => tag.trim());
+  //   return this.tasksService.getTasksByTags(tagsArray, user.id);
+  // }
+
+  // @Get('category/allCategories')
+  // @ApiOperation({ summary: 'Retrieve all categories' })
+  // @ApiResponse({ status: 200, description: 'List of categories retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // async findAllCategories(@GetUser() user: User): Promise<string[]> {
+  //   return this.tasksService.findAllCategories(user.id);
+  // }
 
 }

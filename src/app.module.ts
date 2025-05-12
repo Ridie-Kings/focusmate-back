@@ -1,10 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_FILTER } from "@nestjs/core";
 import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
 import { MongooseModule } from "@nestjs/mongoose";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { EventEmitterModule } from "@nestjs/event-emitter";
+import { Logger } from "@nestjs/common";
+import { Stat, StatSchema } from './stats/entities/stats.entity';
+import { JwtExceptionFilter } from './auth/filters/jwt-exception.filter';
 
 import { AppController, AdminController } from "./app.controller";
 import { AppService } from "./app.service";
@@ -37,21 +40,28 @@ import { NotesModule } from './notes/notes.module';
 import { PomodoroModule } from './pomodoro/pomodoro.module';
 import { EventsModule } from './events/events.module';
 import { StatsModule } from './stats/stats.module';
+import { StatsService } from './stats/stats.service';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
-    ThrottlerModule.forRoot([
-      {
-        name: "default",
-        ttl: 60000, // 1 minuto
-        limit: 10,
-      },
-    ]),
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minute
+      limit: 1000,
+    }]),
 
-    MongooseModule.forRoot(
-      "mongodb+srv://matisargo:OWHtedoTp8gCz5PI@cluster0.ay2g7.mongodb.net/sherpapp",
-    ),
     ConfigModule.forRoot({ isGlobal: true }),
+
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
+
+    MongooseModule.forFeature([{ name: Stat.name, schema: StatSchema }]),
 
     EventEmitterModule.forRoot(
       { wildcard: false }
@@ -85,6 +95,8 @@ import { StatsModule } from './stats/stats.module';
     PomodoroModule,
     EventsModule,
     StatsModule,
+    SubscriptionsModule,
+    DashboardModule,
   ],
   controllers: [AppController, AdminController],
   providers: [
@@ -95,6 +107,10 @@ import { StatsModule } from './stats/stats.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: JwtExceptionFilter,
     },
     AppService
   ],

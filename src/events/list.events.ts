@@ -12,8 +12,10 @@ export const EventsList = {
   BADGE_EARNED: 'badge.earned',
   TASK_CREATED: 'task.created',
   TASK_COMPLETED: 'task.completed',
+  TASK_DELETED: 'task.deleted',
   HABIT_CREATED: 'habit.created',
   HABIT_COMPLETED: 'habit.completed',
+  HABIT_DELETED: 'habit.deleted',
   REMINDER_CREATED: 'reminder.created',
   REMINDER_COMPLETED: 'reminder.completed',
   POMODORO_STARTED: 'pomodoro.started',
@@ -25,6 +27,12 @@ export const EventsList = {
   TICKET_SOLVED: 'ticket.solved',
   RATING_SUBMITTED: 'rating.submitted',
   REVIEW_SUBMITTED: 'review.submitted',
-
+  SUBSCRIPTION_CREATED: 'subscription.created',
+  SUBSCRIPTION_CANCELED: 'subscription.canceled',
+  SUBSCRIPTION_EXPIRED: 'subscription.expired',
+  SUBSCRIPTION_PAYMENT_METHOD_CHANGED: 'subscription.paymentMethodChanged',
+  SUBSCRIPTION_PAYMENT_METHOD_EXPIRED: 'subscription.paymentMethodExpired',
+  USER_REGISTERED_GOOGLE: 'user.registeredGoogle',
+  
   // Agrega más eventos según las acciones
 };

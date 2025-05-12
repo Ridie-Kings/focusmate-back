@@ -1,14 +1,8 @@
 import { IsString, IsNotEmpty, IsOptional, IsEnum, IsArray, IsMongoId, isDate, IsDate } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-
-export enum TaskStatus {
-  COMPLETED = 'completed',
-  PENDING = 'pending',
-  STARTED = 'started',
-  DROPPED = 'dropped',
-  REVISION = 'revision',
-}
+import { TaskPriority, TaskStatus } from '../entities/task.entity';
+import mongoose from 'mongoose';
 
 export class CreateTaskDto{
 
@@ -29,22 +23,46 @@ export class CreateTaskDto{
 
   @ApiProperty({ description: 'Start Date of the Task', example: '2025-02-24T00:00:00Z' })
   @IsOptional()
-  @IsDate()
-  readonly startDate?: Date;
+  @IsString()
+  readonly startDate?: string;
 
   @ApiProperty({ description: 'End Date of the Task', example: '2025-02-28T23:59:59Z' })
   @IsOptional()
-  @IsDate()
-  readonly endDate?: Date;
+  @IsString()
+  readonly endDate?: string;
 
   @ApiProperty({ description: 'Due Date of the Task', example: '2025-02-28T23:59:59Z' })
   @IsOptional()
-  @IsDate()
-  readonly dueDate?: Date;
+  @IsString()
+  readonly dueDate?: string;
 
   @ApiProperty({ description: 'tags of the task', example: ['tag1', 'tag2'] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   readonly tags?: string[];
+
+  @ApiProperty({ description: 'Priority of the task', example: 'high' })
+  @IsOptional()
+  @IsEnum(TaskPriority)
+  @IsNotEmpty()
+  readonly priority?: TaskPriority;
+
+  @ApiProperty({ description: 'Category of the task', example: 'category' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly category?: string;
+
+  @ApiProperty({ description: 'Subtasks of the task', example: ['subtask1', 'subtask2'] })
+  @IsOptional()
+  @IsArray()
+  @IsMongoId({ each: true })
+  readonly subTasks?: mongoose.Types.ObjectId[];
+
+  @ApiProperty({ description: 'Colour of the task', example: '#000000' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  readonly color?: string;
 }

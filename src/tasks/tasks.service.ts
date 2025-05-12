@@ -1,30 +1,52 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskDocument } from './entities/task.entity';
 import mongoose, { Model, mongo } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { EventsList } from 'src/events/list.events';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { DiscordWebhookService } from '../webhooks/discord-webhook.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TasksService {
+  private readonly logger = new Logger(TasksService.name);
+
   constructor(
     @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
+    private eventEmitter: EventEmitter2,
+    private readonly discordWebhookService: DiscordWebhookService,
+    private readonly usersService: UsersService,
   ) {}
+
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
+    this.logger.debug('Creating task with DTO:', createTaskDto);
     try {
       const task = await this.taskModel.create({
         ...createTaskDto,
-        userId,
+        userId: userId,
       });
-      return await task.populate('userId');
+      this.eventEmitter.emit(EventsList.TASK_CREATED, {userId: userId, taskId: task._id});
+      
+      return task;
     } catch (error) {
+      console.error('Error creating task:', error);
       throw new InternalServerErrorException('Error creating task');
     }
   }
+  // private async checkTaskDates(date: Date): Promise<boolean> {
+  //   const allTasks = await this.taskModel.find({});
+  //   return allTasks.some(task => {
+  //     const taskDate = new Date(task.dueDate);
+  //     return taskDate.toDateString() === date.toDateString();
+  //   });
+    
+  // }
 
   async findAll(userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
-      return await this.taskModel.find({userId: userId}).populate('userId');
+      return await this.taskModel.find({userId: userId});
     }catch (error) {
       throw new InternalServerErrorException('Error getting tasks');
     }
@@ -35,27 +57,38 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      return await task.populate('userId');
+      if(task.subTasks.length > 0) {
+        return await task.populate('subTasks');
+      }
+      return task.populate('userId');
     }catch (error) {
+      console.error('Error getting task:', error);
       throw new InternalServerErrorException('Error getting task');
     }
   }
 
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
+    this.logger.debug('Updating task with DTO:', updateTaskDto);
     try {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      await this.taskModel.findByIdAndUpdate(id ,
+      
+      if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
+        return await this.updateTags(id, updateTaskDto, userId);
+        updateTaskDto.addTags = null;
+        updateTaskDto.deleteTags = null;
+      }
+      
+      const updatedTask = await this.taskModel.findByIdAndUpdate(id,
         {
-          $set: {title: updateTaskDto.title, description: updateTaskDto.description, startDate: updateTaskDto.startDate, endDate: updateTaskDto.endDate, dueDate: updateTaskDto.dueDate},
+          ...updateTaskDto,
         },
         {new: true});
-      if (updateTaskDto.addTags.length || updateTaskDto.deleteTags.length) {
-        return await this.updateTags(id, updateTaskDto, userId);
-      }
-      return (await this.findOne(id, userId)).populate('userId');
+      
+      return updatedTask;
     } catch (error) {
+      console.error('Error updating task:', error);
       throw new InternalServerErrorException('Error updating task');
     }
   }
@@ -65,6 +98,9 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      if (updateTaskDto.status === 'completed') {
+        this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
+      }
       if (updateTaskDto.addTags.length) {
         await this.taskModel.findByIdAndUpdate(id,
           {
@@ -76,7 +112,7 @@ export class TasksService {
         await this.taskModel.findByIdAndUpdate
         (id, { $pull: {tags: { $in: updateTaskDto.deleteTags }}}, {new: true});
       }
-      return (await this.findOne(id, userId)).populate('userId');
+      return (await this.findOne(id, userId));
     } catch (error) {
       throw new InternalServerErrorException('Error updating task tags');
     }
@@ -88,6 +124,7 @@ export class TasksService {
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       await this.taskModel.findByIdAndUpdate(id, {isDeleted: true}, {new: true});
+      this.eventEmitter.emit(EventsList.TASK_DELETED, {userId: userId, taskId: task._id});
       return (await this.findOne(id, userId)).populate('userId');
     } catch (error) {
       throw new InternalServerErrorException('Error deleting task');
@@ -100,6 +137,7 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      this.eventEmitter.emit(EventsList.TASK_DELETED, {userId: userId, taskId: task._id});
       return this.taskModel.findByIdAndDelete(id);
     } catch (error) {
       throw new InternalServerErrorException('Error deleting task');
@@ -122,25 +160,25 @@ export class TasksService {
     }
   }
 
-  async getSubtasks(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
-    try {
-      const task = await this.taskModel.findById(id);
-      if (!task) throw new NotFoundException('Task not found');
-      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      return task.populate('subtasks');
-    } catch (error) {
-      throw new InternalServerErrorException('Error getting subtasks');
-    }
-  }
+  // async getSubtasks(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
+  //   try {
+  //     const task = await this.taskModel.findById(id);
+  //     if (!task) throw new NotFoundException('Task not found');
+  //     if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+  //     return task.populate('subtasks');
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Error getting subtasks');
+  //   }
+  // }
 
-  async getTasksByTags(tagsArray: string[] ,userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
-    try {
-      const tasks = await this.taskModel.find({tags: tagsArray, userId});
-      return tasks;
-    } catch (error) {
-      throw new InternalServerErrorException('Error getting tasks by tags');
-    }
-  }
+  // async getTasksByTags(tagsArray: string[] ,userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
+  //   try {
+  //     const tasks = await this.taskModel.find({tags: tagsArray, userId});
+  //     return tasks;
+  //   } catch (error) {
+  //     throw new InternalServerErrorException('Error getting tasks by tags');
+  //   }
+  // }
 
   async getTasksByPriority(priority: string, userId: mongoose.Types.ObjectId): Promise<TaskDocument[]> {
     try {
@@ -159,4 +197,23 @@ export class TasksService {
       throw new InternalServerErrorException('Error getting tasks by category');
     }
   }
+
+  // async findAllCategories(userId: mongoose.Types.ObjectId): Promise<string[]> {
+  //     const tasks = await this.taskModel.aggregate([
+  //       {
+  //         $match: { user: userId },
+  //       },
+  //       {
+  //         $project: {
+  //           categories: {
+  //             $setUnion: [
+  //               { $map: { input: "$tasks", as: "task", in: "$$task.category" } },
+  //             ],
+  //           },
+  //         },
+  //       },
+  //     ]);
+  
+  //     return tasks.length > 0 ? tasks[0].categories : [];
+  //   }
 }

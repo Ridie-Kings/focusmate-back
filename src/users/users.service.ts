@@ -6,6 +6,7 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  Logger,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -19,33 +20,29 @@ import { GamificationProfileService } from "src/gamification-profile/gamificatio
 import { UserLogsService } from 'src/user-logs/user-logs.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EventsList } from 'src/events/list.events';
-// import { UpdateProfileDto } from "./dto/updateProfileDto";
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
-    // @Inject(CalendarService) private readonly calendarService: CalendarService,
-    // @Inject(GamificationProfileService) private readonly gamificationProfileService: GamificationProfileService,
-    // @Inject(UserLog) private readonly userLogService: UserLogsService
   ) {}
+
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
-      // 🔹 Sanitizar los inputs antes de guardarlos
       createUserDto.username = sanitizeHtml(createUserDto.username);
       createUserDto.fullname = sanitizeHtml(createUserDto.fullname);
       createUserDto.email = sanitizeHtml(createUserDto.email);
 
-      // 🔹 Hashear la contraseña antes de guardarla
       createUserDto.password = await argon2.hash(createUserDto.password);
 
       const user = await this.userModel.create(createUserDto);
-      this.eventEmitter.emit(EventsList.USER_REGISTERED, {userId: user.id}); // Emitir evento de usuario registrado
-      // this.calendarService.createCalendar(user.id);
-      // this.userLogService.create(user.id);
-      // this.gamificationProfileService.create({}, user.id);
+      this.eventEmitter.emit(EventsList.USER_REGISTERED, {userId: user.id});
+      
+      // Return user without password
       return user;
     } catch (error) {
       console.error("❌ ERROR en create():", error);
@@ -61,45 +58,44 @@ export class UsersService {
   }
 
   findAll() {
-    return this.userModel.find();
+    return this.userModel.find()
   }
 
   async findOne(term: string) {
     let user: User | null = null;
 
     if (isValidObjectId(term)) {
-      user = await this.userModel.findById(term);
+      user = await this.userModel.findById(term)
     }
 
     if (!user) {
-      user = await this.userModel.findOne({ email: term.trim() });
+      user = await this.userModel.findOne({ email: term.trim() })
     }
 
     if (!user) {
-      user = await this.userModel.findOne({ username: term.trim() });
+      user = await this.userModel.findOne({ username: term.trim() })
     }
 
     return user;
   }
-  async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ refreshToken });
 
+  async findOneByRefreshToken(refreshToken: string): Promise<User | null> {
+    const user = await this.userModel.findOne({ refreshToken })
     return user ? user : null;
   }
 
-  // 🔹 Verificar refresh token
   async validateRefreshToken(userId: mongoose.Types.ObjectId, token: string): Promise<boolean> {
-    const user = await this.userModel.findById(userId);
+    const user = await this.userModel.findById(userId)
     if (!user || !user.refreshToken) return false;
-
     return await argon2.verify(user.refreshToken, token);
   }
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {//REVISA ESTO
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
     if (updateUserDto.updatedPassword) {
       if (!updateUserDto.password) {
         throw new BadRequestException("Password is required");
       }
-      const user = await this.userModel.findById(id);
+      const user = await this.userModel.findById(id)
       if (!user) {
         throw new NotFoundException("User not found");
       }
@@ -111,39 +107,12 @@ export class UsersService {
         throw new BadRequestException("Invalid password");
       }
       updateUserDto.password = await argon2.hash(updateUserDto.updatedPassword);
-      // delete updateUserDto.updatedPassword;
     }
     const user_new = await this.userModel.findByIdAndUpdate(id, updateUserDto, {
       new: true,
-    });
+    })
     return user_new;
   }
-
-  // async getProfile(id: mongoose.Types.ObjectId) {
-  //   const user = await this.userModel.findById(id);
-  //   if (!user) {
-  //     throw new NotFoundException("User not found");
-  //   }
-  //   console.log("get profile");
-  //   return user.profile;
-  // }
-
-  // async updateProfile(userId: mongoose.Types.ObjectId, updateData: UpdateProfileDto) {
-  //   const user = await this.userModel.findById(userId);
-  //   if (!user) {
-  //     throw new NotFoundException("User not found");
-  //   }
-
-  //   // 🔹 Actualiza solo los campos permitidos en `UpdateProfileDto`
-  //   if (updateData.bio !== undefined) user.profile.bio = updateData.bio;
-  //   if (updateData.avatar !== undefined)
-  //     user.profile.avatar = updateData.avatar;
-  //   // if (updateData.settings !== undefined)
-  //   //   user.profile.settings = updateData.settings;
-
-  //   await user.save();
-  //   return { message: "Profile updated successfully", profile: user.profile };
-  // }
 
   async remove(id: mongoose.Types.ObjectId) {
     const user = await this.userModel.findById(id);
@@ -152,5 +121,22 @@ export class UsersService {
     }
     await this.userModel.findByIdAndDelete(id);
     return user;
+  }
+
+  async updatePassword(email: string, hashedPassword: string) {
+    try {
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      user.password = hashedPassword;
+      await user.save();
+      
+      return { message: 'Password updated successfully' };
+    } catch (error) {
+      this.logger.error(`Failed to update password: ${error.message}`);
+      throw error;
+    }
   }
 }

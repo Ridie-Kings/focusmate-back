@@ -8,6 +8,9 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class GamificationProfileService {
+  // Default avatar path for new profiles
+  private readonly DEFAULT_AVATAR = 'https://img.freepik.com/premium-photo/close-up-mountain-with-river-middle-generative-ai_955884-5829.jpg?w=740';
+
   constructor(
     @InjectModel(GamificationProfile.name) private gamificationProfileModel: Model<GamificationProfileDocument>,
     @Inject(UsersService) private readonly usersService: UsersService,
@@ -15,16 +18,21 @@ export class GamificationProfileService {
 
   async create(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument>  {
     try{
-      const profile = await this.gamificationProfileModel.findOne({userId: userId});
+      const profile = await this.gamificationProfileModel.findOne({user: userId});
       if(profile){
         throw new ForbiddenException('User profile already exists');
       }
-      return await this.gamificationProfileModel.create({
+      const profile_new = await this.gamificationProfileModel.create({
+        user: userId,
+        avatar: this.DEFAULT_AVATAR, // Set default avatar
+        level: 1,
         xp: 0,
-        level: 0,
-        userId: userId,
-      })
+        coins: 0,
+        title: 'Novice'
+      });
+      return profile_new;
     }catch(error){
+      console.error('Error creating profile:', error);
       throw new InternalServerErrorException('Error Creating Profile');
     }
   }
@@ -37,7 +45,9 @@ export class GamificationProfileService {
 
   async findMe(userId: mongoose.Types.ObjectId): Promise<GamificationProfileDocument> {
     try{
-      return await this.gamificationProfileModel.findOne({ userId: userId });
+      const profile = await this.gamificationProfileModel.findOne({ user: userId });
+      console.log('profile', profile);
+      return await profile.populate('user');
     }catch (error){
       throw new InternalServerErrorException('Error getting my profile');
     }
