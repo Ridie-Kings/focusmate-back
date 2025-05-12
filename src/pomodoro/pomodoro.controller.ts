@@ -23,7 +23,7 @@ export class PomodoroController {
   }
 
   @Get('working')
-  @ApiOperation({ summary: 'Get all pomodoros with IDLE state' })
+  @ApiOperation({ summary: 'Get all pomodoros with working state' })
   @ApiResponse({ status: 200, description: 'Pomodoros retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized Access' })
   async getAllWorkingPomodoros(@GetUser() user: UserDocument) {
@@ -81,6 +81,33 @@ export class PomodoroController {
   @ApiResponse({ status: 400, description: 'Invalid request body' })
   async stopPomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
     return this.pomodoroService.stopPomodoro(id, user.id);
+  }
+
+  @Post(':id/share')
+  @ApiOperation({ summary: 'Share a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro shared successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async sharePomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.sharePomodoro(id, user.id);
+  }
+
+  @Post(':id/pause')
+  @ApiOperation({ summary: 'Pause a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro paused successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async pausePomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.pausePomodoro(id, user.id);
+  }
+
+  @Post(':id/resume')
+  @ApiOperation({ summary: 'Resume a pomodoro by id' })
+  @ApiResponse({ status: 200, description: 'Pomodoro resumed successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized Access' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async resumePomodoro(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: UserDocument) {
+    return this.pomodoroService.resumePomodoro(id, user.id);
   }
 
   @Delete(':id')

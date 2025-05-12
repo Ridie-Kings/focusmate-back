@@ -58,6 +58,17 @@ export class Pomodoro extends Document {
   
   @Prop({ type: Number, default: 0, required: false})
   interruptions: number;
+
+  @Prop({ type: Number, default: null, required: false})
+  remainingTime?: number;
+
+  @Prop({
+    type: String,
+    enum: PomodoroState,
+    default: null,
+  })
+  pausedState?: PomodoroState;
+  
 }
 
 export const PomodoroSchema = SchemaFactory.createForClass(Pomodoro);

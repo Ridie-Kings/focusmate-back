@@ -8,6 +8,7 @@ import { EventsList } from 'src/events/list.events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DiscordWebhookService } from '../webhooks/discord-webhook.service';
 import { UsersService } from '../users/users.service';
+import { PomodoroDocument } from 'src/pomodoro/entities/pomodoro.entity';
 
 @Injectable()
 export class TasksService {
@@ -193,6 +194,29 @@ export class TasksService {
       return tasks;
     } catch (error) {
       throw new InternalServerErrorException('Error getting tasks by category');
+    }
+  }
+
+  async getPomodoros(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<PomodoroDocument[]> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      return task.populate('pomodoros');
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting pomodoros');
+    }
+  }
+
+  async updatePomodoros(id: mongoose.Types.ObjectId, idPomodoro: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      this.taskModel.findByIdAndUpdate(id, { $push: {pomodoros: idPomodoro}}, {new: true});
+      return task.populate('userId');
+    } catch (error) {
+      throw new InternalServerErrorException('Error updating pomodoros');
     }
   }
 

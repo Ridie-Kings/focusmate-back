@@ -187,7 +187,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 12 * 60 * 60 * 1000 // 12 hours
+         // 12 hours
       });
       
       res.clearCookie('refresh_token', {
@@ -195,7 +195,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+       // 7 days
       });
 
       this.logger.debug('Cookies cleared successfully');

@@ -8,7 +8,9 @@ import { UseGuards } from '@nestjs/common';
 import { WsJwtAuthGuard } from '../auth/guards/ws-jwt-auth.guard';
 import mongoose from 'mongoose';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
-import { User } from 'src/users/entities/user.entity';
+import { User, UserDocument } from 'src/users/entities/user.entity';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 
 @UseGuards(WsJwtAuthGuard)
 @WebSocketGateway({ 
@@ -32,7 +34,8 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   private readonly logger = new Logger(PomodoroGateway.name);
 
   constructor(
-    @Inject(forwardRef(() => PomodoroService)) private readonly pomodoroService: PomodoroService
+    @Inject(forwardRef(() => PomodoroService)) private readonly pomodoroService: PomodoroService,
+    private readonly jwtService: JwtService
   ) {}
 
   afterInit(server: Server) {
@@ -43,8 +46,22 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     // });
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+  async handleConnection(client: Socket, @GetUser() user: UserDocument) {
     this.logger.log('Client connected');
+    const raw = client.handshake.auth.token || client.handshake.headers.authorization;
+    const token = raw?.replace(/^Bearer\s+/,'');
+    try {
+      const payload = this.jwtService.verify<JwtPayload>(token);
+      (client as any).user = payload;
+      this.logger.log(`✔️ Client ${client.id} connected as user ${payload.id}`);
+      const pomodoro = await this.pomodoroService.findWorking(payload.id);
+      if(pomodoro) {
+        this.server.to(client.id).emit('pomodoro found', pomodoro);
+      }
+    } catch (error) {
+      this.logger.error(error);
+      client.disconnect(true);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -64,11 +81,20 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     this.logger.log(`💡 User ${user.id} joined room ${id}`);
   }
 
+  @SubscribeMessage('leave')
+  async handleLeave(@MessageBody() data: {id: string}, @ConnectedSocket() client: Socket, @GetUser() user: User) {
+    const {id} = data;
+    client.leave(id);
+    this.logger.log(`💡 User ${user.id} left room ${id}`);
+  }
+
   emitStatus(pomodoro: Pomodoro) {
     this.server.to(pomodoro.id.toString()).emit('status', {
       state: pomodoro.state,
       currentCycle: pomodoro.currentCycle,
       endsAt: pomodoro.endTime,
+      remainingTime: pomodoro.remainingTime,
+      pausedState: pomodoro.pausedState,
     });
   }
 }
