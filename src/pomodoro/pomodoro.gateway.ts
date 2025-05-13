@@ -59,8 +59,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       const pomodoro = await this.pomodoroService.findWorking(payload.id);
       if(pomodoro) {
         this.server.to(client.id).emit('pomodoro found', pomodoro);
-        this.server.emit('pomodoro found', 'hola 2');
-        this.server.to(user.id).emit('pomodor found', 'hola');
+
       }
     } catch (error) {
       this.logger.error(error);
