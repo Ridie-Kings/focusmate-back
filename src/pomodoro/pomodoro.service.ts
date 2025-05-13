@@ -46,8 +46,8 @@ export class PomodoroService {
     try{
       const pomodoro = await this.pomodoroModel.create({userId: user, workDuration: 25*60, shortBreak: 5*60, longBreak: 15*60, cycles: 4});
       this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
-      this.startPomodoro(pomodoro.id, user);
-      return pomodoro;
+      return this.startPomodoro(pomodoro.id, user);
+      //this.gateway.emitStatus(pomodoro);
     } catch (error) {
       this.logger.error('Error creating default pomodoro:', error);
       throw new InternalServerErrorException('Error creating default pomodoro');
