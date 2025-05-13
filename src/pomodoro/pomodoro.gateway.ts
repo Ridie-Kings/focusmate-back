@@ -59,6 +59,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       const pomodoro = await this.pomodoroService.findWorking(payload.id);
       if(pomodoro) {
         this.server.to(client.id).emit('pomodoro found', pomodoro);
+        client.emit('pomodoro found', pomodoro);
       }
     } catch (error) {
       this.logger.error(error);
@@ -91,6 +92,19 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   }
 
   emitStatus(pomodoro: Pomodoro) {
+    // this.server.to(pomodoro.id.toString()).emit('status', {
+    //   _id: pomodoro.id, 
+    //   state: pomodoro.state,
+    //   currentCycle: pomodoro.currentCycle,
+    //   workDuration: pomodoro.workDuration,
+    //   shortBreak: pomodoro.shortBreak,
+    //   longBreak: pomodoro.longBreak,
+    //   cycles: pomodoro.cycles,
+    //   endsAt: pomodoro.endTime,
+    //   remainingTime: pomodoro.remainingTime,
+    //   pausedState: pomodoro.pausedState,
+    // });
+
     this.server.to(pomodoro.id.toString()).emit('status', {
       _id: pomodoro.id, 
       state: pomodoro.state,
