@@ -42,6 +42,18 @@ export class PomodoroService {
     }
   }
 
+  async createDefaultPomodoro(user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.pomodoroModel.create({userId: user, workDuration: 25*60, shortBreak: 5*60, longBreak: 15*60, cycles: 4});
+      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      this.startPomodoro(pomodoro.id, user);
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error creating default pomodoro:', error);
+      throw new InternalServerErrorException('Error creating default pomodoro');
+    }
+  }
+
   async findAll(user: mongoose.Types.ObjectId) {
     try{
       return this.pomodoroModel.find({userId: user, state: PomodoroState.IDLE});

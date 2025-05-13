@@ -46,6 +46,14 @@ export class PomodoroController {
     return this.pomodoroService.createPomodoro(createPomodoroDto, user.id);
   }
 
+  @Post('default')
+  @ApiOperation({ summary: 'Create a default pomodoro' })
+  @ApiResponse({ status: 201, description: 'Pomodoro created successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request body' })
+  async createDefaultPomodoro(@GetUser() user: UserDocument) {
+    return this.pomodoroService.createDefaultPomodoro(user.id);
+  }
+
   @Post(':id/start')
   @ApiOperation({ summary: 'Start a pomodoro' })
   @ApiResponse({ status: 200, description: 'Pomodoro started successfully' })

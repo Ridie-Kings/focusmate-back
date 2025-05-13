@@ -20,7 +20,9 @@ import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
       "http://localhost:3000",
       "http://localhost:4000",
       "https://sherp-app.com",
-      "http://sherp-app.com"
+      "http://sherp-app.com",
+      "http://develop.sherp-app.com",
+      "https://develop.sherp-app.com"
     ],
     credentials: true,
     allowedHeaders: ['content-type', 'authorization']
@@ -92,6 +94,10 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     this.server.to(pomodoro.id.toString()).emit('status', {
       state: pomodoro.state,
       currentCycle: pomodoro.currentCycle,
+      workDuration: pomodoro.workDuration,
+      shortBreak: pomodoro.shortBreak,
+      longBreak: pomodoro.longBreak,
+      cycles: pomodoro.cycles,
       endsAt: pomodoro.endTime,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
