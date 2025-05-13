@@ -1,14 +1,19 @@
-import { Controller, Get, Post, Param, UseGuards, Req, Body, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Param, UseGuards, Req, Body, Patch, Delete, ValidationPipe, UsePipes } from '@nestjs/common';
 import { PomodoroService } from './pomodoro.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { CreatePomodoroDto } from './dto/create-pomodoro.dto';
 import { UserDocument } from 'src/users/entities/user.entity';
 import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 import { UpdatePomodoroDto } from './dto/update-pomodoro.dto';
 import mongoose from 'mongoose';
+import { PomodoroDocument } from './entities/pomodoro.entity';
+
+
 @ApiTags('Pomodoro')
+@ApiBearerAuth()
+@UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true}))
 @Controller('pomodoro')
 @UseGuards(JwtAuthGuard)
 export class PomodoroController {
@@ -42,7 +47,7 @@ export class PomodoroController {
   @ApiOperation({ summary: 'Create a new pomodoro' })
   @ApiResponse({ status: 201, description: 'Pomodoro created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
-  async createPomodoro(@Body() createPomodoroDto: CreatePomodoroDto, @GetUser() user: UserDocument) {
+  async createPomodoro(@Body() createPomodoroDto: CreatePomodoroDto, @GetUser() user: UserDocument) : Promise<PomodoroDocument> {
     return this.pomodoroService.createPomodoro(createPomodoroDto, user.id);
   }
 

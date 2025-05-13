@@ -26,7 +26,7 @@ export class PomodoroService {
     private schedulerRegistry: SchedulerRegistry,
   ) {}
 
-  async createPomodoro(createPomodoroDto: CreatePomodoroDto, user: mongoose.Types.ObjectId) {
+  async createPomodoro(createPomodoroDto: CreatePomodoroDto, user: mongoose.Types.ObjectId) : Promise<PomodoroDocument> {
     try {
       const previousPomodoro = await this.pomodoroModel.findOne({userId: user, state: PomodoroState.IDLE});
       if(previousPomodoro) {
