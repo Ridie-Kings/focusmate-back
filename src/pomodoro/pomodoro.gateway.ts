@@ -92,6 +92,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
 
   emitStatus(pomodoro: Pomodoro) {
     this.server.to(pomodoro.id.toString()).emit('status', {
+      pomodoroId: pomodoro.id, 
       state: pomodoro.state,
       currentCycle: pomodoro.currentCycle,
       workDuration: pomodoro.workDuration,
