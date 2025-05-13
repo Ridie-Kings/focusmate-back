@@ -206,7 +206,7 @@ export class CalendarController {
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Calendar not found' })
   async findDate(@Param('date', ParseDatePipe) date: Date, @GetUser() user: User) {
-    console.log('date', date);
+    //console.log('date', date);
     return this.calendarService.findByDate( user.id, date);
   }
 

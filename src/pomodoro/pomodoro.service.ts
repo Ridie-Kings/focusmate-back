@@ -1,209 +1,288 @@
 // src/pomodoro/pomodoro.service.ts
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Pomodoro, PomodoroDocument } from './entities/pomodoro.entity';
 import { IsString, IsNotEmpty, IsNumber, IsOptional, IsBoolean } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 import * as mongoose from 'mongoose';
-
-// Create DTOs for validation
-export class StartPomodoroDto {
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
-  
-  @IsNumber()
-  @IsOptional()
-  duration?: number;
-}
-
-export class PomodoroStatusDto {
-  @IsString()
-  userId: string;
-  
-  @IsString()
-  pomodoroId: string;
-  
-  @IsBoolean()
-  active: boolean;
-  
-  @IsNumber()
-  remainingTime: number;
-}
+import { CreatePomodoroDto } from './dto/create-pomodoro.dto';
+import { PomodoroState } from './entities/pomodoro.entity';
+import { UserDocument } from 'src/users/entities/user.entity';
+import { UpdatePomodoroDto } from './dto/update-pomodoro.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventsList } from 'src/events/list.events';
+import { PomodoroGateway } from './pomodoro.gateway';
+import { SchedulerRegistry } from '@nestjs/schedule';
 
 @Injectable()
 export class PomodoroService {
   private readonly logger = new Logger(PomodoroService.name);
-  private activeTimers: Map<string, NodeJS.Timeout> = new Map();
 
   constructor(
-    @InjectModel(Pomodoro.name) private readonly pomodoroModel: Model<PomodoroDocument>,
-    private readonly configService: ConfigService
+    @InjectModel(Pomodoro.name) private pomodoroModel: Model<PomodoroDocument>,
+    @Inject(EventEmitter2) private eventEmitter: EventEmitter2,
+    @Inject(forwardRef(() => PomodoroGateway)) private gateway: PomodoroGateway,
+    private schedulerRegistry: SchedulerRegistry,
   ) {}
 
-  // Start a new Pomodoro session
-  async startPomodoro(userId: string, duration: number = 1500) {
+  async createPomodoro(createPomodoroDto: CreatePomodoroDto, user: mongoose.Types.ObjectId) {
     try {
-      // Check if user already has an active pomodoro
-      const activePomodoro = await this.getActivePomodoro(userId);
-      if (activePomodoro) {
-        throw new Error('User already has an active pomodoro session');
+      const previousPomodoro = await this.pomodoroModel.findOne({userId: user, state: PomodoroState.IDLE});
+      if(previousPomodoro) {
+        await this.pomodoroModel.findByIdAndUpdate(previousPomodoro._id, {state: PomodoroState.FINISHED});
       }
-
-      const startTime = new Date();
-      const pomodoro = new this.pomodoroModel({
-        userId,
-        startTime,
-        duration,
-        remainingTime: duration,
-        active: true,
-        completed: false,
-      });
-
-      await pomodoro.save();
-      this.logger.log(`Started pomodoro session for user ${userId}`);
-      return pomodoro;
-    } catch (error) {
-      this.logger.error(`Error starting pomodoro: ${error.message}`);
-      throw error;
-    }
-  }
-
-  // Stop a Pomodoro session
-  async stopPomodoro(pomodoroId: string) {
-    try {
-      const pomodoro = await this.pomodoroModel.findById(pomodoroId);
-      if (!pomodoro) {
-        throw new Error('Pomodoro session not found');
-      }
-
-      pomodoro.active = false;
-      pomodoro.endTime = new Date();
-      pomodoro.completed = true;
-      await pomodoro.save();
       
-      this.logger.log(`Stopped pomodoro session ${pomodoroId}`);
+      const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user});
+      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       return pomodoro;
     } catch (error) {
-      this.logger.error(`Error stopping pomodoro: ${error.message}`);
-      throw error;
+      this.logger.error('Error creating pomodoro:', error);
+      throw new InternalServerErrorException('Error creating pomodoro');
     }
   }
 
-  // Update remaining time for a pomodoro
-  async updateRemainingTime(pomodoroId: string, remainingTime: number): Promise<Pomodoro> {
-    return this.pomodoroModel.findByIdAndUpdate(
-      pomodoroId,
-      { remainingTime },
-      { new: true }
-    );
+  async createDefaultPomodoro(user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.pomodoroModel.create({userId: user, workDuration: 25*60, shortBreak: 5*60, longBreak: 15*60, cycles: 4});
+      this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      this.startPomodoro(pomodoro.id, user);
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error creating default pomodoro:', error);
+      throw new InternalServerErrorException('Error creating default pomodoro');
+    }
   }
 
-  // Get a specific pomodoro by ID
-  async getPomodoroById(pomodoroId: string) {
-    try {
-      const pomodoro = await this.pomodoroModel.findById(pomodoroId);
+  async findAll(user: mongoose.Types.ObjectId) {
+    try{
+      return this.pomodoroModel.find({userId: user, state: PomodoroState.IDLE});
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
+    }
+  }
+
+  async findAllNotIdle(user: mongoose.Types.ObjectId) {
+    try{
+      return await this.pomodoroModel.find({userId: user});
+
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
+    }
+  }
+
+  async findWorking(user: mongoose.Types.ObjectId) {
+    try{
+      return await this.pomodoroModel.findOne({
+        userId: user, 
+        state: { 
+          $in: [
+            PomodoroState.WORKING,
+            PomodoroState.LONG_BREAK,
+            PomodoroState.SHORT_BREAK,
+            PomodoroState.IDLE
+          ]
+        }
+      });
+    } catch (error) {
+      this.logger.error('Error finding pomodoros:', error);
+      throw new InternalServerErrorException('Error finding pomodoros');
+    }
+  }
+  
+  async startPomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId): Promise<Pomodoro> {
+    try{
+        const pomodoro = await this.pomodoroModel.findById(id);
       if (!pomodoro) {
-        throw new Error('Pomodoro not found');
+        throw new NotFoundException('Pomodoro not found');
+      }
+      if( !pomodoro.userId.equals(user)) {
+        throw new ForbiddenException('You are not allowed to start this pomodoro');
+      }
+      pomodoro.state = PomodoroState.WORKING;
+      pomodoro.currentCycle = 1;
+      pomodoro.startTime = new Date();
+      pomodoro.endTime = new Date(pomodoro.startTime.getTime() + pomodoro.workDuration * 1000);
+      await pomodoro.save();
+      this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      this.gateway.emitStatus(pomodoro);
+      this.scheduleNext(id, pomodoro.workDuration);    
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error starting pomodoro:', error);
+      throw new InternalServerErrorException('Error starting pomodoro');
+    }
+  }
+
+  async pausePomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to pause this pomodoro');
+      pomodoro.endTime = new Date( Date.now());
+      pomodoro.pausedState = PomodoroState.PAUSED;
+      pomodoro.interruptions += 1;
+      pomodoro.remainingTime = pomodoro.endTime.getTime() - pomodoro.startTime.getTime();
+      await pomodoro.save();
+      this.gateway.emitStatus(pomodoro);
+      if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
+        this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
       }
       return pomodoro;
     } catch (error) {
-      this.logger.error(`Error getting pomodoro by ID: ${error.message}`);
-      throw error;
+      this.logger.error('Error pausing pomodoro:', error);
+      throw new InternalServerErrorException('Error pausing pomodoro');
     }
   }
 
-  // Get the active Pomodoro session for a user
-  async getActivePomodoro(userId: string) {
-    try {
-      const objectId = new mongoose.Types.ObjectId(userId);
-      return await this.pomodoroModel.findOne({ 
-        userId: objectId, 
-        active: true 
-      }).sort({ startTime: -1 });
-    } catch (error) {
-      this.logger.error(`Error getting active pomodoro: ${error.message}`);
-      throw error;
-    }
-  }
-
-  // Get configuration values
-  getDefaultDuration(): number {
-    return this.configService.get('POMODORO_DEFAULT_DURATION', 1500);
-  }
-  
-  getShortBreakDuration(): number {
-    return this.configService.get('POMODORO_SHORT_BREAK', 300);
-  }
-  
-  getLongBreakDuration(): number {
-    return this.configService.get('POMODORO_LONG_BREAK', 900);
-  }
-
-  async updatePomodoroStatus(pomodoroId: string, status: { isPaused?: boolean; type?: string }): Promise<Pomodoro> {
-    return this.pomodoroModel.findByIdAndUpdate(
-      pomodoroId,
-      { $set: status },
-      { new: true }
-    );
-  }
-
-  async sharePomodoro(pomodoroId: string, userId: string): Promise<{ shareCode: string }> {
-    const pomodoro = await this.pomodoroModel.findById(pomodoroId);
-    if (!pomodoro) {
-      throw new Error('Pomodoro not found');
-    }
-
-    // Check if the user is the owner of the pomodoro
-    if (pomodoro.userId.toString() !== userId) {
-      throw new Error('You can only share your own pomodoros');
-    }
-
-    // Generate a unique share code
-    const shareCode = Math.random().toString(36).substring(2, 10);
-    
-    // Update the pomodoro with sharing information
-    await this.pomodoroModel.findByIdAndUpdate(
-      pomodoroId,
-      { 
-        isShared: true,
-        shareCode,
-        sharedWith: [new mongoose.Types.ObjectId(userId)] // Initialize with the owner
-      },
-      { new: true }
-    );
-
-    return { shareCode };
-  }
-
-  async joinSharedPomodoro(shareCode: string, userId: mongoose.Types.ObjectId): Promise<Pomodoro> {
-    const pomodoro = await this.pomodoroModel.findOne({ shareCode, isShared: true });
-    if (!pomodoro) {
-      throw new Error('Shared pomodoro not found');
-    }
-
-    // Check if the user is already in the shared list
-    if (pomodoro.sharedWith.includes(userId)) {
+  async resumePomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to resume this pomodoro');
+      pomodoro.pausedState = null;
+      const duration = pomodoro.remainingTime;
+      
+      pomodoro.remainingTime = null;
+      pomodoro.startTime = new Date( Date.now());
+      pomodoro.endTime = new Date( pomodoro.startTime.getTime() + duration);
+      // this.logger.debug(`💡 Pomodoro ${id} resumed with duration ${duration / 1000} seconds -> ${duration / 60} minutes`);
+      // this.logger.debug(`💡 Pomodoro ${id} resumed with endTime ${pomodoro.endTime}`);
+      this.gateway.emitStatus(pomodoro);
+      this.scheduleNext(id, duration / 1000);
+      await pomodoro.save();
       return pomodoro;
+    } catch (error) {
+      this.logger.error('Error resuming pomodoro:', error);
+      throw new InternalServerErrorException('Error resuming pomodoro');
     }
-
-    // Add the user to the shared list
-    return this.pomodoroModel.findByIdAndUpdate(
-      pomodoro._id,
-      { $addToSet: { sharedWith: userId } },
-      { new: true }
-    );
   }
 
-  async getSharedPomodoros(userId: string): Promise<Pomodoro[]> {
-    return this.pomodoroModel.find({
-      $or: [
-        { userId },
-        { sharedWith: userId }
-      ],
-      isShared: true
-    });
+  async stopPomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to stop this pomodoro');
+      pomodoro.state = PomodoroState.FINISHED;
+      pomodoro.endTime = new Date( Date.now());
+      await pomodoro.save();
+      this.gateway.emitStatus(pomodoro);
+      this.eventEmitter.emit(EventsList.POMODORO_FINISHED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
+        this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
+      }
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error stopping pomodoro:', error);
+      throw new InternalServerErrorException('Error stopping pomodoro');
+    }
   }
+
+  private scheduleNext(id: mongoose.Types.ObjectId, duration: number) {
+    try {
+      // Delete existing timeout if it exists
+      if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
+        this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
+      }
+
+      const timeout = setTimeout(async () => {
+        const pomodoro = await this.pomodoroModel.findById(id);
+        if(!pomodoro) return;
+        if(pomodoro.state === PomodoroState.WORKING) {
+          pomodoro.currentCycle+=1;
+
+          if( pomodoro.currentCycle % 4 === 0) {
+            pomodoro.state = PomodoroState.LONG_BREAK;
+            pomodoro.endTime = new Date( Date.now() + pomodoro.longBreak * 1000);
+          } else {
+            pomodoro.state = PomodoroState.SHORT_BREAK;
+            pomodoro.endTime = new Date( Date.now() + pomodoro.shortBreak * 1000);
+          }
+        } else if (
+          pomodoro.state === PomodoroState.SHORT_BREAK ||
+          pomodoro.state === PomodoroState.LONG_BREAK
+        ) {
+
+          if( pomodoro.currentCycle >= pomodoro.cycles) {
+            pomodoro.state = PomodoroState.COMPLETED;
+            pomodoro.endTime = new Date( Date.now());
+
+            await pomodoro.save();
+            this.gateway.emitStatus(pomodoro);
+            this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+            //this.gateway.server.socketsLeave(pomodoro._id.toString());
+            return;
+          } 
+
+          pomodoro.state = PomodoroState.WORKING;
+          pomodoro.endTime = new Date( Date.now() + pomodoro.workDuration * 1000);
+        }
+
+        await pomodoro.save();
+        this.gateway.emitStatus(pomodoro);
+        this.scheduleNext(id, 
+          pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
+        );
+      }, duration * 1000);
+      this.schedulerRegistry.addTimeout(
+        `pomodoro-${id}`,
+        timeout
+      );
+    } catch (error) {
+      this.logger.error('Error scheduling next pomodoro:', error);
+      throw new InternalServerErrorException('Error scheduling next pomodoro');
+    }
+  }
+
+  async findOne(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId  ) {
+    try{
+      const pomodoro = await this.pomodoroModel.findById(id);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to access this pomodoro');
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error finding pomodoro:', error);
+      throw new InternalServerErrorException('Error finding pomodoro');
+    }
+  }
+
+  async update(id: mongoose.Types.ObjectId, updatePomodoroDto: UpdatePomodoroDto, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to update this pomodoro');
+      return this.pomodoroModel.findByIdAndUpdate(id, updatePomodoroDto, {new: true});
+    } catch (error) {
+      this.logger.error('Error updating pomodoro:', error);
+      throw new InternalServerErrorException('Error updating pomodoro');
+    }
+  }
+
+  async reset(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId): Promise<Pomodoro> { 
+    try{
+      await this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to reset this pomodoro');
+      return this.pomodoroModel.findByIdAndUpdate(id, {state: PomodoroState.IDLE, currentCycle: 0, endTime: null, startTime: null}, {new: true});
+    } catch (error) {
+      this.logger.error('Error resetting pomodoro:', error);
+      throw new InternalServerErrorException('Error resetting pomodoro');
+    }
+  } 
+
+  async sharePomodoro(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId) {
+    try{
+      const pomodoro = await this.findOne(id, user);
+      if(!pomodoro) throw new NotFoundException('Pomodoro not found');
+      if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to share this pomodoro');
+      return pomodoro;
+    } catch (error) {
+      this.logger.error('Error sharing pomodoro:', error);
+      throw new InternalServerErrorException('Error sharing pomodoro');
+    }
+  } 
+  
 }
-

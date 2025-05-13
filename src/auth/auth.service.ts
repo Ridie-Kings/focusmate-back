@@ -187,7 +187,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 12 * 60 * 60 * 1000 // 12 hours
+         // 12 hours
       });
       
       res.clearCookie('refresh_token', {
@@ -195,7 +195,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+       // 7 days
       });
 
       this.logger.debug('Cookies cleared successfully');
@@ -233,16 +233,16 @@ export class AuthService {
     }
   }
 
-  async resetPassword(email: string, dto: ResetPasswordDto) {
+  async resetPassword(dto: ResetPasswordDto) {
     try {
-      const resetData = this.resetCodes.get(email);
+      const resetData = this.resetCodes.get(dto.email);
       
       if (!resetData) {
         throw new UnauthorizedException('No reset code found');
       }
 
       if (new Date() > resetData.expires) {
-        this.resetCodes.delete(email);
+        this.resetCodes.delete(dto.email);
         throw new UnauthorizedException('Reset code has expired');
       }
 
@@ -254,10 +254,10 @@ export class AuthService {
       const hashedPassword = await argon2.hash(dto.newPassword);
       
       // Update the password
-      await this.usersService.updatePassword(email, hashedPassword);
+      await this.usersService.updatePassword(dto.email, hashedPassword);
       
       // Clear the reset code
-      this.resetCodes.delete(email);
+      this.resetCodes.delete(dto.email);
 
       return { message: 'Password has been reset successfully' };
     } catch (error) {
