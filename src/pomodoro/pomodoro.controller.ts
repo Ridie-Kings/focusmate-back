@@ -43,7 +43,7 @@ export class PomodoroController {
     return this.pomodoroService.findAllNotIdle(user.id);
   }
 
-  @Post()
+  @Post('create')
   @ApiOperation({ summary: 'Create a new pomodoro' })
   @ApiResponse({ status: 201, description: 'Pomodoro created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request body' })
