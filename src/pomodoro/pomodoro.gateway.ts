@@ -113,6 +113,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       shortBreak: pomodoro.shortBreak,
       longBreak: pomodoro.longBreak,
       cycles: pomodoro.cycles,
+      startAt: pomodoro.startTime,
       endsAt: pomodoro.endTime,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,

@@ -124,7 +124,14 @@ export class PomodoroService {
       pomodoro.endTime = new Date( Date.now());
       pomodoro.pausedState = PomodoroState.PAUSED;
       pomodoro.interruptions += 1;
-      pomodoro.remainingTime = pomodoro.endTime.getTime() - pomodoro.startTime.getTime();
+      if(pomodoro.state === PomodoroState.WORKING) {
+        pomodoro.remainingTime = pomodoro.workDuration - ((pomodoro.endTime.getTime() - pomodoro.startTime.getTime()) / 1000);
+      } else if(pomodoro.state === PomodoroState.SHORT_BREAK ) {
+        pomodoro.remainingTime = pomodoro.shortBreak - ((pomodoro.endTime.getTime() - pomodoro.startTime.getTime()) / 1000);
+      }else if(pomodoro.state === PomodoroState.LONG_BREAK) {
+        pomodoro.remainingTime = pomodoro.longBreak - ((pomodoro.endTime.getTime() - pomodoro.startTime.getTime()) / 1000);
+      }
+      this.logger.debug(`💡 Pomodoro ${id} paused with remaining time ${pomodoro.remainingTime} milliseconds -> ${pomodoro.remainingTime / 1000} seconds -> ${pomodoro.remainingTime / 60} minutes`);
       await pomodoro.save();
       this.gateway.emitStatus(pomodoro);
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
