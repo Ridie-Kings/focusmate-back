@@ -154,7 +154,7 @@ export class PomodoroService {
       
       pomodoro.remainingTime = null;
       pomodoro.startTime = new Date( Date.now());
-      pomodoro.endTime = new Date( pomodoro.startTime.getTime() + duration);
+      pomodoro.endTime = new Date( pomodoro.startTime.getTime() + duration * 1000);
       // this.logger.debug(`💡 Pomodoro ${id} resumed with duration ${duration / 1000} seconds -> ${duration / 60} minutes`);
       // this.logger.debug(`💡 Pomodoro ${id} resumed with endTime ${pomodoro.endTime}`);
       this.gateway.emitStatus(pomodoro);
