@@ -100,7 +100,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     //   shortBreak: pomodoro.shortBreak,
     //   longBreak: pomodoro.longBreak,
     //   cycles: pomodoro.cycles,
-    //   endsAt: pomodoro.endTime,
+    //   endsAt: pomodoro.endAt,
     //   remainingTime: pomodoro.remainingTime,
     //   pausedState: pomodoro.pausedState,
     // });
@@ -113,8 +113,8 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       shortBreak: pomodoro.shortBreak,
       longBreak: pomodoro.longBreak,
       cycles: pomodoro.cycles,
-      startAt: pomodoro.startTime,
-      endsAt: pomodoro.endTime,
+      startAt: pomodoro.startAt,
+      endAt: pomodoro.endAt,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
     });
