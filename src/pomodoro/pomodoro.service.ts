@@ -158,7 +158,7 @@ export class PomodoroService {
       // this.logger.debug(`💡 Pomodoro ${id} resumed with duration ${duration / 1000} seconds -> ${duration / 60} minutes`);
       // this.logger.debug(`💡 Pomodoro ${id} resumed with endAt ${pomodoro.endAt}`);
       this.gateway.emitStatus(pomodoro);
-      this.scheduleNext(id, duration / 1000);
+      this.scheduleNext(id, duration);
       await pomodoro.save();
       return pomodoro;
     } catch (error) {
