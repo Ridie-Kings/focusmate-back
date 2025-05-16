@@ -260,7 +260,9 @@ export class PomodoroService {
       const pomodoro = await this.findOne(id, user);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to update this pomodoro');
-      return this.pomodoroModel.findByIdAndUpdate(id, updatePomodoroDto, {new: true});
+      const pomodor_new = await this.pomodoroModel.findByIdAndUpdate(id, updatePomodoroDto, {new: true});
+      this.gateway.emitStatus(pomodor_new);
+      return pomodor_new;
     } catch (error) {
       this.logger.error('Error updating pomodoro:', error);
       throw new InternalServerErrorException('Error updating pomodoro');
