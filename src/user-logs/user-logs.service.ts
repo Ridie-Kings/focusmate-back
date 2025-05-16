@@ -217,10 +217,10 @@ export class UserLogsService {
 
       // Calculate actual time spent for each pomodoro
       const totalTime = pomodoros.reduce((acc, pomodoro) => {
-        if (pomodoro.startTime && pomodoro.endTime) {
+        if (pomodoro.startAt && pomodoro.endAt) {
           // Calculate actual time spent in seconds
           const timeSpent = Math.floor(
-            (pomodoro.endTime.getTime() - pomodoro.startTime.getTime()) / 1000
+            (pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000
           );
           return acc + timeSpent;
         }

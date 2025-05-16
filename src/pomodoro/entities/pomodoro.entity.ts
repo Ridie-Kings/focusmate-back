@@ -20,10 +20,10 @@ export class Pomodoro extends Document {
   userId: mongoose.Types.ObjectId;
 
   @Prop({ type: Date, required: false })
-  startTime: Date;
+  startAt: Date;
 
   @Prop({ type: Date, required: false })
-  endTime: Date;
+  endAt: Date;
 
   @Prop({ type: Number, required: true, default: 25*60 })
   workDuration: number;

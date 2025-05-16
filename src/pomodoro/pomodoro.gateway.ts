@@ -74,6 +74,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   @SubscribeMessage('join')
   async handleJoin(@MessageBody() data: {id: string}, @ConnectedSocket() client: Socket, @GetUser() user: User) {
     const {id} = data;
+    this.logger.debug(`💡 User ${user.id} joined room ${id}`);
     const pomodoro = await this.pomodoroService.findOne(new mongoose.Types.ObjectId(id), user.id);
     if(!pomodoro) {
       client.emit('error', 'Pomodoro not found');
@@ -81,6 +82,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
     client.join(id);
     this.emitStatus(pomodoro);
+    
     this.logger.log(`💡 User ${user.id} joined room ${id}`);
   }
 
@@ -100,7 +102,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     //   shortBreak: pomodoro.shortBreak,
     //   longBreak: pomodoro.longBreak,
     //   cycles: pomodoro.cycles,
-    //   endsAt: pomodoro.endTime,
+    //   endsAt: pomodoro.endAt,
     //   remainingTime: pomodoro.remainingTime,
     //   pausedState: pomodoro.pausedState,
     // });
@@ -113,8 +115,8 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       shortBreak: pomodoro.shortBreak,
       longBreak: pomodoro.longBreak,
       cycles: pomodoro.cycles,
-      startAt: pomodoro.startTime,
-      endsAt: pomodoro.endTime,
+      startAt: pomodoro.startAt,
+      endAt: pomodoro.endAt,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
     });
