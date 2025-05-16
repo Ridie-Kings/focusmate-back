@@ -82,7 +82,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     }
     client.join(id);
     this.emitStatus(pomodoro);
-    //this.logger.debug("hola como estas " + this.emitStatus(pomodoro));
+    
     this.logger.log(`💡 User ${user.id} joined room ${id}`);
   }
 
