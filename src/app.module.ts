@@ -43,6 +43,7 @@ import { StatsModule } from './stats/stats.module';
 import { StatsService } from './stats/stats.service';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 //import { AnalyticsModule } from './analytics/analytics.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -96,7 +97,6 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     EventsModule,
     StatsModule,
     SubscriptionsModule,
-    //AnalyticsModule,
   ],
   controllers: [AppController, AdminController],
   providers: [
