@@ -71,21 +71,25 @@ export class CalendarService {
       const newTaskStart = new Date(task.startDate);
       const newTaskEnd = new Date(task.endDate);
 
-      const hasConflict = tasks_calendar.some(async (existingTask) => {
-        const existingTaskCalendar = await this.tasksService.findOne(existingTask._id, userId);
-        const existingStart = new Date(existingTaskCalendar.startDate);
-        const existingEnd = new Date(existingTaskCalendar.endDate);
+      const conflictResults = await Promise.all(
+        tasks_calendar.map(async (existingTask) => {
+          const existingTaskCalendar = await this.tasksService.findOne(existingTask._id, userId);
+          const existingStart = new Date(existingTaskCalendar.startDate);
+          const existingEnd = new Date(existingTaskCalendar.endDate);
+          const result = (
+            (newTaskStart >= existingStart && newTaskStart < existingEnd) ||
+            (newTaskEnd > existingStart && newTaskEnd <= existingEnd) ||
+            (newTaskStart <= existingStart && newTaskEnd >= existingEnd)
+          );
+          return result;
+      }));
 
-        return (
-          (newTaskStart >= existingStart && newTaskStart < existingEnd) ||
-          (newTaskEnd > existingStart && newTaskEnd <= existingEnd) ||
-          (newTaskStart <= existingStart && newTaskEnd >= existingEnd)
-        );
-      });
+      const hasConflict = conflictResults.some(Boolean);
 
       if (hasConflict) {
         throw new ConflictException('Task conflicts with existing task time slot');
       }
+
     }
     try {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { tasks: taskId } }, { new: true });
@@ -229,7 +233,7 @@ export class CalendarService {
       start.setHours(0, 0, 0, 0); // Set to beginning of day
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999); // Set to end of day
-      console.log(start, end);
+      //console.log(start, end);
       const tasks = calendar.tasks.filter((task) => {
         const taskDate = new Date(task["dueDate"]);
         return taskDate >= start && taskDate <= end;
