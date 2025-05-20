@@ -107,6 +107,7 @@ export class PomodoroService {
       pomodoro.endAt = new Date(pomodoro.startAt.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
       this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, pomodoro.workDuration);    
       return pomodoro;
@@ -121,7 +122,8 @@ export class PomodoroService {
       const pomodoro = await this.findOne(id, user);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to pause this pomodoro');
-      pomodoro.endAt = new Date( Date.now());
+      pomodoro.startAt = null;
+      pomodoro.endAt = null;
       pomodoro.pausedState = PomodoroState.PAUSED;
       pomodoro.interruptions += 1;
       if(pomodoro.state === PomodoroState.WORKING) {

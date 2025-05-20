@@ -71,8 +71,8 @@ export class TasksService {
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
       const task = await this.taskModel.findById(id);
-      const statusInit = task.status
       if (!task) throw new NotFoundException('Task not found');
+      const statusInit = task.status;
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       
       if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
@@ -202,7 +202,7 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      return task.populate('pomodoros');
+      return await task.populate('pomodoros');
     } catch (error) {
       throw new InternalServerErrorException('Error getting pomodoros');
     }
@@ -213,8 +213,8 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      this.taskModel.findByIdAndUpdate(id, { $push: {pomodoros: idPomodoro}}, {new: true});
-      return task.populate('userId');
+      const updatedTask = await this.taskModel.findByIdAndUpdate(id, { $push: {pomodoros: idPomodoro}}, {new: true});
+      return updatedTask.populate('pomodoros');
     } catch (error) {
       throw new InternalServerErrorException('Error updating pomodoros');
     }
