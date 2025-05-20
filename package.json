@@ -93,6 +93,10 @@
     "onlyBuiltDependencies": [
       "@scarf/scarf",
       "argon2"
-    ]
+    ],
+    "overrides": {
+    "path-to-regexp": "^1.9.0"
+    }
   }
+  
 }
