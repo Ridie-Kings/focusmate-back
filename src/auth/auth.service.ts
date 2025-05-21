@@ -187,7 +187,7 @@ export class AuthService {
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         path: '/',
-        // 12 hours
+         // 12 hours
       });
       
       res.clearCookie('refresh_token', {

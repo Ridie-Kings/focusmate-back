@@ -38,6 +38,8 @@ async function sherpmain() {
       "http://develop.sherp-app.com",
       "wss://sherp-app.com:4323",
       "ws://sherp-app.com:4323",
+      "https://develop.sherp-app.com",
+      "http://develop.sherp-app.com",
       "wss://develop.sherp-app.com:4323",
       "ws://develop.sherp-app.com:4323"
     ],

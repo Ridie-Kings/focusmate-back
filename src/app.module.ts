@@ -42,7 +42,6 @@ import { EventsModule } from './events/events.module';
 import { StatsModule } from './stats/stats.module';
 import { StatsService } from './stats/stats.service';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
-//import { AnalyticsModule } from './analytics/analytics.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
@@ -97,6 +96,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     EventsModule,
     StatsModule,
     SubscriptionsModule,
+    DashboardModule,
   ],
   controllers: [AppController, AdminController],
   providers: [
