@@ -204,8 +204,6 @@ export class PomodoroService {
         if(!pomodoro) return;
         if(pomodoro.state === PomodoroState.WORKING) {
           pomodoro.currentCycle+=1;
-          //idle -> working (1) -> short break -> working (2) -> long break -> working (3) -> short break -> working (4) -> idle
-
           if( pomodoro.currentCycle % 4 === 0) {
             pomodoro.state = PomodoroState.LONG_BREAK;
             pomodoro.remainingTime = null;
