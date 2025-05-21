@@ -35,7 +35,7 @@ export class PomodoroService {
       
       const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user});
       this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
-      return pomodoro;
+      return await pomodoro.populate('task');
     } catch (error) {
       this.logger.error('Error creating pomodoro:', error);
       throw new InternalServerErrorException('Error creating pomodoro');
@@ -107,6 +107,7 @@ export class PomodoroService {
       pomodoro.endAt = new Date(pomodoro.startAt.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
       this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      await pomodoro.populate('task');
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, pomodoro.workDuration);    
       return pomodoro;
@@ -188,6 +189,7 @@ export class PomodoroService {
       pomodoro.state = PomodoroState.FINISHED;
       pomodoro.endAt = new Date( Date.now());
       await pomodoro.save();
+      await pomodoro.populate('task');
       this.gateway.emitStatus(pomodoro);
       this.eventEmitter.emit(EventsList.POMODORO_FINISHED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
@@ -243,6 +245,7 @@ export class PomodoroService {
         }
 
         await pomodoro.save();
+        await pomodoro.populate('task');
         this.gateway.emitStatus(pomodoro);
         this.scheduleNext(id, 
           pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
@@ -263,7 +266,7 @@ export class PomodoroService {
       const pomodoro = await this.pomodoroModel.findById(id);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to access this pomodoro');
-      return pomodoro;
+      return await pomodoro.populate('task');
     } catch (error) {
       this.logger.error('Error finding pomodoro:', error);
       throw new InternalServerErrorException('Error finding pomodoro');
