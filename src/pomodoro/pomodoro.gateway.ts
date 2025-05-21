@@ -128,9 +128,5 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       pausedState: pomodoro.pausedState,
     });
   }
-
-  emitToClient(clientId: string, event: string, data: any) {
-    this.server.to(clientId).emit(event, data);
-  }
 }
 
