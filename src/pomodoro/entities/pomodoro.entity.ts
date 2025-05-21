@@ -68,7 +68,9 @@ export class Pomodoro extends Document {
     default: null,
   })
   pausedState?: PomodoroState;
-  
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Task', required: false, default: null })
+  task?: mongoose.Types.ObjectId;
 }
 
 export const PomodoroSchema = SchemaFactory.createForClass(Pomodoro);

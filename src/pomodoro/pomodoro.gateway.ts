@@ -84,9 +84,9 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       client.emit('error', 'Pomodoro not found');
       return;
     }
-    for(const socketId of this.userSockets.get(user.id.toString()) || []) {
-      this.server.to(socketId).emit('pomodoro found', pomodoro);
-    }
+    // for(const socketId of this.userSockets.get(user.id.toString()) || []) {
+    //   this.server.to(socketId).emit('pomodoro found', pomodoro);
+    // }
     client.join(id);
     this.emitStatus(pomodoro);
     
@@ -126,6 +126,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       endAt: pomodoro.endAt,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
+      task: pomodoro.task,
     });
   }
 }

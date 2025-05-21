@@ -35,7 +35,7 @@ export class PomodoroService {
       
       const pomodoro = await this.pomodoroModel.create({...createPomodoroDto, userId: user});
       this.eventEmitter.emit(EventsList.POMODORO_CREATED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
-      return pomodoro;
+      return await pomodoro.populate('task');
     } catch (error) {
       this.logger.error('Error creating pomodoro:', error);
       throw new InternalServerErrorException('Error creating pomodoro');
@@ -107,6 +107,7 @@ export class PomodoroService {
       pomodoro.endAt = new Date(pomodoro.startAt.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
       this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+      await pomodoro.populate('task');
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, pomodoro.workDuration);    
       return pomodoro;
@@ -136,6 +137,14 @@ export class PomodoroService {
       }else{
         pomodoro.remainingTime = pomodoro.remainingTime - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
       }
+
+      //quitar los if y dejar :
+      /*
+      // Almacena cuánto queda y borra tiempos activos
+      pomodoro.remainingTime = Math.max(0, Math.floor(pomodoro.endAt.getTime() - Date.now()) / 1000);
+      pomodoro.startAt = null;
+      pomodoro.endAt = null;
+      */
       
       pomodoro.endAt = null;
       pomodoro.startAt = null;
@@ -160,8 +169,8 @@ export class PomodoroService {
       const duration = pomodoro.remainingTime;
       pomodoro.startAt = new Date( Date.now());
       pomodoro.endAt = new Date( pomodoro.startAt.getTime() + duration * 1000);
-      // this.logger.debug(`💡 Pomodoro ${id} resumed with duration ${duration / 1000} seconds -> ${duration / 60} minutes`);
-      // this.logger.debug(`💡 Pomodoro ${id} resumed with endAt ${pomodoro.endAt}`);
+      //poner el remainingTime a null
+      //pomodoro.remainingTime = null;
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, duration);
       await pomodoro.save();
@@ -180,6 +189,7 @@ export class PomodoroService {
       pomodoro.state = PomodoroState.FINISHED;
       pomodoro.endAt = new Date( Date.now());
       await pomodoro.save();
+      await pomodoro.populate('task');
       this.gateway.emitStatus(pomodoro);
       this.eventEmitter.emit(EventsList.POMODORO_FINISHED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
@@ -235,6 +245,7 @@ export class PomodoroService {
         }
 
         await pomodoro.save();
+        await pomodoro.populate('task');
         this.gateway.emitStatus(pomodoro);
         this.scheduleNext(id, 
           pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
@@ -255,7 +266,7 @@ export class PomodoroService {
       const pomodoro = await this.pomodoroModel.findById(id);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to access this pomodoro');
-      return pomodoro;
+      return await pomodoro.populate('task');
     } catch (error) {
       this.logger.error('Error finding pomodoro:', error);
       throw new InternalServerErrorException('Error finding pomodoro');
