@@ -43,6 +43,7 @@ import { StatsModule } from './stats/stats.module';
 import { StatsService } from './stats/stats.service';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PomodoroTaskLinkModule } from './pomodoro-task-link/pomodoro-task-link.module';
 
 @Module({
   imports: [
@@ -97,6 +98,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     StatsModule,
     SubscriptionsModule,
     DashboardModule,
+    PomodoroTaskLinkModule,
   ],
   controllers: [AppController, AdminController],
   providers: [
