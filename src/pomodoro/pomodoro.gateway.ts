@@ -79,9 +79,13 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     const {id} = data;
     this.logger.debug(`💡 User ${user.id} joined room ${id}`);
     const pomodoro = await this.pomodoroService.findOne(new mongoose.Types.ObjectId(id), user.id);
+    
     if(!pomodoro) {
       client.emit('error', 'Pomodoro not found');
       return;
+    }
+    for(const socketId of this.userSockets.get(user.id.toString()) || []) {
+      this.server.to(socketId).emit('pomodoro found', pomodoro);
     }
     client.join(id);
     this.emitStatus(pomodoro);

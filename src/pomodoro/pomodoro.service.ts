@@ -102,7 +102,7 @@ export class PomodoroService {
         throw new ForbiddenException('You are not allowed to start this pomodoro');
       }
       pomodoro.state = PomodoroState.WORKING;
-      pomodoro.currentCycle = 1;
+      //pomodoro.currentCycle = 1;
       pomodoro.startAt = new Date();
       pomodoro.endAt = new Date(pomodoro.startAt.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
@@ -204,7 +204,6 @@ export class PomodoroService {
         if(!pomodoro) return;
         if(pomodoro.state === PomodoroState.WORKING) {
           pomodoro.currentCycle+=1;
-
           if( pomodoro.currentCycle % 4 === 0) {
             pomodoro.state = PomodoroState.LONG_BREAK;
             pomodoro.remainingTime = null;
