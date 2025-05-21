@@ -126,6 +126,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       endAt: pomodoro.endAt,
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
+      task: pomodoro.task,
     });
   }
 }
