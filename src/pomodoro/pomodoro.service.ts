@@ -124,14 +124,21 @@ export class PomodoroService {
       pomodoro.endAt = new Date( Date.now());
       pomodoro.pausedState = PomodoroState.PAUSED;
       pomodoro.interruptions += 1;
-      if(pomodoro.state === PomodoroState.WORKING) {
-        pomodoro.remainingTime = pomodoro.workDuration - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
-      } else if(pomodoro.state === PomodoroState.SHORT_BREAK ) {
-        pomodoro.remainingTime = pomodoro.shortBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
-      }else if(pomodoro.state === PomodoroState.LONG_BREAK) {
-        pomodoro.remainingTime = pomodoro.longBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+      pomodoro.endAt = new Date( Date.now());
+      if(!pomodoro.remainingTime) {
+        if(pomodoro.state === PomodoroState.WORKING) {
+          pomodoro.remainingTime = pomodoro.workDuration - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+        } else if(pomodoro.state === PomodoroState.SHORT_BREAK ) {
+          pomodoro.remainingTime = pomodoro.shortBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+        }else if(pomodoro.state === PomodoroState.LONG_BREAK) {
+          pomodoro.remainingTime = pomodoro.longBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+        }
+      }else{
+        pomodoro.remainingTime = pomodoro.remainingTime - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
       }
-      this.logger.debug(`💡 Pomodoro ${id} paused with remaining time ${pomodoro.remainingTime} milliseconds -> ${pomodoro.remainingTime / 1000} seconds -> ${pomodoro.remainingTime / 60} minutes`);
+      
+      pomodoro.endAt = null;
+      pomodoro.startAt = null;
       await pomodoro.save();
       this.gateway.emitStatus(pomodoro);
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
@@ -151,8 +158,6 @@ export class PomodoroService {
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to resume this pomodoro');
       pomodoro.pausedState = null;
       const duration = pomodoro.remainingTime;
-      
-      pomodoro.remainingTime = null;
       pomodoro.startAt = new Date( Date.now());
       pomodoro.endAt = new Date( pomodoro.startAt.getTime() + duration * 1000);
       // this.logger.debug(`💡 Pomodoro ${id} resumed with duration ${duration / 1000} seconds -> ${duration / 60} minutes`);
@@ -202,9 +207,11 @@ export class PomodoroService {
 
           if( pomodoro.currentCycle % 4 === 0) {
             pomodoro.state = PomodoroState.LONG_BREAK;
+            pomodoro.remainingTime = null;
             pomodoro.endAt = new Date( Date.now() + pomodoro.longBreak * 1000);
           } else {
             pomodoro.state = PomodoroState.SHORT_BREAK;
+            pomodoro.remainingTime = null;
             pomodoro.endAt = new Date( Date.now() + pomodoro.shortBreak * 1000);
           }
         } else if (
@@ -214,16 +221,17 @@ export class PomodoroService {
 
           if( pomodoro.currentCycle >= pomodoro.cycles) {
             pomodoro.state = PomodoroState.COMPLETED;
+            pomodoro.remainingTime = null;
             pomodoro.endAt = new Date( Date.now());
 
             await pomodoro.save();
             this.gateway.emitStatus(pomodoro);
             this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
-            //this.gateway.server.socketsLeave(pomodoro._id.toString());
             return;
           } 
 
           pomodoro.state = PomodoroState.WORKING;
+          pomodoro.remainingTime = null;
           pomodoro.endAt = new Date( Date.now() + pomodoro.workDuration * 1000);
         }
 
