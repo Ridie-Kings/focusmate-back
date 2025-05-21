@@ -216,7 +216,11 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      this.taskModel.findByIdAndUpdate(id, { $push: {pomodoros: idPomodoro}}, {new: true});
+      await this.taskModel.findByIdAndUpdate(id,
+        {
+          $addToSet: {pomodoros: idPomodoro},
+        },
+        {new: true});
       return task.populate('pomodoros');
     } catch (error) {
       throw new InternalServerErrorException('Error updating pomodoros');
