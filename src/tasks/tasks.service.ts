@@ -59,7 +59,10 @@ export class TasksService {
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       if(task.subTasks.length > 0) {
-        return await task.populate('subTasks');
+        await task.populate('subTasks');
+      }
+      if(task.pomodoros.length > 0) {
+        await task.populate('pomodoros');
       }
       return task.populate('userId');
     }catch (error) {
