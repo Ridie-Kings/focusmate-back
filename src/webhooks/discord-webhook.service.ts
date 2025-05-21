@@ -21,23 +21,17 @@ interface DiscordEmbed {
 export class DiscordWebhookService {
   private readonly logger = new Logger(DiscordWebhookService.name);
   private readonly webhookUrl: string;
-  private readonly isProduction: boolean;
 
   constructor(private readonly configService: ConfigService) {
     this.webhookUrl = this.configService.get<string>('DISCORD_WEBHOOK_URL');
     if (!this.webhookUrl) {
       this.logger.warn('Discord webhook URL not configured');
     }
-    this.isProduction = this.configService.get<string>('NODE_ENV') === 'production';
   }
 
   private async sendWebhook(message: DiscordWebhookMessage): Promise<void> {
     if (!this.webhookUrl) {
       this.logger.warn('Discord webhook URL not configured, skipping notification');
-      return;
-    }
-    if(!this.isProduction){
-      this.logger.warn('Not in production, skipping notification');
       return;
     }
 

@@ -34,7 +34,6 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
   server: Server;
 
   private readonly logger = new Logger(PomodoroGateway.name);
-  private userSockets: Map<string, Set<string>> = new Map();
 
   constructor(
     @Inject(forwardRef(() => PomodoroService)) private readonly pomodoroService: PomodoroService,
@@ -57,12 +56,10 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       const payload = this.jwtService.verify<JwtPayload>(token);
       (client as any).user = payload;
       this.logger.log(`✔️ Client ${client.id} connected as user ${payload.id}`);
-      this.userSockets.set(payload.id.toString(), new Set([client.id]));
       const pomodoro = await this.pomodoroService.findWorking(payload.id);
       if(pomodoro) {
-        for(const socketId of this.userSockets.get(payload.id.toString()) || []) {
-          this.server.to(socketId).emit('pomodoro found', pomodoro);
-        }
+        this.server.to(client.id).emit('pomodoro found', pomodoro);
+
       }
     } catch (error) {
       this.logger.error(error);
@@ -123,10 +120,6 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
     });
-  }
-
-  emitToClient(clientId: string, event: string, data: any) {
-    this.server.to(clientId).emit(event, data);
   }
 }
 
