@@ -38,6 +38,13 @@ async function sherpmain() {
       "http://develop.sherp-app.com",
       "wss://sherp-app.com:4323",
       "ws://sherp-app.com:4323",
+<<<<<<< HEAD
+=======
+      "https://develop.sherp-app.com",
+      "http://develop.sherp-app.com",
+      "wss://develop.sherp-app.com:4323",
+      "ws://develop.sherp-app.com:4323"
+>>>>>>> fa77f69fa443f726e8678dbb08cf752e525300c2
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     credentials: true,

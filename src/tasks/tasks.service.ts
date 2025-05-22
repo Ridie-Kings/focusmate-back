@@ -8,6 +8,7 @@ import { EventsList } from 'src/events/list.events';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DiscordWebhookService } from '../webhooks/discord-webhook.service';
 import { UsersService } from '../users/users.service';
+import { PomodoroDocument } from 'src/pomodoro/entities/pomodoro.entity';
 
 @Injectable()
 export class TasksService {
@@ -58,7 +59,10 @@ export class TasksService {
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       if(task.subTasks.length > 0) {
-        return await task.populate('subTasks');
+        await task.populate('subTasks');
+      }
+      if(task.pomodoros.length > 0) {
+        await task.populate('pomodoros');
       }
       return task.populate('userId');
     }catch (error) {
@@ -68,24 +72,25 @@ export class TasksService {
   }
 
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
-    this.logger.debug('Updating task with DTO:', updateTaskDto);
     try {
       const task = await this.taskModel.findById(id);
+      const statusInit = task.status
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       
       if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
-        return await this.updateTags(id, updateTaskDto, userId);
+        await this.updateTags(id, updateTaskDto, userId);
         updateTaskDto.addTags = null;
         updateTaskDto.deleteTags = null;
       }
-      
       const updatedTask = await this.taskModel.findByIdAndUpdate(id,
         {
           ...updateTaskDto,
         },
         {new: true});
-      
+      if (statusInit != 'completed' && updateTaskDto.status === 'completed') {
+        this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
+      }
       return updatedTask;
     } catch (error) {
       console.error('Error updating task:', error);
@@ -98,17 +103,14 @@ export class TasksService {
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      if (updateTaskDto.status === 'completed') {
-        this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
-      }
-      if (updateTaskDto.addTags.length) {
+      if (updateTaskDto.addTags) {
         await this.taskModel.findByIdAndUpdate(id,
           {
             $addToSet: {tags: { $each: updateTaskDto.addTags }},
           },
           {new: true});
       }
-      if (updateTaskDto.deleteTags.length) {
+      if (updateTaskDto.deleteTags) {
         await this.taskModel.findByIdAndUpdate
         (id, { $pull: {tags: { $in: updateTaskDto.deleteTags }}}, {new: true});
       }
@@ -195,6 +197,33 @@ export class TasksService {
       return tasks;
     } catch (error) {
       throw new InternalServerErrorException('Error getting tasks by category');
+    }
+  }
+
+  async getPomodoros(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<PomodoroDocument[]> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      return task.populate('pomodoros');
+    } catch (error) {
+      throw new InternalServerErrorException('Error getting pomodoros');
+    }
+  }
+
+  async updatePomodoros(id: mongoose.Types.ObjectId, idPomodoro: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
+    try {
+      const task = await this.taskModel.findById(id);
+      if (!task) throw new NotFoundException('Task not found');
+      if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
+      await this.taskModel.findByIdAndUpdate(id,
+        {
+          $addToSet: {pomodoros: idPomodoro},
+        },
+        {new: true});
+      return task.populate('pomodoros');
+    } catch (error) {
+      throw new InternalServerErrorException('Error updating pomodoros');
     }
   }
 

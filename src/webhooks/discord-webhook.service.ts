@@ -34,6 +34,10 @@ export class DiscordWebhookService {
       this.logger.warn('Discord webhook URL not configured, skipping notification');
       return;
     }
+    if(this.configService.get<string>('NODE_ENV') !== 'production'){
+      this.logger.warn('Not in production, skipping notification');
+      return;
+    }
 
     try {
       await axios.post(this.webhookUrl, message);

@@ -9,6 +9,7 @@ import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Task, TaskDocument } from './entities/task.entity';
 import mongoose from 'mongoose';
+import { PomodoroDocument } from 'src/pomodoro/entities/pomodoro.entity';
 
 
 @ApiTags('Tasks')
@@ -81,7 +82,6 @@ export class TasksController {
     @GetUser() user: User
   ): Promise<TaskDocument> 
   {
-    this.logger.debug('Updating task with DTO:', updateTaskDto);
     return this.tasksService.update(id, updateTaskDto, user.id);
   }
 
@@ -198,4 +198,23 @@ export class TasksController {
   //   return this.tasksService.findAllCategories(user.id);
   // }
 
+  // @Get(':id/pomodoros')
+  // @ApiOperation({ summary: 'Retrieve all pomodoros by task ID' })
+  // @ApiResponse({ status: 200, description: 'List of pomodoros retrieved' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // async getPomodoros(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<PomodoroDocument[]> {
+  //   return this.tasksService.getPomodoros(id, user.id);
+  // }
+
+  // @Patch(':id/pomodoros/:idPomodoro')
+  // @ApiOperation({ summary: 'Update a task by ID' })
+  // @ApiResponse({ status: 200, description: 'Task updated successfully' })
+  // @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  // @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  // @ApiResponse({ status: 404, description: 'Task not found' })
+  // async updatePomodoros(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
+  // @Param('idPomodoro', ParseMongoIdPipe) idPomodoro: mongoose.Types.ObjectId,
+  // @GetUser() user: User): Promise<TaskDocument> {
+  //   return this.tasksService.updatePomodoros(id, idPomodoro, user.id);
+  // }
 }

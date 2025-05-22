@@ -58,6 +58,9 @@ export class Task extends Document{
   @Prop({type: String, required: false, default: ''})
   color: string
 
+  @Prop({type: [mongoose.Schema.Types.ObjectId], ref: "Pomodoro", default: []  })
+  pomodoros: mongoose.Schema.Types.ObjectId[];
+
 }
 
 export const TaskSchema = SchemaFactory.createForClass(Task);
