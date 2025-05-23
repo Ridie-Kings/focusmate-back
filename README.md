@@ -1,4 +1,4 @@
-# 🧠 Focusmate Backend
+# 🧠 SherpApp Backend
 
 **SherpApp** is a comprehensive productivity application backend that provides timer-based work sessions, task management, habit tracking, and gamification features.  
 This system serves as the API foundation for a web and mobile productivity platform centered around the Pomodoro Technique and collaborative study sessions.
