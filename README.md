@@ -23,17 +23,18 @@ Before starting, ensure you have the following installed:
 ```bash
 git clone https://github.com/yourusername/focusmate-back.git
 cd focusmate-back
+````
 
-2. Install dependencies
-
+### 2. Install dependencies
+```
 pnpm install
 
     Make sure you have pnpm installed. If not:
 
     npm install -g pnpm
-
-3. Set up environment variables
-
+```
+### 3. Set up environment variables
+```
 Create a .env file at the root of the project and add the following:
 
 PORT=4000
@@ -41,12 +42,13 @@ MONGO_URI=mongodb://localhost/focusmate
 JWT_SECRET=your_secret
 
 You can customize these variables to match your environment.
-4. Run the server in development mode
-
+```
+### 4. Run the server in development mode
+```
 pnpm run start:dev
-
-📂 Project Structure
-
+```
+### 📂 Project Structure
+```
 src/
 ├── auth/                  # Authentication and JWT
 ├── calendar/              # Calendar module
@@ -64,25 +66,25 @@ src/
 ├── user-logs/             # User logs
 ├── users/                 # Users module
 ├── main.ts                # App entry point
-
-🛠️ Available Scripts
-
+```
+### 🛠️ Available Scripts
+```
 pnpm run start         # Start the app
 pnpm run start:dev     # Start in development mode (with hot reload)
 pnpm run build         # Build the app
 pnpm run lint          # Run the linter
 pnpm run test          # Run tests
-
-🔐 Authentication
-
+```
+### 🔐 Authentication
+```
 JWT is used for authentication. Include the token in your request headers like so:
 
 Authorization: Bearer <your_token_here>
-
-📊 Database
+```
+### 📊 Database
 
 The project uses MongoDB with Mongoose. All entities are document-based.
 
-📝 License
+### 📝 License
 
 This project is licensed under the MIT License.
