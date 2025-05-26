@@ -147,7 +147,7 @@ export class PomodoroService {
 
       
       pomodoro.endAt = null;
-      pomodoro.startAt = null;
+      //pomodoro.startAt = null;
       pomodoro.lastResumedAt = null;
       await pomodoro.save();
       this.gateway.emitStatus(pomodoro);
@@ -174,9 +174,9 @@ export class PomodoroService {
 
       const now = new Date(Date.now());
       pomodoro.pausedState = null;
-      pomodoro.startAt = now;
+      //pomodoro.startAt = now;
       pomodoro.lastResumedAt = now;
-      pomodoro.endAt = new Date( pomodoro.startAt.getTime() + duration * 1000);
+      pomodoro.endAt = new Date( pomodoro.lastResumedAt.getTime() + duration * 1000);
       //pomodoro.remainingTime = null;
 
       this.gateway.emitStatus(pomodoro);
