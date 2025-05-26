@@ -122,32 +122,33 @@ export class PomodoroService {
       const pomodoro = await this.findOne(id, user);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to pause this pomodoro');
-      pomodoro.endAt = new Date( Date.now());
       pomodoro.pausedState = PomodoroState.PAUSED;
       pomodoro.interruptions += 1;
-      pomodoro.endAt = new Date( Date.now());
-      if(!pomodoro.remainingTime) {
-        if(pomodoro.state === PomodoroState.WORKING) {
-          pomodoro.remainingTime = pomodoro.workDuration - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
-        } else if(pomodoro.state === PomodoroState.SHORT_BREAK ) {
-          pomodoro.remainingTime = pomodoro.shortBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
-        }else if(pomodoro.state === PomodoroState.LONG_BREAK) {
-          pomodoro.remainingTime = pomodoro.longBreak - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+      const now = new Date(Date.now());
+      const lastResumed = pomodoro.lastResumedAt ?? pomodoro.startAt;
+      this.logger.log(lastResumed);
+      if (!lastResumed) {
+        throw new BadRequestException('Cannot determine last resumed or start time for pause');
+      }
+      const elapsed = Math.floor((now.getTime() - lastResumed.getTime()) / 1000);
+      this.logger.log(elapsed);
+
+      if (pomodoro.remainingTime == null) {
+        if (pomodoro.state === PomodoroState.WORKING) {
+          pomodoro.remainingTime = Math.max(0, pomodoro.workDuration - elapsed);
+        } else if (pomodoro.state === PomodoroState.SHORT_BREAK) {
+          pomodoro.remainingTime = Math.max(0, pomodoro.shortBreak - elapsed);
+        } else if (pomodoro.state === PomodoroState.LONG_BREAK) {
+          pomodoro.remainingTime = Math.max(0, pomodoro.longBreak - elapsed);
         }
-      }else{
-        pomodoro.remainingTime = pomodoro.remainingTime - Math.floor((pomodoro.endAt.getTime() - pomodoro.startAt.getTime()) / 1000);
+      } else {
+        pomodoro.remainingTime = Math.max(0, pomodoro.remainingTime - elapsed);
       }
 
-      //quitar los if y dejar :
-      /*
-      // Almacena cuánto queda y borra tiempos activos
-      pomodoro.remainingTime = Math.max(0, Math.floor(pomodoro.endAt.getTime() - Date.now()) / 1000);
-      pomodoro.startAt = null;
-      pomodoro.endAt = null;
-      */
       
       pomodoro.endAt = null;
       pomodoro.startAt = null;
+      pomodoro.lastResumedAt = null;
       await pomodoro.save();
       this.gateway.emitStatus(pomodoro);
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
@@ -165,12 +166,19 @@ export class PomodoroService {
       const pomodoro = await this.findOne(id, user);
       if(!pomodoro) throw new NotFoundException('Pomodoro not found');
       if(!pomodoro.userId.equals(user)) throw new ForbiddenException('You are not allowed to resume this pomodoro');
-      pomodoro.pausedState = null;
+      
       const duration = pomodoro.remainingTime;
-      pomodoro.startAt = new Date( Date.now());
+      if(duration == null) {
+        throw new BadRequestException('Can not resume pomodoro with no remaining time');
+      }
+
+      const now = new Date(Date.now());
+      pomodoro.pausedState = null;
+      pomodoro.startAt = now;
+      pomodoro.lastResumedAt = now;
       pomodoro.endAt = new Date( pomodoro.startAt.getTime() + duration * 1000);
-      //poner el remainingTime a null
       //pomodoro.remainingTime = null;
+
       this.gateway.emitStatus(pomodoro);
       this.scheduleNext(id, duration);
       await pomodoro.save();
@@ -208,58 +216,79 @@ export class PomodoroService {
       if (this.schedulerRegistry.doesExist('timeout', `pomodoro-${id}`)) {
         this.schedulerRegistry.deleteTimeout(`pomodoro-${id}`);
       }
-
+  
       const timeout = setTimeout(async () => {
         const pomodoro = await this.pomodoroModel.findById(id);
-        if(!pomodoro) return;
-        if(pomodoro.state === PomodoroState.WORKING) {
-          pomodoro.currentCycle+=1;
-          if( pomodoro.currentCycle % 4 === 0) {
+        if (!pomodoro) return;
+  
+        const now = new Date(Date.now());
+  
+        if (pomodoro.state === PomodoroState.WORKING) {
+          pomodoro.currentCycle += 1;
+  
+          if (pomodoro.currentCycle % 4 === 0) {
             pomodoro.state = PomodoroState.LONG_BREAK;
             pomodoro.remainingTime = null;
-            pomodoro.endAt = new Date( Date.now() + pomodoro.longBreak * 1000);
+            pomodoro.startAt = now;
+            pomodoro.lastResumedAt = now;
+            pomodoro.endAt = new Date(now.getTime() + pomodoro.longBreak * 1000);
           } else {
             pomodoro.state = PomodoroState.SHORT_BREAK;
             pomodoro.remainingTime = null;
-            pomodoro.endAt = new Date( Date.now() + pomodoro.shortBreak * 1000);
+            pomodoro.startAt = now;
+            pomodoro.lastResumedAt = now;
+            pomodoro.endAt = new Date(now.getTime() + pomodoro.shortBreak * 1000);
           }
         } else if (
           pomodoro.state === PomodoroState.SHORT_BREAK ||
           pomodoro.state === PomodoroState.LONG_BREAK
         ) {
-
-          if( pomodoro.currentCycle >= pomodoro.cycles) {
+          if (pomodoro.currentCycle >= pomodoro.cycles) {
             pomodoro.state = PomodoroState.COMPLETED;
             pomodoro.remainingTime = null;
-            pomodoro.endAt = new Date( Date.now());
-
+            pomodoro.startAt = null;
+            pomodoro.lastResumedAt = null;
+            pomodoro.endAt = new Date(Date.now());
+  
             await pomodoro.save();
             this.gateway.emitStatus(pomodoro);
-            this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {userId: pomodoro.userId, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
+            this.eventEmitter.emit(EventsList.POMODORO_COMPLETED, {
+              userId: pomodoro.userId,
+              pomodoroId: pomodoro._id,
+              duration: pomodoro.workDuration,
+              cycles: pomodoro.cycles,
+            });
             return;
-          } 
-
+          }
+  
           pomodoro.state = PomodoroState.WORKING;
           pomodoro.remainingTime = null;
-          pomodoro.endAt = new Date( Date.now() + pomodoro.workDuration * 1000);
+          pomodoro.startAt = now;
+          pomodoro.lastResumedAt = now;
+          pomodoro.endAt = new Date(now.getTime() + pomodoro.workDuration * 1000);
         }
-
+  
         await pomodoro.save();
         await pomodoro.populate('task');
         this.gateway.emitStatus(pomodoro);
-        this.scheduleNext(id, 
-          pomodoro.state === PomodoroState.WORKING ? pomodoro.workDuration : pomodoro.state === PomodoroState.LONG_BREAK ? pomodoro.longBreak : pomodoro.shortBreak
+  
+        this.scheduleNext(
+          id,
+          pomodoro.state === PomodoroState.WORKING
+            ? pomodoro.workDuration
+            : pomodoro.state === PomodoroState.LONG_BREAK
+            ? pomodoro.longBreak
+            : pomodoro.shortBreak
         );
       }, duration * 1000);
-      this.schedulerRegistry.addTimeout(
-        `pomodoro-${id}`,
-        timeout
-      );
+  
+      this.schedulerRegistry.addTimeout(`pomodoro-${id}`, timeout);
     } catch (error) {
       this.logger.error('Error scheduling next pomodoro:', error);
       throw new InternalServerErrorException('Error scheduling next pomodoro');
     }
   }
+  
 
   async findOne(id: mongoose.Types.ObjectId, user: mongoose.Types.ObjectId  ) {
     try{
