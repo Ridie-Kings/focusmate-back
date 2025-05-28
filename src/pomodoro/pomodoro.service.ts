@@ -105,6 +105,7 @@ export class PomodoroService {
       pomodoro.remainingTime = pomodoro.workDuration;
       //pomodoro.currentCycle = 1;
       pomodoro.startAt = new Date();
+      pomodoro.lastResumedAt = pomodoro.startAt;
       pomodoro.endAt = new Date(pomodoro.startAt.getTime() + pomodoro.workDuration * 1000);
       await pomodoro.save();
       this.eventEmitter.emit(EventsList.POMODORO_STARTED, {userId: user, pomodoroId: pomodoro._id, duration: pomodoro.workDuration, cycles: pomodoro.cycles});
