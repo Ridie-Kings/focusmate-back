@@ -56,7 +56,7 @@ export class PomodoroService {
 
   async findAll(user: mongoose.Types.ObjectId) {
     try{
-      return this.pomodoroModel.find({userId: user, state: PomodoroState.IDLE});
+      return this.pomodoroModel.find({userId: user, state: PomodoroState.IDLE}).populate('task');
     } catch (error) {
       this.logger.error('Error finding pomodoros:', error);
       throw new InternalServerErrorException('Error finding pomodoros');
@@ -65,7 +65,7 @@ export class PomodoroService {
 
   async findAllNotIdle(user: mongoose.Types.ObjectId) {
     try{
-      return await this.pomodoroModel.find({userId: user});
+      return await this.pomodoroModel.find({userId: user}).populate('task');
 
     } catch (error) {
       this.logger.error('Error finding pomodoros:', error);
@@ -85,7 +85,7 @@ export class PomodoroService {
             PomodoroState.IDLE
           ]
         }
-      });
+      }).populate('task');
     } catch (error) {
       this.logger.error('Error finding pomodoros:', error);
       throw new InternalServerErrorException('Error finding pomodoros');
