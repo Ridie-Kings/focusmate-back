@@ -71,6 +71,9 @@ export class Pomodoro extends Document {
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Task', required: false, default: null })
   task?: mongoose.Types.ObjectId;
+
+  @Prop({ type: Date, default: null, required: false})
+  lastResumedAt?: Date;
 }
 
 export const PomodoroSchema = SchemaFactory.createForClass(Pomodoro);

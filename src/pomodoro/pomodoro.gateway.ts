@@ -113,6 +113,8 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
     //   remainingTime: pomodoro.remainingTime,
     //   pausedState: pomodoro.pausedState,
     // });
+    const now = new Date(Date.now());
+    const elapsed = pomodoro.lastResumedAt ? (pomodoro.remainingTime - Math.floor((now.getTime() - pomodoro.lastResumedAt.getTime()) / 1000)) : 0;
 
     this.server.to(pomodoro.id.toString()).emit('status', {
       _id: pomodoro.id, 
@@ -127,6 +129,7 @@ export class PomodoroGateway implements OnGatewayInit, OnGatewayConnection, OnGa
       remainingTime: pomodoro.remainingTime,
       pausedState: pomodoro.pausedState,
       task: pomodoro.task,
+      currentTime: elapsed
     });
   }
 }
