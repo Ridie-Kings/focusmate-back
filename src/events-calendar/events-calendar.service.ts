@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/mongoose';
 import { EventsCalendar, EventsCalendarDocument, RecurrenceFrequency, DayOfWeek, RecurrencePattern } from './entities/events-calendar.entity';
 import mongoose, { Model } from 'mongoose';
 import { Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventsList } from 'src/events/list.events';
 
 @Injectable()
 export class EventsCalendarService {
@@ -12,12 +14,23 @@ export class EventsCalendarService {
   constructor(
     @InjectModel(EventsCalendar.name)
     private readonly eventsCalendarModel: Model<EventsCalendarDocument>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   async create(createEventsCalendarDto: CreateEventsCalendarDto, userId: mongoose.Types.ObjectId): Promise<EventsCalendarDocument> {
     try {
       this.logger.debug('Creating event with DTO:', createEventsCalendarDto);
       this.logger.debug('User ID:', userId);
+
+      const startDate = new Date(createEventsCalendarDto.startDate);
+      let endDate: Date | undefined;
+
+      if (createEventsCalendarDto.endDate) {
+        endDate = new Date(createEventsCalendarDto.endDate);
+      } else if (createEventsCalendarDto.duration) {
+        // Calculate endDate based on startDate + duration (in minutes)
+        endDate = new Date(startDate.getTime() + createEventsCalendarDto.duration * 60000);
+      }
       
       const eventData: any = {
         title: createEventsCalendarDto.title,
@@ -26,8 +39,8 @@ export class EventsCalendarService {
         category: createEventsCalendarDto.category,
         duration: createEventsCalendarDto.duration,
         userId: userId,
-        startDate: new Date(createEventsCalendarDto.startDate),
-        endDate: createEventsCalendarDto.endDate ? new Date(createEventsCalendarDto.endDate) : undefined,
+        startDate: startDate,
+        endDate: endDate,
       };
 
       if (createEventsCalendarDto.recurrence) {
@@ -40,6 +53,7 @@ export class EventsCalendarService {
       }
 
       const event = await this.eventsCalendarModel.create(eventData);
+      this.eventEmitter.emit(EventsList.EVENT_CREATED, {userId: userId, eventId: event._id});
       return await event.populate('userId');
     }
     catch (error) {
@@ -238,7 +252,9 @@ export class EventsCalendarService {
       const event = await this.eventsCalendarModel.findById(id);
       if (!event) throw new NotFoundException('Event not found');
       if (!event.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      return await this.eventsCalendarModel.findByIdAndDelete(id);
+      const deletedEvent = await this.eventsCalendarModel.findByIdAndDelete(id);
+      this.eventEmitter.emit(EventsList.EVENT_DELETED, {userId: userId, eventId: id});
+      return deletedEvent;
     } catch (error) {
       throw new InternalServerErrorException('Error deleting event');
     }

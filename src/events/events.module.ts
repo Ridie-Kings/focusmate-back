@@ -13,6 +13,7 @@ import { UserLogsModule } from 'src/user-logs/user-logs.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { HabitsModule } from 'src/habits/habits.module';
 import { SubscriptionsModule } from 'src/subscriptions/subscriptions.module';
+import { EventsCalendarListener } from './event-listeners/events-calendar.listener';
 //import { StatsListener } from './event-listeners/stats.listener';
 
 @Module({
@@ -24,7 +25,7 @@ import { SubscriptionsModule } from 'src/subscriptions/subscriptions.module';
     HabitsModule,
     SubscriptionsModule,
   ], // Aquí puedes importar otros módulos si es necesario
-  providers: [EventsService, CalendarListener, HabitListener, PomodoroListener, TaskListener, UserListener, ], //StatsListener], // Asegúrate de agregar el listener si lo tienes
+  providers: [EventsService, CalendarListener, HabitListener, PomodoroListener, TaskListener, UserListener, EventsCalendarListener ], //StatsListener], // Asegúrate de agregar el listener si lo tienes
   exports: [EventsService], // Puedes exportar el servicio para usarlo en otros módulos
 })
 export class EventsModule {}
