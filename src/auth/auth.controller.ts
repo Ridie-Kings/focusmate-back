@@ -9,6 +9,8 @@ import {
   Logger,
   Get,
   UseGuards,
+  HttpCode,
+  HttpException,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { Public } from "./decorators/public.decorator";
@@ -19,6 +21,7 @@ import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from "@nestjs/throttler";
 
 // Define interface for request with user property
 interface RequestWithUser extends Request {
@@ -75,6 +78,8 @@ export class AuthController {
   }
 
   @Public()
+  @HttpCode(200)
+  @Throttle({ default: { limit: 5, ttl: 60 } })
   @Post("login")
   async login(
     @Body() loginUserDto: LoginUserDto,
@@ -120,6 +125,7 @@ export class AuthController {
   }
 
   @Public()
+  @HttpCode(200)
   @Post("refresh")
   async refresh(
     @Req() req: Request,
@@ -151,14 +157,14 @@ export class AuthController {
         message: "Token refreshed successfully" 
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       this.logger.error(`Refresh token failed: ${error.message}`);
-      throw error instanceof UnauthorizedException 
-        ? error 
-        : new InternalServerErrorException('Error refreshing token');
+      throw new InternalServerErrorException('Error refreshing token');
     }
   }
 
   @Public()
+  @HttpCode(200)
   @Post("logout")
   @ApiOperation({ summary: "Logout user" })
   @ApiResponse({ status: 200, description: "User logged out successfully" })
@@ -187,10 +193,9 @@ export class AuthController {
         message: "Logged out successfully" 
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       this.logger.error(`Logout failed: ${error.message}`);
-      throw error instanceof UnauthorizedException 
-        ? error 
-        : new InternalServerErrorException("Error during logout");
+      throw error;
     }
   }
 
