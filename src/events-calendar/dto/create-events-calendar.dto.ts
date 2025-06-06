@@ -107,4 +107,12 @@ export class CreateEventsCalendarDto {
   @Type(() => RecurrencePatternDto)
   @IsOptional()
   readonly recurrence?: RecurrencePatternDto;
+
+  @ApiProperty({
+    description: "Color of the event",
+    example: "#000000",
+  })
+  @IsString()
+  @IsOptional()
+  readonly color?: string;
 }
