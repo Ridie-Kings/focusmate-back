@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, HttpException } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskDocument } from './entities/task.entity';
@@ -22,7 +22,6 @@ export class TasksService {
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: mongoose.Types.ObjectId) {
-    this.logger.debug('Creating task with DTO:', createTaskDto);
     try {
       const task = await this.taskModel.create({
         ...createTaskDto,
@@ -55,6 +54,7 @@ export class TasksService {
 
   async findOne(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
+      if (!mongoose.Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid task ID');
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
@@ -66,6 +66,7 @@ export class TasksService {
       }
       return task.populate('userId');
     }catch (error) {
+      if (error instanceof HttpException) throw error;
       console.error('Error getting task:', error);
       throw new InternalServerErrorException('Error getting task');
     }
@@ -73,11 +74,11 @@ export class TasksService {
 
   async update(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
+      if (!mongoose.Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid task ID');
       const task = await this.taskModel.findById(id);
-      const statusInit = task.status
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
-      
+      const statusInit = task.status
       if (updateTaskDto.addTags || updateTaskDto.deleteTags) {
         await this.updateTags(id, updateTaskDto, userId);
         updateTaskDto.addTags = null;
@@ -90,9 +91,11 @@ export class TasksService {
         {new: true});
       if (statusInit != 'completed' && updateTaskDto.status === 'completed') {
         this.eventEmitter.emit(EventsList.TASK_COMPLETED, {userId: userId, taskId: task._id});
+        await this.taskModel.findByIdAndUpdate(id, {completedAt: new Date()}, {new: true});
       }
       return updatedTask;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.error('Error updating task:', error);
       throw new InternalServerErrorException('Error updating task');
     }
@@ -100,6 +103,7 @@ export class TasksService {
 
   async updateTags(id: mongoose.Types.ObjectId, updateTaskDto: UpdateTaskDto, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
+      if (!mongoose.Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid task ID');
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
@@ -116,6 +120,8 @@ export class TasksService {
       }
       return (await this.findOne(id, userId));
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.error('Error updating task tags:', error);
       throw new InternalServerErrorException('Error updating task tags');
     }
   }
@@ -136,12 +142,15 @@ export class TasksService {
   
   async remove(id: mongoose.Types.ObjectId, userId: mongoose.Types.ObjectId): Promise<TaskDocument> {
     try {
+      if (!mongoose.Types.ObjectId.isValid(id)) throw new BadRequestException('Invalid task ID');
       const task = await this.taskModel.findById(id);
       if (!task) throw new NotFoundException('Task not found');
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       this.eventEmitter.emit(EventsList.TASK_DELETED, {userId: userId, taskId: task._id});
       return this.taskModel.findByIdAndDelete(id);
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.error('Error deleting task:', error);
       throw new InternalServerErrorException('Error deleting task');
     }
   }
@@ -153,10 +162,11 @@ export class TasksService {
       if (!task.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       const newSubtask = await this.taskModel.create({
         ...subtask,
-        userId,
+        userId, 
       });
-      const parentTask = await this.taskModel.findByIdAndUpdate(id, { $push: {subtasks: newSubtask._id}}, {new: true});
-      return parentTask.populate('userId');
+      const parentTask = await this.taskModel.findByIdAndUpdate(id, { $addToSet: {subTasks: newSubtask._id}}, {new: true});
+      if (!parentTask) throw new ForbiddenException('Parent task not found or not owned by user');
+      return parentTask.populate('subTasks');
     } catch (error) {
       throw new InternalServerErrorException('Error creating subtask');
     }

@@ -32,9 +32,8 @@ export class CreateTaskDto{
   readonly endDate?: string;
 
   @ApiProperty({ description: 'Due Date of the Task', example: '2025-02-28T23:59:59Z' })
-  @IsOptional()
   @IsString()
-  readonly dueDate?: string;
+  readonly dueDate: string;
 
   @ApiProperty({ description: 'tags of the task', example: ['tag1', 'tag2'] })
   @IsOptional()
