@@ -70,6 +70,9 @@ export class EventsCalendar {
 
   @Prop({ type: Boolean, default: false })
   isRecurringInstance: boolean;
+
+  @Prop({ type: String, required: false, default: "#000000" })
+  color?: string;
 }
 
 export const EventsCalendarSchema = SchemaFactory.createForClass(EventsCalendar);
