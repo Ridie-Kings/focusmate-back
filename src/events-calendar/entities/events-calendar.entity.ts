@@ -71,7 +71,7 @@ export class EventsCalendar {
   @Prop({ type: Boolean, default: false })
   isRecurringInstance: boolean;
 
-  @Prop({ type: String, required: false, default: "#000000" })
+  @Prop({ type: String, required: false, default: '' })
   color?: string;
 }
 
