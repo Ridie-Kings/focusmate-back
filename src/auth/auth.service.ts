@@ -98,10 +98,22 @@ export class AuthService {
       
       // Send Discord notification
       await this.discordWebhookService.notifyUserLogin(user.username);
-      
+      if (user.isDeleted){
+        await this.usersService.update(user._id.toString(), {
+          isDeleted: false,
+          deletedAt: null,
+        });
+
+        return {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          message: "User has been restored"
+        }
+      }
       return {
         access_token: accessToken,
         refresh_token: refreshToken,
+        message: "Login successful"
       };
     } catch (error) {
       if (error instanceof HttpException) throw error;

@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, ConflictException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, ConflictException, HttpException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 import { Calendar, CalendarDocument } from "./entities/calendar.entity";
@@ -95,6 +95,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding task to calendar");
     }
   }
@@ -115,6 +116,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { events: eventID } }, { new: true });
       return await updCal.populate("events");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding event to calendar");
     }
   }
@@ -136,6 +138,7 @@ export class CalendarService {
         : reminderID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding reminder to calendar");
     }
   }
@@ -152,6 +155,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting task to calendar");
     }
   }
@@ -168,6 +172,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { events: eventID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting event to calendar");
     }
   }
@@ -184,6 +189,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { reminders: reminderID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting reminder to calendar");
     }
   }
@@ -221,6 +227,7 @@ export class CalendarService {
 
       return tasks;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.log(error);
       throw new InternalServerErrorException("Error finding tasks by date");
     }
@@ -247,7 +254,7 @@ export class CalendarService {
       });
 
       const events = calendar.events.filter((event) => {
-        const eventDate = new Date(event["dueDate"]);
+        const eventDate = new Date(event["startDate"]);
         return eventDate >= start && eventDate <= end;
       });
       // Sort events by start date
@@ -259,6 +266,7 @@ export class CalendarService {
 
       return { tasks, events };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.log(error);
       throw new InternalServerErrorException("Error finding tasks by date");
     }
@@ -283,7 +291,7 @@ export class CalendarService {
       });
 
       const events = calendar.events.filter((event) => {
-        const eventDate = new Date(event["dueDate"]);
+        const eventDate = new Date(event["startDate"]);
         return eventDate >= start && eventDate <= end;
       });
       events.sort((a, b) => {
@@ -294,6 +302,7 @@ export class CalendarService {
       
       return { tasks, events };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.log(error);
       throw new InternalServerErrorException("Error finding tasks by date range");
     }

@@ -5,6 +5,8 @@ import {
   IsPositive,
   IsString,
   MinLength,
+  IsBoolean,
+  IsDate,
 } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
@@ -109,4 +111,22 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   googleId?: string;
+
+  @ApiProperty({
+    example: true,
+    description: "Is deleted (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsBoolean()
+  isDeleted?: boolean;
+
+  @ApiProperty({
+    example: "2025-01-01",
+    description: "Deleted at (optional)",
+    required: false,
+  })
+  @IsOptional()
+  @IsDate()
+  deletedAt?: Date;
 }

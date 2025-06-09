@@ -120,6 +120,12 @@ export class StatsService {
     await stats.save();
   }
 
+  async userDeleted() {
+    const stats = await this.statsModel.findOne();
+    stats.totalUsersDeleted++;
+    await stats.save();
+  }
+
   
   
   

@@ -63,9 +63,9 @@ export class UserListener {
   }
 
   // Escuchar evento cuando un usuario elimine su cuenta
-  @OnEvent('user.deleted')
-  handleUserDeleted(payload: any) {
-    this.logger.log('Usuario eliminado:', payload);
+  @OnEvent(EventsList.USER_DELETED)
+  async handleUserDeleted(payload: any) {
+    await this.statsService.userDeleted();
     // Aquí puedes realizar limpieza de datos o registros asociados al usuario eliminado
   }
 }
