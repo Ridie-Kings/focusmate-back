@@ -41,6 +41,7 @@ export class EventsCalendarService {
         userId: userId,
         startDate: startDate,
         endDate: endDate,
+        color: createEventsCalendarDto.color,
       };
 
       if (createEventsCalendarDto.recurrence) {
