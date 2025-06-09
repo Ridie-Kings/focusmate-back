@@ -23,6 +23,7 @@ import {
 } from "@nestjs/swagger";
 import mongoose from "mongoose";
 import { User, UserDocument } from "./entities/user.entity";
+import { GetUser } from "./decorators/get-user.decorator";
 
 @ApiTags("Users")
 @Controller("users")
@@ -131,7 +132,7 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  @Delete(":id/soft")
+  @Delete("softDelete")
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ 
@@ -153,7 +154,7 @@ export class UsersController {
   @ApiResponse({ status: 400, description: "Invalid user ID or user not found" })
   @ApiResponse({ status: 404, description: "User not found" })
   @ApiResponse({ status: 500, description: "Internal server error during soft deletion" })
-  async softDelete(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
-    return this.usersService.softDelete(id);
+  async softDelete(@GetUser() user: UserDocument) {
+    return this.usersService.softDelete(user.id);
   }
 }
