@@ -351,6 +351,17 @@ export class UserLogsService {
     return userLog;
   }
 
+
+  async eventCalendarDeleted(userId: mongoose.Types.ObjectId, eventId: mongoose.Types.ObjectId) {
+    const log = {type: 'event-calendar-deleted', object: eventId, date: new Date()};
+    const userLog = await this.userLogModel.findOneAndUpdate(
+      { userId },
+      { $inc: { EventsCalendarDeleted: 1 }, $push: { logs: log }, $set: { lastUpdate: new Date() } },
+      { new: true }
+    );
+    return userLog;
+  }
+
   async pomodoroFinished(userId: mongoose.Types.ObjectId, pomodoroId: mongoose.Types.ObjectId, duration: number, cycles: number) {
     const log = {type: 'pomodoro-finished', object: pomodoroId, value: {duration: duration, cycles: cycles}};
     const userLog = await this.userLogModel.findOneAndUpdate(

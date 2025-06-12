@@ -66,6 +66,12 @@ export class User extends Document {
   @Prop({ type: String, required: false })
   googleId?: string;
 
+  @Prop({ type: Boolean, default: false })
+  isDeleted: boolean;
+
+  @Prop({ type: Date, required: false })
+  deletedAt?: Date;
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

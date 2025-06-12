@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UsePipes, ValidationPipe, Query } from '@nestjs/common';
 import { EventsCalendarService } from './events-calendar.service';
 import { CreateEventsCalendarDto } from './dto/create-events-calendar.dto';
 import { UpdateEventsCalendarDto } from './dto/update-events-calendar.dto';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { EventsCalendarDocument } from './entities/events-calendar.entity';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
@@ -35,6 +35,23 @@ export class EventsCalendarController {
     return this.eventsCalendarService.findAll(user.id);
   }
 
+  @ApiOperation({ summary: 'Retrieve events within a date range (including recurring events)' })
+  @ApiResponse({ status: 200, description: 'Events retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid date range provided' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiQuery({ name: 'startDate', description: 'Start date for range (ISO string)', example: '2024-01-01T00:00:00Z' })
+  @ApiQuery({ name: 'endDate', description: 'End date for range (ISO string)', example: '2024-01-31T23:59:59Z' })
+  @Get('range')
+  async findEventsInRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @GetUser() user: User
+  ): Promise<EventsCalendarDocument[]> {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    return this.eventsCalendarService.findEventsInRange(user.id, start, end);
+  }
+
   @ApiOperation({ summary: 'Retrieve an event by ID' })
   @ApiResponse({ status: 200, description: 'Event retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Event not found' })
@@ -59,6 +76,47 @@ export class EventsCalendarController {
   @Delete(':id')
   async remove(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.remove(id, user.id);
-    
+  }
+
+  @ApiOperation({ summary: 'Admin test endpoint for recurring events' })
+  @ApiResponse({ status: 200, description: 'Test successful' })
+  @Get('admin/test')
+  async test(@GetUser() user: User): Promise<{ message: string; examples: any[] }> {
+    return {
+      message: 'Recurring events module working correctly',
+      examples: [
+        {
+          description: 'Weekly recurring event every Monday and Friday',
+          payload: {
+            title: 'Team Standup',
+            description: 'Daily team standup meeting',
+            startDate: '2024-01-15T09:00:00Z',
+            duration: 30,
+            category: 'Meeting',
+            recurrence: {
+              frequency: 'weekly',
+              interval: 1,
+              daysOfWeek: [1, 5], // Monday and Friday
+              maxOccurrences: 20
+            }
+          }
+        },
+        {
+          description: 'Monthly recurring event',
+          payload: {
+            title: 'Monthly Review',
+            description: 'Monthly team review meeting',
+            startDate: '2024-01-01T14:00:00Z',
+            duration: 120,
+            category: 'Meeting',
+            recurrence: {
+              frequency: 'monthly',
+              interval: 1,
+              endDate: '2024-12-31T23:59:59Z'
+            }
+          }
+        }
+      ]
+    };
   }
 }

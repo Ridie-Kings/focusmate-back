@@ -23,6 +23,7 @@ import {
 } from "@nestjs/swagger";
 import mongoose from "mongoose";
 import { User, UserDocument } from "./entities/user.entity";
+import { GetUser } from "./decorators/get-user.decorator";
 
 @ApiTags("Users")
 @Controller("users")
@@ -69,11 +70,91 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto);
   }
 
-  @Delete(":id")
-  @ApiOperation({ summary: "Delete a user by ID" })
-  @ApiResponse({ status: 200, description: "User deleted successfully" })
+  @Get(":id/deletion-stats")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: "Get statistics of user-related data before deletion",
+    description: "Returns count of all entities related to the user to understand deletion impact"
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: "User deletion statistics retrieved successfully",
+    schema: {
+      example: {
+        user: {
+          id: "507f1f77bcf86cd799439011",
+          username: "johndoe",
+          email: "john@example.com",
+          createdAt: "2024-01-01T00:00:00.000Z"
+        },
+        relatedData: {
+          tasks: 15,
+          habits: 8,
+          pomodoros: 25,
+          events: 5,
+          // ... other counts
+        },
+        summary: {
+          totalOwnedEntities: 53,
+          totalSharedEntities: 3,
+          deletionImpact: "high"
+        }
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: "Invalid user ID" })
   @ApiResponse({ status: 404, description: "User not found" })
-  async remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId): Promise<UserDocument> {
+  async getDeletionStats(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
+    return this.usersService.getUserDeletionStats(id);
+  }
+
+  @Delete(":id")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: "Permanently delete a user and all related data",
+    description: "This action cannot be undone. Deletes user and all associated data including tasks, habits, pomodoros, etc."
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: "User and all related data permanently deleted successfully",
+    schema: {
+      example: {
+        message: "User and all related data successfully deleted",
+        userId: "507f1f77bcf86cd799439011"
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: "Invalid user ID or user not found" })
+  @ApiResponse({ status: 500, description: "Internal server error during deletion" })
+  async remove(@Param("id", ParseMongoIdPipe) id: mongoose.Types.ObjectId) {
     return this.usersService.remove(id);
+  }
+
+  @Delete("softDelete")
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: "Soft delete a user by marking as deleted",
+    description: "Marks user as deleted but preserves all data. Related entities will be cleaned up by scheduled cron job after retention period."
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: "User marked for deletion successfully",
+    schema: {
+      example: {
+        message: "User successfully marked for deletion",
+        userId: "507f1f77bcf86cd799439011",
+        type: "soft_delete",
+        deletedAt: "2024-01-15T10:30:00.000Z"
+      }
+    }
+  })
+  @ApiResponse({ status: 400, description: "Invalid user ID or user not found" })
+  @ApiResponse({ status: 404, description: "User not found" })
+  @ApiResponse({ status: 500, description: "Internal server error during soft deletion" })
+  async softDelete(@GetUser() user: UserDocument) {
+    return this.usersService.softDelete(user.id);
   }
 }

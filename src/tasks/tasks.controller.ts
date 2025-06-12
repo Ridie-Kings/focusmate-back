@@ -26,6 +26,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Create a new task' })
   @ApiResponse({ status: 201, description: 'Task successfully created' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User
@@ -37,10 +38,12 @@ export class TasksController {
   @Post(':idParent/subtask')
   @ApiOperation({ summary: 'Create a new subtask' })
   @ApiResponse({ status: 201, description: 'Subtask successfully created' })
+  @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiResponse({ status: 404, description: 'Task not found' })
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   async createSubtask(
     @Param('idParent', ParseMongoIdPipe) idParent: mongoose.Types.ObjectId,
-    CreateTaskDto: CreateTaskDto,
+    @Body() CreateTaskDto: CreateTaskDto,
     @GetUser() user: User
   ): Promise<TaskDocument> 
   {
@@ -62,6 +65,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Task successfully retrieved' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @ApiResponse({ status: 404, description: 'Task not found' })
+  @ApiResponse({ status: 400, description: 'Invalid data provided' })
   async findOne(
     @Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId,
     @GetUser() user: User

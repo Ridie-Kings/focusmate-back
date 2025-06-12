@@ -7,6 +7,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Logger,
+  HttpException,
 } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -41,7 +42,6 @@ export class UsersService {
 
       const user = await this.userModel.create(createUserDto);
       this.eventEmitter.emit(EventsList.USER_REGISTERED, {userId: user.id});
-      
       // Return user without password
       return user;
     } catch (error) {
@@ -115,12 +115,283 @@ export class UsersService {
   }
 
   async remove(id: mongoose.Types.ObjectId) {
-    const user = await this.userModel.findById(id);
-    if (!isValidObjectId(id) || !user) {
-      throw new BadRequestException("Invalid id or user not found");
+    const session = await mongoose.startSession();
+    
+    try {
+      await session.withTransaction(async () => {
+        const user = await this.userModel.findById(id).session(session);
+        if (!isValidObjectId(id) || !user) {
+          throw new BadRequestException("Invalid id or user not found");
+        }
+
+        this.logger.log(`Starting cascade deletion for user: ${id}`);
+
+        // Get all models that need to be cleaned up
+        const {
+          Task,
+          Habit,
+          Pomodoro,
+          EventsCalendar,
+          Calendar,
+          Note,
+          Section,
+          Reminders,
+          UserLog,
+          GamificationProfile,
+          Subscription,
+          Dict,
+          Avatar,
+          Banner,
+          Checklist,
+          TokenBlackList,
+          Stopwatch,
+          Countdown,
+        } = mongoose.models;
+
+        // Delete user-owned entities
+        const deleteOperations = [
+          Task?.deleteMany({ userId: id }).session(session),
+          Habit?.deleteMany({ userId: id }).session(session),
+          Pomodoro?.deleteMany({ userId: id }).session(session),
+          EventsCalendar?.deleteMany({ userId: id }).session(session),
+          Calendar?.deleteMany({ user: id }).session(session),
+          Note?.deleteMany({ user: id }).session(session),
+          Section?.deleteMany({ userId: id }).session(session),
+          Reminders?.deleteMany({ user: id }).session(session),
+          UserLog?.deleteMany({ userId: id }).session(session),
+          GamificationProfile?.deleteMany({ user: id }).session(session),
+          Subscription?.deleteMany({ userId: id }).session(session),
+          Checklist?.deleteMany({ userId: id }).session(session),
+          TokenBlackList?.deleteMany({ userId: id }).session(session),
+          Stopwatch?.deleteMany({ userId: id }).session(session),
+          Countdown?.deleteMany({ userId: id }).session(session),
+        ].filter(Boolean);
+
+        // Handle user-specific entities (optional userId)
+        const userSpecificOperations = [
+          Avatar?.deleteMany({ userId: id }).session(session),
+          Banner?.deleteMany({ userId: id }).session(session),
+        ].filter(Boolean);
+
+        // Handle dictionaries - remove from ownerId and sharedWith
+        const dictOperations = [
+          Dict?.deleteMany({ ownerId: id }).session(session), // Delete owned dictionaries
+          Dict?.updateMany(
+            { 'sharedWith.userId': id },
+            { $pull: { sharedWith: { userId: id } } }
+          ).session(session), // Remove from shared dictionaries
+        ].filter(Boolean);
+
+        // Handle pomodoros shared with the user
+        const pomodoroSharedOperations = [
+          Pomodoro?.updateMany(
+            { sharedWith: id },
+            { $pull: { sharedWith: id } }
+          ).session(session),
+        ].filter(Boolean);
+
+        // Execute all delete operations
+        const allOperations = [
+          ...deleteOperations,
+          ...userSpecificOperations,
+          ...dictOperations,
+          ...pomodoroSharedOperations,
+        ];
+
+        this.logger.log(`Executing ${allOperations.length} cascade delete operations`);
+        await Promise.all(allOperations);
+
+        // Finally, delete the user
+        await this.userModel.findByIdAndDelete(id).session(session);
+        
+        this.logger.log(`Successfully cascade deleted user: ${id}`);
+        
+        // Emit event for cleanup or analytics
+        this.eventEmitter.emit(EventsList.USER_DELETED, { userId: id });
+      });
+
+      return { message: 'User and all related data successfully deleted', userId: id };
+    } catch (error) {
+      this.logger.error(`Error during cascade deletion for user ${id}:`, error);
+      throw new InternalServerErrorException(
+        `Failed to delete user and related data: ${error.message}`
+      );
+    } finally {
+      await session.endSession();
     }
-    await this.userModel.findByIdAndDelete(id);
-    return user;
+  }
+
+  /**
+   * Soft delete user and related data by marking as deleted
+   * Preferred for GDPR compliance and data recovery
+   */
+  async softDelete(id: mongoose.Types.ObjectId) {
+    try {
+      
+      if (!isValidObjectId(id)) {
+        throw new BadRequestException("Invalid id or user not found");
+      }
+      const user = await this.userModel.findById(id);
+      if (!user) {
+        throw new NotFoundException("User not found");
+      }
+
+      this.logger.log(`Starting soft deletion for user: ${id}`);
+
+      const deletedAt = new Date();
+      
+      // Only mark user as deleted, related entities will be handled by cron job
+      await this.userModel.findByIdAndUpdate(
+        id,
+        {
+          isDeleted: true,
+          deletedAt,
+        }
+      );
+      
+      this.logger.log(`Successfully soft deleted user: ${id}`);
+
+      return { 
+        message: 'User successfully marked for deletion', 
+        userId: id,
+        type: 'soft_delete',
+        deletedAt
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      this.logger.error(`Error during soft deletion for user ${id}:`, error);
+      throw new InternalServerErrorException(
+        `Failed to soft delete user: ${error.message}`
+      );
+    }
+  }
+
+  /**
+   * Get statistics of user-related data before deletion
+   * Useful for confirmation or analytics
+   */
+  async getUserDeletionStats(id: mongoose.Types.ObjectId) {
+    if (!isValidObjectId(id)) {
+      throw new BadRequestException("Invalid user ID");
+    }
+
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    try {
+      const {
+        Task,
+        Habit,
+        Pomodoro,
+        EventsCalendar,
+        Calendar,
+        Note,
+        Section,
+        Reminders,
+        UserLog,
+        GamificationProfile,
+        Subscription,
+        Dict,
+        Avatar,
+        Banner,
+        Checklist,
+        TokenBlackList,
+        Stopwatch,
+        Countdown,
+      } = mongoose.models;
+
+      const [
+        tasksCount,
+        habitsCount,
+        pomodorosCount,
+        eventsCount,
+        calendarCount,
+        notesCount,
+        sectionsCount,
+        remindersCount,
+        userLogsCount,
+        gamificationProfileCount,
+        subscriptionsCount,
+        dictsOwnedCount,
+        dictsSharedCount,
+        avatarsCount,
+        bannersCount,
+        checklistsCount,
+        tokensCount,
+        stopwatchCount,
+        countdownCount,
+        pomodorosSharedCount,
+      ] = await Promise.all([
+        Task?.countDocuments({ userId: id }) || 0,
+        Habit?.countDocuments({ userId: id }) || 0,
+        Pomodoro?.countDocuments({ userId: id }) || 0,
+        EventsCalendar?.countDocuments({ userId: id }) || 0,
+        Calendar?.countDocuments({ user: id }) || 0,
+        Note?.countDocuments({ user: id }) || 0,
+        Section?.countDocuments({ userId: id }) || 0,
+        Reminders?.countDocuments({ user: id }) || 0,
+        UserLog?.countDocuments({ userId: id }) || 0,
+        GamificationProfile?.countDocuments({ user: id }) || 0,
+        Subscription?.countDocuments({ userId: id }) || 0,
+        Dict?.countDocuments({ ownerId: id }) || 0,
+        Dict?.countDocuments({ 'sharedWith.userId': id }) || 0,
+        Avatar?.countDocuments({ userId: id }) || 0,
+        Banner?.countDocuments({ userId: id }) || 0,
+        Checklist?.countDocuments({ userId: id }) || 0,
+        TokenBlackList?.countDocuments({ userId: id }) || 0,
+        Stopwatch?.countDocuments({ userId: id }) || 0,
+        Countdown?.countDocuments({ userId: id }) || 0,
+        Pomodoro?.countDocuments({ sharedWith: id }) || 0,
+      ]);
+
+      const totalEntities = 
+        tasksCount + habitsCount + pomodorosCount + eventsCount + 
+        calendarCount + notesCount + sectionsCount + remindersCount +
+        userLogsCount + gamificationProfileCount + subscriptionsCount +
+        dictsOwnedCount + avatarsCount + bannersCount + checklistsCount +
+        tokensCount + stopwatchCount + countdownCount;
+
+              return {
+          user: {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            createdAt: (user as any).createdAt,
+          },
+        relatedData: {
+          tasks: tasksCount,
+          habits: habitsCount,
+          pomodoros: pomodorosCount,
+          events: eventsCount,
+          calendar: calendarCount,
+          notes: notesCount,
+          sections: sectionsCount,
+          reminders: remindersCount,
+          userLogs: userLogsCount,
+          gamificationProfile: gamificationProfileCount,
+          subscriptions: subscriptionsCount,
+          dictsOwned: dictsOwnedCount,
+          dictsSharedWith: dictsSharedCount,
+          avatars: avatarsCount,
+          banners: bannersCount,
+          checklists: checklistsCount,
+          blacklistedTokens: tokensCount,
+          stopwatches: stopwatchCount,
+          countdowns: countdownCount,
+          pomodorosSharedWith: pomodorosSharedCount,
+        },
+        summary: {
+          totalOwnedEntities: totalEntities,
+          totalSharedEntities: dictsSharedCount + pomodorosSharedCount,
+          deletionImpact: totalEntities > 0 ? 'high' : 'low',
+        }
+      };
+    } catch (error) {
+      this.logger.error(`Error getting deletion stats for user ${id}:`, error);
+      throw new InternalServerErrorException('Error retrieving user deletion statistics');
+    }
   }
 
   async updatePassword(email: string, hashedPassword: string) {

@@ -96,7 +96,10 @@ export class Stat extends Document {
   lastUpdated: Date;
 
   @Prop({ type: Number, default: 0 })
-  totalTasksCalendar: number; // Total tasks created
+  totalTasksCalendar: number;
+  
+  @Prop({type: Number, default: 0})
+  totalUsersDeleted: number; // Total users deleted
   
   
 }

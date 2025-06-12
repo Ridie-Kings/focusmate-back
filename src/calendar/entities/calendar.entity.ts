@@ -15,7 +15,7 @@ export class Calendar extends Document {
   tasks: mongoose.Types.ObjectId[];
 
   @Prop({
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "EventsCalendar" }],
     default: [],
   })
   events: mongoose.Types.ObjectId[];

@@ -37,7 +37,7 @@ export class Task extends Document{
   @Prop({ type: Date, required: false })
   endDate?: Date;
 
-  @Prop({ type: Date, required: false, })
+  @Prop({ type: Date, required: false })
   dueDate?: Date;
 
   @Prop({ type: Boolean, default: false })
@@ -60,6 +60,9 @@ export class Task extends Document{
 
   @Prop({type: [mongoose.Schema.Types.ObjectId], ref: "Pomodoro", default: []  })
   pomodoros: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({type: Date, required: false})
+  completedAt: Date;
 
 }
 

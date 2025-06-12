@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException, Inject } from "@nestjs/common";
+import { Injectable, UnauthorizedException, InternalServerErrorException, NotFoundException, Inject, HttpException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { UsersService } from "src/users/users.service";
 import { CreateUserDto } from "src/users/dto/create-user.dto";
@@ -33,29 +33,35 @@ export class AuthService {
   ) {}
 
   async register(createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
-    await this.emailService.sendWelcomeEmail(user.email, user.fullname);
-    
-    // Send Discord notification
-    await this.discordWebhookService.notifyNewUser(user.username, user.email);
-    
-    // Generate tokens
-    const payload = { id: user._id.toString(), email: user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
+    try{
+      const user = await this.usersService.create(createUserDto);
+      await this.emailService.sendWelcomeEmail(user.email, user.fullname);
+      
+      // Send Discord notification
+      await this.discordWebhookService.notifyNewUser(user.username, user.email);
+      
+      // Generate tokens
+      const payload = { id: user._id.toString(), email: user.email };
+      const accessToken = this.jwtService.sign(payload, { expiresIn: "12h" });
+      const refreshToken = this.jwtService.sign(payload, { expiresIn: "7d" });
 
-    // Store the refresh token in the database
-    await this.usersService.update(user._id.toString(), {
-      refreshToken: refreshToken,
-    });
+      // Store the refresh token in the database
+      await this.usersService.update(user._id.toString(), {
+        refreshToken: refreshToken,
+      });
 
-    this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
-    
-    return {
-      user,
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    };
+      this.eventEmitter.emit(EventsList.USER_LOGGED_IN, {userId: user._id.toString()});
+      
+      return {
+        user,
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      this.logger.error(`Register error: ${error.message}`);
+      throw error;
+    }
   }
 
   async login(loginUserDto: LoginUserDto) {
@@ -92,12 +98,25 @@ export class AuthService {
       
       // Send Discord notification
       await this.discordWebhookService.notifyUserLogin(user.username);
-      
+      if (user.isDeleted){
+        await this.usersService.update(user._id.toString(), {
+          isDeleted: false,
+          deletedAt: null,
+        });
+
+        return {
+          access_token: accessToken,
+          refresh_token: refreshToken,
+          message: "User has been restored"
+        }
+      }
       return {
         access_token: accessToken,
         refresh_token: refreshToken,
+        message: "Login successful"
       };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       this.logger.error(`Login error: ${error.message}`);
       throw error;
     }
@@ -145,6 +164,8 @@ export class AuthService {
       this.logger.debug(`New access token generated for user: ${user.email}`);
       return { access_token: newAccessToken };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.log("REFRESH TOKEN ERROR:", error);
       this.logger.error(`Refresh token error: ${error.message}`);
       throw error instanceof UnauthorizedException 
         ? error 
@@ -200,6 +221,7 @@ export class AuthService {
 
       this.logger.debug('Cookies cleared successfully');
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       this.logger.error(`Logout failed: ${error.message}`);
       throw error instanceof UnauthorizedException 
         ? error 

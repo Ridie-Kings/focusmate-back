@@ -38,6 +38,7 @@ export const EventsList = {
   SUBSCRIPTION_PAYMENT_METHOD_CHANGED: 'subscription.paymentMethodChanged',
   SUBSCRIPTION_PAYMENT_METHOD_EXPIRED: 'subscription.paymentMethodExpired',
   USER_REGISTERED_GOOGLE: 'user.registeredGoogle',
-  
+  EVENT_CREATED: 'event.created',
+  EVENT_DELETED: 'event.deleted',
   // Agrega más eventos según las acciones
 };

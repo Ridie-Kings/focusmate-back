@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, ConflictException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, InternalServerErrorException, NotFoundException, Logger, BadRequestException, ConflictException, HttpException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import mongoose, { Model } from "mongoose";
 import { Calendar, CalendarDocument } from "./entities/calendar.entity";
@@ -50,7 +50,7 @@ export class CalendarService {
   }
 
   async getCalendar(userId: string): Promise<CalendarDocument> {
-    return await this.calendarModel.findOne({ user: userId }).populate("tasks");
+    return await this.calendarModel.findOne({ user: userId }).populate(["tasks", "events"]);
   }
 
   async addTask(userId: mongoose.Types.ObjectId, taskId: mongoose.Types.ObjectId): Promise<CalendarDocument> {
@@ -65,7 +65,7 @@ export class CalendarService {
     if (!task) {
       throw new NotFoundException("Task not found");
     }
-    const tasks_calendar = await this.findByDate(userId, task["dueDate"]);
+    const tasks_calendar = await this.findTaskByDate(userId, task["dueDate"]);
     // Check for task time conflicts
     if (tasks_calendar?.length > 0) {
       const newTaskStart = new Date(task.startDate);
@@ -95,6 +95,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding task to calendar");
     }
   }
@@ -113,8 +114,9 @@ export class CalendarService {
     }
     try {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { events: eventID } }, { new: true });
-      return await updCal.populate("tasks");
+      return await updCal.populate("events");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding event to calendar");
     }
   }
@@ -136,6 +138,7 @@ export class CalendarService {
         : reminderID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error adding reminder to calendar");
     }
   }
@@ -152,6 +155,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting task to calendar");
     }
   }
@@ -168,6 +172,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { events: eventID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting event to calendar");
     }
   }
@@ -184,6 +189,7 @@ export class CalendarService {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $pull: { reminders: reminderID } }, { new: true });
       return await updCal.populate("tasks");
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException("Error deleting reminder to calendar");
     }
   }
@@ -200,7 +206,7 @@ export class CalendarService {
     return await this.calendarModel.findOne({ user: userId }).populate("reminders");
   } 
 
-  async findByDate(userId: mongoose.Types.ObjectId, date: Date){
+  async findTaskByDate(userId: mongoose.Types.ObjectId, date: Date){
     try {
       const calendar = await this.calendarModel.findOne({ user: userId }).populate("tasks");
       const start = new Date(date);
@@ -218,9 +224,49 @@ export class CalendarService {
         const dateB = new Date(b["startDate"]);
         return dateA.getTime() - dateB.getTime();
       });
-      
+
       return tasks;
     } catch (error) {
+      if (error instanceof HttpException) throw error;
+      console.log(error);
+      throw new InternalServerErrorException("Error finding tasks by date");
+    }
+  }
+
+
+  async findByDate(userId: mongoose.Types.ObjectId, date: Date){
+    try {
+      const calendar = await this.calendarModel.findOne({ user: userId }).populate("tasks").populate("events");
+      const start = new Date(date);
+      //start.setHours(0, 0, 0, 0);// Set to beginning of day
+      const end = new Date(date);
+      end.setHours(24, 59, 59, 999);
+      const tasks = calendar.tasks.filter((task) => {
+        const taskDate = new Date(task["dueDate"]);
+        return taskDate >= start && taskDate <= end;
+      });
+     
+      // Sort tasks by start date
+      tasks.sort((a, b) => {
+        const dateA = new Date(a["startDate"]);
+        const dateB = new Date(b["startDate"]);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      const events = calendar.events.filter((event) => {
+        const eventDate = new Date(event["startDate"]);
+        return eventDate >= start && eventDate <= end;
+      });
+      // Sort events by start date
+      events.sort((a, b) => {
+        const dateA = new Date(a["startDate"]);
+        const dateB = new Date(b["startDate"]);
+        return dateA.getTime() - dateB.getTime();
+      });
+
+      return { tasks, events };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.log(error);
       throw new InternalServerErrorException("Error finding tasks by date");
     }
@@ -228,7 +274,7 @@ export class CalendarService {
 
   async findRange(userId: mongoose.Types.ObjectId, startDate: Date, endDate: Date){
     try {
-      const calendar = await this.calendarModel.findOne({ user: userId }).populate("tasks");
+      const calendar = await this.calendarModel.findOne({ user: userId }).populate("tasks").populate("events");
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0); // Set to beginning of day
       const end = new Date(endDate);
@@ -243,8 +289,20 @@ export class CalendarService {
         const dateB = new Date(b["startDate"]);
         return dateA.getTime() - dateB.getTime();
       });
-      return tasks;
+
+      const events = calendar.events.filter((event) => {
+        const eventDate = new Date(event["startDate"]);
+        return eventDate >= start && eventDate <= end;
+      });
+      events.sort((a, b) => {
+        const dateA = new Date(a["startDate"]);
+        const dateB = new Date(b["startDate"]);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      return { tasks, events };
     } catch (error) {
+      if (error instanceof HttpException) throw error;
       console.log(error);
       throw new InternalServerErrorException("Error finding tasks by date range");
     }
@@ -297,36 +355,6 @@ export class CalendarService {
     return this.findRange(userId, new Date(start), new Date(end));
   }
 
-  // async findTasksDate(userId: mongoose.Types.ObjectId, date: Date){
-  //   const start = date.setHours(0, 0, 0, 0);
-  //   const end = date.setHours(23, 59, 59, 999);
-  //   const calendar = await this.calendarModel.aggregate([
-  //     {
-  //       $match: { user: userId },
-  //     },
-  //     {
-  //       $project: {
-  //         tasks: { $filter: { input: "$tasks", as: "task", cond: { $and: [{ $gte: ["$$task.dueDate", start] }, { $lte: ["$$task.dueDate", end] }] } } },
-  //       },
-  //     },
-  //   ]);
-  //   return calendar;
-  // }
-  // async findEventsDate(userId: mongoose.Types.ObjectId, date: Date){
-  //   const start = date.setHours(0, 0, 0, 0);
-  //   const end = date.setHours(23, 59, 59, 999);
-  //   const calendar = await this.calendarModel.aggregate([
-  //     {
-  //       $match: { user: userId },
-  //     },
-  //     {
-  //       $project: {
-  //         events: { $filter: { input: "$events", as: "event", cond: { $and: [{ $gte: ["$$event.dueDate", start] }, { $lte: ["$$event.dueDate", end] }] } } },
-  //       },
-  //     },
-  //   ]);
-  //   return calendar;
-  // }
 
   // async findRemindersDate(userId: mongoose.Types.ObjectId, date: Date){
   //   const start = date.setHours(0, 0, 0, 0);
