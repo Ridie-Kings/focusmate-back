@@ -67,6 +67,7 @@ export class CreateEventsCalendarDto {
   })
   @IsString()
   @MaxLength(100)
+  @IsOptional()
   description?: string;
 
   @ApiProperty({
@@ -75,6 +76,7 @@ export class CreateEventsCalendarDto {
   })
   @IsString()
   @MaxLength(50)
+  @IsOptional()
   readonly location?: string;
 
   @ApiProperty({ description: 'Start Date of the Task', example: '2025-02-24T00:00:00Z' })
@@ -96,6 +98,7 @@ export class CreateEventsCalendarDto {
     description: "Event category",
   })
   @IsString()
+  @IsOptional()
   @MaxLength(25)
   readonly category?: string;
 

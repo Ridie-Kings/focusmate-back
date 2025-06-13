@@ -8,6 +8,7 @@ import { EventsCalendarDocument } from './entities/events-calendar.entity';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import mongoose from 'mongoose';
+import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id.pipe';
 
 
 @ApiTags('Events Calendar')
@@ -56,8 +57,9 @@ export class EventsCalendarController {
   @ApiResponse({ status: 200, description: 'Event retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Event not found' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
+  @ApiResponse({ status: 400, description: 'Invalid ObjectId format' })
   @Get(':id')
-  async findOne(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
+  async findOne(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.findOne(id, user.id);
   }
 
@@ -66,7 +68,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 400, description: 'Invalid data provided' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Patch(':id')
-  async update(@Param('id') id: mongoose.Types.ObjectId, @Body() updateEventsCalendarDto: UpdateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendarDocument> {
+  async update(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @Body() updateEventsCalendarDto: UpdateEventsCalendarDto, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.update(id, updateEventsCalendarDto, user.id);
   }
 
@@ -74,7 +76,7 @@ export class EventsCalendarController {
   @ApiResponse({ status: 200, description: 'Event deleted successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized access' })
   @Delete(':id')
-  async remove(@Param('id') id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
+  async remove(@Param('id', ParseMongoIdPipe) id: mongoose.Types.ObjectId, @GetUser() user: User): Promise<EventsCalendarDocument> {
     return this.eventsCalendarService.remove(id, user.id);
   }
 

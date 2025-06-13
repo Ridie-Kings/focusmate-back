@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, HttpException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateEventsCalendarDto } from './dto/create-events-calendar.dto';
 import { UpdateEventsCalendarDto } from './dto/update-events-calendar.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -51,6 +51,7 @@ export class EventsCalendarService {
             ? new Date(createEventsCalendarDto.recurrence.endDate) 
             : undefined,
         };
+        
       }
 
       const event = await this.eventsCalendarModel.create(eventData);
@@ -78,6 +79,15 @@ export class EventsCalendarService {
     endDate: Date
   ): Promise<EventsCalendarDocument[]> {
     try {
+      // Ensure endDate includes the entire day
+      if (isNaN(startDate.getTime())) {
+        throw new BadRequestException('Invalid start date format');
+      }
+      if (isNaN(endDate.getTime())) {
+        throw new BadRequestException('Invalid end date format');
+      } 
+      const inclusiveEndDate = new Date(endDate);
+      inclusiveEndDate.setHours(23, 59, 59, 999);
       const baseEvents = await this.eventsCalendarModel
         .find({ 
           userId, 
@@ -89,11 +99,11 @@ export class EventsCalendarService {
 
       for (const event of baseEvents) {
         if (event.recurrence && event.recurrence.frequency !== RecurrenceFrequency.NONE) {
-          const recurringEvents = this.generateRecurringEvents(event, startDate, endDate);
+          const recurringEvents = this.generateRecurringEvents(event, startDate, inclusiveEndDate);
           allEvents.push(...recurringEvents);
         } else {
           // Single event within range
-          if (event.startDate >= startDate && event.startDate <= endDate) {
+          if (event.startDate >= startDate && event.startDate <= inclusiveEndDate) {
             allEvents.push(event);
           }
         }
@@ -101,6 +111,9 @@ export class EventsCalendarService {
 
       return allEvents.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       this.logger.error('Error getting events in range:', error);
       throw new InternalServerErrorException('Error getting events in range');
     }
@@ -120,28 +133,40 @@ export class EventsCalendarService {
 
     let currentDate = new Date(baseEvent.startDate);
     let occurrenceCount = 0;
-    const maxDate = recurrence.endDate || rangeEnd;
+    
+    // Calculate the effective end date based on both maxOccurrences and rangeEnd
+    const maxDate = recurrence.endDate 
+      ? new Date(Math.min(recurrence.endDate.getTime(), rangeEnd.getTime()))
+      : rangeEnd;
+    
     const maxOccurrences = recurrence.maxOccurrences || 100;
 
-    while (currentDate <= maxDate && currentDate <= rangeEnd && occurrenceCount < maxOccurrences) {
-      if (currentDate >= rangeStart) {
-        if (this.shouldCreateOccurrence(currentDate, recurrence)) {
-          const eventDuration = baseEvent.endDate 
-            ? baseEvent.endDate.getTime() - baseEvent.startDate.getTime()
-            : (baseEvent.duration || 0) * 60000;
+    // If the base event is before rangeStart, find the first occurrence within range
+    if (currentDate < rangeStart) {
+      while (currentDate < rangeStart && occurrenceCount < maxOccurrences) {
+        currentDate = this.getNextOccurrenceDate(currentDate, recurrence);
+        occurrenceCount++;
+      }
+    }
 
-          const occurrenceEvent = {
-            ...baseEvent.toObject(),
-            _id: new mongoose.Types.ObjectId(),
-            startDate: new Date(currentDate),
-            endDate: eventDuration > 0 ? new Date(currentDate.getTime() + eventDuration) : undefined,
-            isRecurringInstance: true,
-            parentEventId: baseEvent._id,
-          } as EventsCalendarDocument;
+    // Generate events within the range
+    while (currentDate <= maxDate && occurrenceCount < maxOccurrences) {
+      if (this.shouldCreateOccurrence(currentDate, recurrence)) {
+        const eventDuration = baseEvent.endDate 
+          ? baseEvent.endDate.getTime() - baseEvent.startDate.getTime()
+          : (baseEvent.duration || 0) * 60000;
 
-          events.push(occurrenceEvent);
-          occurrenceCount++;
-        }
+        const occurrenceEvent = {
+          ...baseEvent.toObject(),
+          _id: new mongoose.Types.ObjectId(),
+          startDate: new Date(currentDate),
+          endDate: eventDuration > 0 ? new Date(currentDate.getTime() + eventDuration) : undefined,
+          isRecurringInstance: true,
+          parentEventId: baseEvent._id,
+        } as EventsCalendarDocument;
+
+        events.push(occurrenceEvent);
+        occurrenceCount++;
       }
 
       currentDate = this.getNextOccurrenceDate(currentDate, recurrence);
@@ -209,6 +234,9 @@ export class EventsCalendarService {
       if (!event.userId.equals(userId)) throw new ForbiddenException('Unauthorized access');
       return await event.populate('userId');
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error getting event');
     }
   }
@@ -244,6 +272,9 @@ export class EventsCalendarService {
       const event_upd = await this.eventsCalendarModel.findByIdAndUpdate(id, updateData, { new: true });
       return event_upd.populate('userId');
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error updating event');
     }
   }
@@ -257,6 +288,9 @@ export class EventsCalendarService {
       this.eventEmitter.emit(EventsList.EVENT_DELETED, {userId: userId, eventId: id});
       return deletedEvent;
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error deleting event');
     }
   }

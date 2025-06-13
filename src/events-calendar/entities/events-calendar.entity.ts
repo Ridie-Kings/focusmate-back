@@ -9,13 +9,13 @@ export enum RecurrenceFrequency {
 }
 
 export enum DayOfWeek {
-  SUNDAY = 0,
   MONDAY = 1,
   TUESDAY = 2,
   WEDNESDAY = 3,
   THURSDAY = 4,
   FRIDAY = 5,
   SATURDAY = 6,
+  SUNDAY = 7,
 }
 
 export interface RecurrencePattern {
@@ -57,7 +57,7 @@ export class EventsCalendar {
     type: {
       frequency: { type: String, enum: Object.values(RecurrenceFrequency), default: RecurrenceFrequency.NONE },
       interval: { type: Number, default: 1 },
-      daysOfWeek: [{ type: Number, enum: Object.values(DayOfWeek) }],
+      daysOfWeek: [{ type: Number, enum: [1,2,3,4,5,6,7] }],
       endDate: { type: Date, required: false },
       maxOccurrences: { type: Number, required: false },
     },
