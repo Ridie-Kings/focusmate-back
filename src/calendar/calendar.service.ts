@@ -67,30 +67,30 @@ export class CalendarService {
     }
     const tasks_calendar = await this.findTaskByDate(userId, task["dueDate"]);
     // Check for task time conflicts
-    if (tasks_calendar?.length > 0) {
-      const newTaskStart = new Date(task.startDate);
-      const newTaskEnd = new Date(task.endDate);
+    // if (tasks_calendar?.length > 0) {
+    //   const newTaskStart = new Date(task.startDate);
+    //   const newTaskEnd = new Date(task.endDate);
 
-      const conflictResults = await Promise.all(
-        tasks_calendar.map(async (existingTask) => {
-          const existingTaskCalendar = await this.tasksService.findOne(existingTask._id, userId);
-          const existingStart = new Date(existingTaskCalendar.startDate);
-          const existingEnd = new Date(existingTaskCalendar.endDate);
-          const result = (
-            (newTaskStart >= existingStart && newTaskStart < existingEnd) ||
-            (newTaskEnd > existingStart && newTaskEnd <= existingEnd) ||
-            (newTaskStart <= existingStart && newTaskEnd >= existingEnd)
-          );
-          return result;
-      }));
+    //   const conflictResults = await Promise.all(
+    //     tasks_calendar.map(async (existingTask) => {
+    //       const existingTaskCalendar = await this.tasksService.findOne(existingTask._id, userId);
+    //       const existingStart = new Date(existingTaskCalendar.startDate);
+    //       const existingEnd = new Date(existingTaskCalendar.endDate);
+    //       const result = (
+    //         (newTaskStart >= existingStart && newTaskStart < existingEnd) ||
+    //         (newTaskEnd > existingStart && newTaskEnd <= existingEnd) ||
+    //         (newTaskStart <= existingStart && newTaskEnd >= existingEnd)
+    //       );
+    //       return result;
+    //   }));
 
-      const hasConflict = conflictResults.some(Boolean);
+    //   const hasConflict = conflictResults.some(Boolean);
 
-      if (hasConflict) {
-        throw new ConflictException('Task conflicts with existing task time slot');
-      }
+    //   if (hasConflict) {
+    //     throw new ConflictException('Task conflicts with existing task time slot');
+    //   }
 
-    }
+    // }
     try {
       const updCal = await this.calendarModel.findByIdAndUpdate(calendar._id, { $addToSet: { tasks: taskId } }, { new: true });
       return await updCal.populate("tasks");
