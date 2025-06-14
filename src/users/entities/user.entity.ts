@@ -10,6 +10,11 @@ import mongoose, { Document } from "mongoose";
 //   //settings: Record<string, any>;
 // }
 
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin'
+}
+
 export type UserDocument = User & Document;
 @Schema({ timestamps: true, versionKey: false })
 export class User extends Document {
@@ -38,6 +43,9 @@ export class User extends Document {
     minlength: 8,
   })
   password: string;
+
+  @Prop({ type: String, enum: UserRole, default: UserRole.USER })
+  role: UserRole;
 
   @Prop({ required: false, default: null, type: Date })
   birthDate: Date;

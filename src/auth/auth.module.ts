@@ -12,6 +12,8 @@ import { TokenBlacklistModule } from "../token-black-list/token-black-list.modul
 import { EmailModule } from '../email/email.module';
 import { WebhooksModule } from '../webhooks/webhooks.module';
 import { GoogleStrategy } from './strategies/google.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 
 @Module({
@@ -32,7 +34,14 @@ import { GoogleStrategy } from './strategies/google.strategy';
     WebhooksModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, GoogleStrategy, ConfigService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtAuthGuard,
+    AdminGuard,
+    GoogleStrategy,
+    ConfigService,
+  ],
   exports: [AuthService, JwtModule, ConfigService],
 })
 export class AuthModule {}
