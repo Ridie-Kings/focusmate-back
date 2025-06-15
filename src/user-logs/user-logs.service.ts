@@ -1,4 +1,4 @@
-import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { UserLog, UserLogDocument } from './entities/user-log.entity';
 import { InjectModel } from '@nestjs/mongoose';
@@ -216,8 +216,7 @@ export class UserLogsService {
       if (!userLog) {
         throw new NotFoundException('User log not found');
       }
-
-      
+      return userLog;
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
@@ -569,14 +568,27 @@ export class UserLogsService {
 
   async getTasksStats(userId: mongoose.Types.ObjectId, monthInit: string, monthEnd: string) {
     try {
+      // Validación de formato y rango
+      const monthYearRegex = /^([1-9]|1[0-2])-\d{4}$/;
+      if (!monthYearRegex.test(monthInit) || !monthYearRegex.test(monthEnd)) {
+        throw new BadRequestException('monthInit and monthEnd must be in format M-YYYY or MM-YYYY');
+      }
+      const [initMonth, initYear] = monthInit.split('-').map(Number);
+      const [endMonth, endYear] = monthEnd.split('-').map(Number);
+      if (initMonth < 1 || initMonth > 12 || endMonth < 1 || endMonth > 12) {
+        throw new BadRequestException('Month must be between 1 and 12');
+      }
+      if (isNaN(initYear) || isNaN(endYear)) {
+        throw new BadRequestException('Year must be a valid number');
+      }
+      if (endYear < initYear || (endYear === initYear && endMonth < initMonth)) {
+        throw new BadRequestException('monthEnd must be equal or after monthInit');
+      }
+
       const tasks = await this.taskModel.find({ userId });
       if (!tasks) {
         throw new NotFoundException('Tasks not found');
       }
-
-      // Parse month and year from strings
-      const [initMonth, initYear] = monthInit.split('-').map(Number);
-      const [endMonth, endYear] = monthEnd.split('-').map(Number);
 
       // Calculate total months between dates
       const totalMonths = (endYear - initYear) * 12 + (endMonth - initMonth) + 1;
@@ -628,6 +640,73 @@ export class UserLogsService {
         throw error;
       }
       throw new InternalServerErrorException('Error getting tasks stats');
+    }
+  }
+
+  async getHabitsStats(userId: mongoose.Types.ObjectId, monthInit: string, monthEnd: string) {
+    try {
+      // Validación de formato y rango
+      const monthYearRegex = /^([1-9]|1[0-2])-\d{4}$/;
+      if (!monthYearRegex.test(monthInit) || !monthYearRegex.test(monthEnd)) {
+        throw new BadRequestException('monthInit and monthEnd must be in format M-YYYY or MM-YYYY');
+      }
+      const [initMonth, initYear] = monthInit.split('-').map(Number);
+      const [endMonth, endYear] = monthEnd.split('-').map(Number);
+      if (initMonth < 1 || initMonth > 12 || endMonth < 1 || endMonth > 12) {
+        throw new BadRequestException('Month must be between 1 and 12');
+      }
+      if (isNaN(initYear) || isNaN(endYear)) {
+        throw new BadRequestException('Year must be a valid number');
+      }
+      if (endYear < initYear || (endYear === initYear && endMonth < initMonth)) {
+        throw new BadRequestException('monthEnd must be equal or after monthInit');
+      }
+
+      const habits = await this.habitModel.find({ userId });
+      if (!habits) {
+        throw new NotFoundException('Habits not found');
+      }
+
+      // Calculate total months between dates
+      const totalMonths = (endYear - initYear) * 12 + (endMonth - initMonth) + 1;
+
+      // Initialize response array
+      const response = Array(totalMonths).fill(null).map((_, index) => {
+        const currentMonth = (initMonth + index - 1) % 12 + 1;
+        const currentYear = initYear + Math.floor((initMonth + index - 1) / 12);
+        // Get days in current month
+        const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+        return {
+          month: currentMonth,
+          year: currentYear,
+          completedDates: new Array(daysInMonth).fill(0)
+        };
+      });
+
+      // Count completed habits for each day in each month
+      habits.forEach(habit => {
+        habit.completedDates.forEach(date => {
+          const completionDate = new Date(date);
+          const month = completionDate.getMonth() + 1;
+          const year = completionDate.getFullYear();
+          const day = completionDate.getDate();
+          // Find the corresponding month in our response array
+          const monthIndex = (year - initYear) * 12 + (month - initMonth);
+          if (monthIndex < 0 || monthIndex >= totalMonths) return;
+          const monthStats = response[monthIndex];
+          // Increment the count for the day (days are 1-indexed)
+          if (day > 0 && day <= monthStats.completedDates.length) {
+            monthStats.completedDates[day - 1]++;
+          }
+        });
+      });
+
+      return { response };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error getting habits stats');
     }
   }
 

@@ -164,4 +164,24 @@ export class UserLogsController {
   async getTasksStats(@GetUser() user: User, @Param('monthInit') monthInit: string, @Param('monthEnd') monthEnd: string) {
     return await this.userLogsService.getTasksStats(user.id, monthInit, monthEnd);
   }
+
+  @Get('habits/:monthInit/:monthEnd')
+  @ApiOperation({ summary: 'Get habits stats'})
+  @ApiParam({ name: 'monthInit', type: Number, description: 'Month initial' })
+  @ApiParam({ name: 'monthEnd', type: Number, description: 'Month end' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the habits stats'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid month initial or month end'
+  })
+  async getHabitsStats(@GetUser() user: User, @Param('monthInit') monthInit: string, @Param('monthEnd') monthEnd: string) {
+    return await this.userLogsService.getHabitsStats(user.id, monthInit, monthEnd);
+  }
 }
