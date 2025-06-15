@@ -76,6 +76,15 @@ export class UserLog extends Document {
   EventsCalendarCreated: number;
   @Prop({ type: Number, required: false, default: 0})
   EventsCalendarDeleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  stopwatchCreated: number;
+  @Prop({ type: Number, required: false, default: 0})
+  stopwatchCompleted: number;
+  @Prop({ type: Number, required: false, default: 0})
+  countdownCreated: number;
+  @Prop({ type: Number, required: false, default: 0})
+  countdownCompleted: number;
+
 
 }
 

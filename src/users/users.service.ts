@@ -114,7 +114,70 @@ export class UsersService {
     return user_new;
   }
 
-  async remove(id: mongoose.Types.ObjectId) {
+  async remove(id: mongoose.Types.ObjectId, useTransaction = true) {
+    if (!useTransaction) {
+      try {
+        const user = await this.userModel.findById(id);
+        if (!isValidObjectId(id) || !user) {
+          throw new BadRequestException("Invalid id or user not found");
+        }
+        this.logger.log(`Starting NON-TRANSACTIONAL cascade deletion for user: ${id}`);
+        const {
+          Task, Habit, Pomodoro, EventsCalendar, Calendar, Note, Section, Reminders, UserLog, GamificationProfile, Subscription, Dict, Avatar, Banner, Checklist, TokenBlackList, Stopwatch, Countdown,
+        } = mongoose.models;
+        const deleteOperations = [
+          Task?.deleteMany({ userId: id }),
+          Habit?.deleteMany({ userId: id }),
+          Pomodoro?.deleteMany({ userId: id }),
+          EventsCalendar?.deleteMany({ userId: id }),
+          Calendar?.deleteMany({ user: id }),
+          Note?.deleteMany({ user: id }),
+          Section?.deleteMany({ userId: id }),
+          Reminders?.deleteMany({ user: id }),
+          UserLog?.deleteMany({ userId: id }),
+          GamificationProfile?.deleteMany({ user: id }),
+          Subscription?.deleteMany({ userId: id }),
+          Checklist?.deleteMany({ userId: id }),
+          TokenBlackList?.deleteMany({ userId: id }),
+          Stopwatch?.deleteMany({ userId: id }),
+          Countdown?.deleteMany({ userId: id }),
+        ].filter(Boolean);
+        const userSpecificOperations = [
+          Avatar?.deleteMany({ userId: id }),
+          Banner?.deleteMany({ userId: id }),
+        ].filter(Boolean);
+        const dictOperations = [
+          Dict?.deleteMany({ ownerId: id }),
+          Dict?.updateMany(
+            { 'sharedWith.userId': id },
+            { $pull: { sharedWith: { userId: id } } }
+          ),
+        ].filter(Boolean);
+        const pomodoroSharedOperations = [
+          Pomodoro?.updateMany(
+            { sharedWith: id },
+            { $pull: { sharedWith: id } }
+          ),
+        ].filter(Boolean);
+        const allOperations = [
+          ...deleteOperations,
+          ...userSpecificOperations,
+          ...dictOperations,
+          ...pomodoroSharedOperations,
+        ];
+        this.logger.log(`Executing ${allOperations.length} cascade delete operations (no transaction)`);
+        await Promise.all(allOperations);
+        await this.userModel.findByIdAndDelete(id);
+        this.logger.log(`Successfully cascade deleted user: ${id}`);
+        this.eventEmitter.emit(EventsList.USER_DELETED, { userId: id });
+        return { message: 'User and all related data successfully deleted', userId: id };
+      } catch (error) {
+        this.logger.error(`Error during NON-TRANSACTIONAL cascade deletion for user ${id}:`, error);
+        throw new InternalServerErrorException(
+          `Failed to delete user and related data: ${error.message}`
+        );
+      }
+    }
     const session = await mongoose.startSession();
     
     try {

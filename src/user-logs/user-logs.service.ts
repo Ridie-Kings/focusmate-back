@@ -1,19 +1,30 @@
-import { Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { UserLog, UserLogDocument } from './entities/user-log.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { PomodoroDocument } from 'src/pomodoro/entities/pomodoro.entity';
 import { Pomodoro } from 'src/pomodoro/entities/pomodoro.entity';
+import { PomodoroResponse, UserLogResponse } from './interfaces/user-log.interface';
+import { Task, TaskDocument } from 'src/tasks/entities/task.entity';
+import { Calendar, CalendarDocument } from 'src/calendar/entities/calendar.entity';
+import { EventsCalendar, EventsCalendarDocument } from 'src/events-calendar/entities/events-calendar.entity';
 
 @Injectable()
 export class UserLogsService {
   private readonly logger = new Logger(UserLogsService.name);
+  habitModel: any;
 
   constructor(
     @InjectModel(UserLog.name)
     private readonly userLogModel: Model<UserLogDocument>,
     @InjectModel(Pomodoro.name)
     private readonly pomodoroModel: Model<PomodoroDocument>,
+    @InjectModel(Task.name)
+    private readonly taskModel: Model<TaskDocument>,
+    @InjectModel(Calendar.name)
+    private readonly calendarModel: Model<CalendarDocument>,
+    @InjectModel(EventsCalendar.name)
+    private readonly eventsCalendarModel: Model<EventsCalendarDocument>,
   ){}
 
   async create(userId: mongoose.Types.ObjectId) {
@@ -199,8 +210,16 @@ export class UserLogsService {
 
   async getUserLogs(userId: mongoose.Types.ObjectId) {
     try {
-      return await this.userLogModel.findOne({ userId });
+      const userLog = await this.userLogModel.findOne({ userId });
+      if (!userLog) {
+        throw new NotFoundException('User log not found');
+      }
+
+      
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       console.error('Error getting user logs:', error);
       throw new InternalServerErrorException('Error getting user logs');
     }
@@ -371,5 +390,248 @@ export class UserLogsService {
     );
     return userLog;
   }
+
+  async getUserStats(userId: mongoose.Types.ObjectId) {
+    try {
+      const userLog = await this.userLogModel.findOne({ userId });
+      if (!userLog) {
+        throw new NotFoundException('User log not found');
+      }
+      let lastLogin = userLog.loginDates[userLog.loginDates.length - 1];
+
+      const tasks = await this.taskModel.find({ userId });
+      const habits = await this.habitModel.find({ userId });
+      const events = await this.eventsCalendarModel.find({ userId });
+      const pomodoros = await this.pomodoroModel.find({ userId });
+      const calendar = await this.calendarModel.find({ userId });
+
+      const completedTasks = tasks.filter(task => task.status === 'completed');
+      const pendingTasks = tasks.filter(task => task.status === 'pending');
+      const droppedTasks = tasks.filter(task => task.status === 'dropped');
+
+      // Get current date for all calculations
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth();
+      const currentYear = currentDate.getFullYear();
+
+      // Calculate total time spent in events
+      const pastEvents = events.filter(event => new Date(event.endDate) < currentDate);
+      const totalTimeSpent = pastEvents.reduce((total, event) => {
+        if (event.duration) {
+          return total + event.duration;
+        } else if (event.startDate && event.endDate) {
+          const start = new Date(event.startDate);
+          const end = new Date(event.endDate);
+          const durationInMinutes = Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
+          return total + durationInMinutes;
+        }
+        return total;
+      }, 0);
+      
+      // Get days in current month
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      
+      // Initialize array with zeros for each day of the month
+      const completedDates = new Array(daysInMonth).fill(0);
+      
+      // Process each habit's completion dates
+      habits.forEach(habit => {
+        habit.completedDates.forEach(date => {
+          const completionDate = new Date(date);
+          if (completionDate.getMonth() === currentMonth && 
+              completionDate.getFullYear() === currentYear) {
+            completedDates[completionDate.getDate() - 1]++;
+          }
+        });
+      });
+
+      const pomodoroCompleted = pomodoros.filter(pomodoro => pomodoro.state === 'completed');
+      let interruptions = 0;
+      for (const pomodoro of pomodoroCompleted) {
+        interruptions += pomodoro.interruptions;
+      }
+      const mediumInterruptions = interruptions / pomodoroCompleted.length;
+      const PomodoroWithoutInterruptions = pomodoros.filter(pomodoroCompleted => pomodoroCompleted.interruptions === 0);
+
+      let totalTimeDone=0;
+      let totalTimePlanned=0;
+      pomodoros.forEach(pomodoro => {
+        if (pomodoro.state === 'completed') {
+          totalTimeDone += (pomodoro.workDuration * pomodoro.cycles);
+          totalTimePlanned += totalTimeDone;
+        }
+        if (pomodoro.state === 'finished') {
+          totalTimeDone += (pomodoro.workDuration * pomodoro.currentCycle);
+          totalTimePlanned += (pomodoro.workDuration * pomodoro.cycles);
+        }
+      });
+
+      
+
+      const stats: UserLogResponse = {
+        Login: {
+          registerTime: userLog.registerTime,
+          lastLogin: lastLogin,
+        },
+        Streak: {
+          currentStreak: userLog.streak,
+          bestStreak: userLog.bestStreak,
+        },
+        Tasks: {
+          totalTasks: userLog.taskCounts,
+          totalActualTasks: tasks.length,
+          completedTasks: completedTasks.length,
+          pendingTasks: pendingTasks.length,
+          droppedTasks: droppedTasks.length,
+        },
+        Habits: {
+          activeHabits: habits.length,
+          completedHabits: {
+            month: currentMonth,
+            completedDate: completedDates,
+          },
+        },
+        Events: {
+          totalEvents: userLog.EventsCalendarCreated,
+          totalActualEvents: events.length,
+          spendTimeEvents: totalTimeSpent,
+        },
+        Pomodoros: {
+          totalPomodoros: userLog.pomodoroCreated,
+          totalActualPomodoros: pomodoros.length,
+          completedPomodoros: pomodoroCompleted.length,
+          completedPausedPomodoros: pomodoros.filter(pomodoro => pomodoro.interruptions > 0).length,
+          droppedPomodoros: pomodoros.filter(pomodoro => pomodoro.state === 'finished').length,
+          mediumInterruptions: mediumInterruptions,
+          PomodoroWithoutInterruptions: PomodoroWithoutInterruptions.length,
+          totalInterruptions: interruptions,
+          totalTimeDone: totalTimeDone,
+          totalTimePlanned: totalTimePlanned,
+        },
+        Calendar: {
+          totalEvents: calendar[0]?.events?.length || 0,
+          totalTasks: calendar[0]?.tasks?.length || 0,
+          percentageTasks: tasks.length > 0 ? 
+            ((calendar[0]?.tasks?.length || 0) / tasks.length) * 100 : 0
+        }
+      }
+      return stats;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      console.error('Error getting user stats:', error);
+      throw new InternalServerErrorException('Error getting user stats');
+    }
+  }
+
+  async getPomodoroStats(userId: mongoose.Types.ObjectId, year: number, week: number) {
+    try {
+      const pomodoros = await this.pomodoroModel.find({ userId });
+      if (!pomodoros) {
+        throw new NotFoundException('Pomodoros not found');
+      }
+
+      // Get start and end dates for the specified week
+      const startDate = new Date(year, 0, 1 + (week - 1) * 7);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 6);
+
+      // Initialize array for each day of the week
+      const pomodorosPerDay = Array(7).fill(0).map((_, index) => ({
+        day: index + 1,
+        pomodoros: 0
+      }));
+
+      // Count pomodoros for each day
+      pomodoros.forEach(pomodoro => {
+        if (pomodoro.startAt && pomodoro.startAt >= startDate && pomodoro.startAt <= endDate) {
+          const dayIndex = pomodoro.startAt.getDay(); // 0-6 (Sunday-Saturday)
+          const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1; // Convert to 0-6 (Monday-Sunday)
+          pomodorosPerDay[adjustedIndex].pomodoros++;
+        }
+      });
+
+      const pomodoroResponse: PomodoroResponse = {
+        pomodoros: pomodorosPerDay
+      };
+      
+      return pomodoroResponse;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error getting pomodoro stats');
+    }
+  }
+
+  async getTasksStats(userId: mongoose.Types.ObjectId, monthInit: string, monthEnd: string) {
+    try {
+      const tasks = await this.taskModel.find({ userId });
+      if (!tasks) {
+        throw new NotFoundException('Tasks not found');
+      }
+
+      // Parse month and year from strings
+      const [initMonth, initYear] = monthInit.split('-').map(Number);
+      const [endMonth, endYear] = monthEnd.split('-').map(Number);
+
+      // Calculate total months between dates
+      const totalMonths = (endYear - initYear) * 12 + (endMonth - initMonth) + 1;
+      
+      // Initialize response array
+      const response = Array(totalMonths).fill(null).map((_, index) => {
+        const currentMonth = (initMonth + index - 1) % 12 + 1;
+        const currentYear = initYear + Math.floor((initMonth + index - 1) / 12);
+        return {
+          month: currentMonth,
+          year: currentYear,
+          completedTasks: 0,
+          pendingTasks: 0,
+          droppedTasks: 0,
+          createdTasks: 0
+        };
+      });
+
+      // Count tasks for each month
+      tasks.forEach(task => {
+        const taskDate = task.completedAt;
+        if (!taskDate) return;
+
+        const taskMonth = taskDate.getMonth() + 1; // getMonth() returns 0-11
+        const taskYear = taskDate.getFullYear();
+
+        // Find the corresponding month in our response array
+        const monthIndex = (taskYear - initYear) * 12 + (taskMonth - initMonth);
+        if (monthIndex < 0 || monthIndex >= totalMonths) return;
+
+        const monthStats = response[monthIndex];
+        
+        // Count by status
+        if (task.status === 'completed') {
+          monthStats.completedTasks++;
+        } else if (task.status === 'pending' || task.status === 'progress') {
+          monthStats.pendingTasks++;
+        } else if (task.status === 'dropped') {
+          monthStats.droppedTasks++;
+        }
+
+        // Calculate total created tasks
+        monthStats.createdTasks = monthStats.completedTasks + monthStats.pendingTasks + monthStats.droppedTasks;
+      });
+
+      return { response };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error getting tasks stats');
+    }
+  }
+
+  
+
+
+
   
 }

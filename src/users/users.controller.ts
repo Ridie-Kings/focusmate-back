@@ -132,7 +132,7 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
-  @Delete("softDelete")
+  @Delete("delete/soft")
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ 

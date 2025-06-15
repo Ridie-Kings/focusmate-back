@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { UserLogsService } from './user-logs.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import mongoose from 'mongoose';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { User } from 'src/users/entities/user.entity';
 import { GetUser } from 'src/users/decorators/get-user.decorator';
 
@@ -25,6 +25,20 @@ export class UserLogsController {
   })
   async getUserLogs(@GetUser() user: User) {
     return await this.userLogsService.getUserLogs(user.id);
+  }
+
+  @Get('/mystats')
+  @ApiOperation({ summary: 'Get stats of the user'})
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Returns the user metrics' 
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found'
+  })
+  async getUserStats(@GetUser() user: User) {
+    return await this.userLogsService.getUserStats(user.id);
   }
 
 
@@ -112,4 +126,42 @@ export class UserLogsController {
   // ) {
   //   return await this.userLogsService.getRecentActivity(limit, type);
   // }
+  @Get('pomodoro/:year/:week')
+  @ApiOperation({ summary: 'Get pomodoro time weekly'})
+  @ApiParam({ name: 'year', type: Number, description: 'Year' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the pomodoro time weekly'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid year or week'
+  })
+  async getPomodoroTimeWeekly(@GetUser() user: User, @Param('year') year: number, @Param('week') week: number) {
+    return await this.userLogsService.getPomodoroStats(user.id, year, week);
+  }
+
+  @Get('tasks/:monthInit/:monthEnd')
+  @ApiOperation({ summary: 'Get tasks stats'})
+  @ApiParam({ name: 'monthInit', type: Number, description: 'Month initial' })
+  @ApiParam({ name: 'monthEnd', type: Number, description: 'Month end' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the tasks stats'
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'User not found'
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid month initial or month end'
+  })
+  async getTasksStats(@GetUser() user: User, @Param('monthInit') monthInit: string, @Param('monthEnd') monthEnd: string) {
+    return await this.userLogsService.getTasksStats(user.id, monthInit, monthEnd);
+  }
 }
