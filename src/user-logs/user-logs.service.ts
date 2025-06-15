@@ -8,11 +8,11 @@ import { PomodoroResponse, UserLogResponse } from './interfaces/user-log.interfa
 import { Task, TaskDocument } from 'src/tasks/entities/task.entity';
 import { Calendar, CalendarDocument } from 'src/calendar/entities/calendar.entity';
 import { EventsCalendar, EventsCalendarDocument } from 'src/events-calendar/entities/events-calendar.entity';
+import { Habit, HabitDocument } from 'src/habits/entities/habit.entity';
 
 @Injectable()
 export class UserLogsService {
   private readonly logger = new Logger(UserLogsService.name);
-  habitModel: any;
 
   constructor(
     @InjectModel(UserLog.name)
@@ -25,6 +25,8 @@ export class UserLogsService {
     private readonly calendarModel: Model<CalendarDocument>,
     @InjectModel(EventsCalendar.name)
     private readonly eventsCalendarModel: Model<EventsCalendarDocument>,
+    @InjectModel(Habit.name)
+    private readonly habitModel: Model<HabitDocument>,
   ){}
 
   async create(userId: mongoose.Types.ObjectId) {
@@ -629,7 +631,7 @@ export class UserLogsService {
     }
   }
 
-  
+
 
 
 
